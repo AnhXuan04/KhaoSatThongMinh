@@ -1,0 +1,85 @@
+.userHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f3f4f6;
+  position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.userAvatarBox {
+  width: 40px;
+  height: 40px;
+  background-color: #1e293b;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.userNameText {
+  display: flex;
+  flex-direction: column;
+}
+
+.welcomeText {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nameText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0052ff;
+}
+
+.userNavLinks {
+  display: flex;
+  gap: 32px;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.userNavLinks a {
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.userNavLinks a.active {
+  color: #0052ff;
+}
+
+.coinBalance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #111827;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.coinIcon {
+  color: #0052ff;
+}

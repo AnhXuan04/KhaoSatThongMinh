@@ -1,0 +1,14 @@
+/* Reset lại toàn bộ khoảng cách mặc định của trình duyệt */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Ép thẻ gốc của React tràn full 100% màn hình */
+html, body, #root {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #fafbfe; /* Màu nền của Dashboard */
+}
