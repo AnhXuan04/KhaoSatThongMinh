@@ -7,6 +7,7 @@ import DashboardPage from './page/DashboardPage';
 import UpdateProfilePage from './page/UpdateProfilePage';
 import SurveyListPage from './page/SurveyListPage';
 import UserProfilePage from './page/UserProfilePage';
+import ResetPasswordPage from './page/ResetPasswordPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/update-profile" element={<UpdateProfilePage />} />
         <Route path="/surveys" element={<SurveyListPage />} />
         <Route path="/user-profile" element={<UserProfilePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     </BrowserRouter>
   )
