@@ -1,0 +1,516 @@
+.homePageContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f9 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ======================== NAVBAR ======================== */
+.homeNavbar {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  color: #0047ab;
+  text-decoration: none;
+}
+
+.logoIcon {
+  font-size: 24px;
+}
+
+.navLinks {
+  display: flex;
+  gap: 32px;
+  flex: 1;
+  justify-content: center;
+}
+
+.navLink {
+  color: #374151;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.navLink:hover {
+  color: #0047ab;
+}
+
+.navActions {
+  display: flex;
+  gap: 12px;
+}
+
+.navBtnLogin,
+.navBtnSignup {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.navBtnLogin {
+  background: transparent;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.navBtnLogin:hover {
+  border-color: #0047ab;
+  color: #0047ab;
+}
+
+.navBtnSignup {
+  background-color: #0047ab;
+  color: #ffffff;
+}
+
+.navBtnSignup:hover {
+  background-color: #003285;
+}
+
+/* ======================== MAIN CONTENT ======================== */
+.homeMainContent {
+  flex: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 60px 24px;
+}
+
+/* ======================== HERO SECTION ======================== */
+.heroSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  margin-bottom: 100px;
+}
+
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.preBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.preBadgeIcon {
+  font-size: 14px;
+}
+
+.heroTitle {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111827;
+  margin: 0;
+}
+
+.titleHighlight {
+  color: #0047ab;
+  font-style: italic;
+}
+
+.heroDescription {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #6b7280;
+  margin: 0;
+}
+
+.heroActions {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.btnStartNow,
+.btnLearnMore {
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btnStartNow {
+  background-color: #0047ab;
+  color: #ffffff;
+}
+
+.btnStartNow:hover {
+  background-color: #003285;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 71, 171, 0.3);
+}
+
+.btnLearnMore {
+  background-color: #ffffff;
+  color: #0047ab;
+  border: 2px solid #0047ab;
+}
+
+.btnLearnMore:hover {
+  background-color: #f0f4f9;
+  border-color: #003285;
+  color: #003285;
+}
+
+.heroStats {
+  margin-top: 16px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0047ab;
+  background: #e5efff;
+}
+
+.statAvatar svg {
+  font-size: 18px;
+}
+
+.statText {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.statText strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* ======================== HERO RIGHT ======================== */
+.heroRight {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.heroImageWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.heroImage {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  height: 400px;
+}
+
+.heroImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.statsCard {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 220px;
+}
+
+.statsCardHeader {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.statsIcon {
+  width: 32px;
+  height: 32px;
+  background-color: #d1fae5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.statsNumber {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.statsLabel {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 8px 0 0 0;
+  line-height: 1.4;
+}
+
+/* ======================== FEATURES SECTION ======================== */
+.featuresSection {
+  margin-bottom: 80px;
+}
+
+.featuresSection h2 {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 48px 0;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.featureCard {
+  background: #ffffff;
+  padding: 32px 24px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.featureIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef4ff;
+  color: #0047ab;
+}
+
+.featureIcon svg {
+  font-size: 30px;
+}
+
+.featureCard h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.featureCard p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ======================== CTA SECTION ======================== */
+.ctaSection {
+  background: linear-gradient(135deg, #0047ab 0%, #003285 100%);
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.ctaSection h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+}
+
+.ctaSection p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 32px 0;
+}
+
+.btnCtaPrimary {
+  background-color: #ffffff;
+  color: #0047ab;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnCtaPrimary:hover {
+  background-color: #f0f4f9;
+  transform: translateY(-2px);
+}
+
+/* ======================== FOOTER ======================== */
+.homeFooter {
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 32px 0;
+  margin-top: auto;
+}
+
+.footerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footerContent p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 24px;
+}
+
+.footerLinks a {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.footerLinks a:hover {
+  color: #0047ab;
+}
+
+/* ======================== RESPONSIVE ======================== */
+@media (max-width: 1024px) {
+  .heroSection {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .heroTitle {
+    font-size: 40px;
+  }
+
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .btnStartNow,
+  .btnLearnMore {
+    width: 100%;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .homeMainContent {
+    padding: 40px 24px;
+  }
+
+  .heroSection {
+    margin-bottom: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navContent {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .heroTitle {
+    font-size: 32px;
+  }
+
+  .heroDescription {
+    font-size: 16px;
+  }
+
+  .statsCard {
+    position: static;
+    margin-top: 24px;
+  }
+
+  .ctaSection {
+    padding: 40px 24px;
+  }
+
+  .ctaSection h2 {
+    font-size: 28px;
+  }
+
+  .footerContent {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .footerLinks {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

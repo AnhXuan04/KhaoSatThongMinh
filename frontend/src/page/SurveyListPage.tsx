@@ -1,7 +1,6 @@
 import { 
   FiMonitor, FiPlusSquare, FiTrendingUp, FiBookOpen, FiPlus 
 } from 'react-icons/fi';
-import UserHeader from '../assets/components/UserHeader';
 import './SurveyListPage.css';
 
 
@@ -63,8 +62,6 @@ const historySurveys = [
 export default function SurveyListPage() {
   return (
     <div className="surveyPageContainer">
-      <UserHeader />
-
       {/* Nội dung chính */}
       <main className="surveyContent">
         

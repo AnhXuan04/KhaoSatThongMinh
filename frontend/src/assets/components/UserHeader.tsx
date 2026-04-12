@@ -3,7 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaUserAstronaut, FaCoins, FaSignOutAlt } from 'react-icons/fa';
 import './UserHeader.css';
 
-export default function UserHeader() {
+interface UserHeaderProps {
+  showCoin?: boolean;
+}
+
+export default function UserHeader({ showCoin = true }: UserHeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [userName, setUserName] = useState('Thành viên');
@@ -61,10 +65,12 @@ export default function UserHeader() {
         <Link to="/user-profile" className={location.pathname === '/user-profile' ? 'active' : ''}>PROFILE</Link> 
       </nav>
 
-      <div className="coinBalance">
-        <FaCoins className="coinIcon" />
-        <span>2,450 Coins</span>
-      </div>
+      {showCoin && (
+        <div className="coinBalance">
+          <FaCoins className="coinIcon" />
+          <span>2,450 Coins</span>
+        </div>
+      )}
 
       <button 
           onClick={handleLogout} 

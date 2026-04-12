@@ -1,14 +1,45 @@
+import { useEffect, useState } from 'react';
 import { FiArrowRight, FiPlus, FiBarChart2, FiUsers } from 'react-icons/fi';
 import './Dashboard.css';
-import Navbar from '../assets/components/Navbar';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
+  const [fullName, setFullName] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userEmail = localStorage.getItem('userEmail');
+
+    if (!token || !userEmail) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/user/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setFullName(data.fullName || userEmail);
+      } catch (error) {
+        console.error('Không thể tải dữ liệu dashboard:', error);
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
+
   return (
     <div className="dashboardContainer">
-      {/* Navbar */}
-      <Navbar />
-
       <div className="mainContent">
         
         <div className="sectionWrapper">
@@ -17,12 +48,12 @@ export default function DashboardPage() {
               <div className="profileInfo">
                 <div className="profileAvatar">
                   {/* Thay link ảnh thật của bạn vào đây */}
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Lê Anh" />
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName || 'User'}`} alt={fullName || 'Người dùng'} />
                   <div className="statusDot"></div>
                 </div>
                 <div className="profileText">
-                  <h2>Chào buổi sáng, Lê Anh</h2>
-                  <p>Quản trị viên hệ thống khảo sát cao cấp</p>
+                  <h2>Chào buổi sáng, {fullName || 'Thành viên mới'}</h2>
+                  <p>Người tạo khảo sát chuyên nghiệp</p>
                 </div>
               </div>
               <Link to="/update-profile">

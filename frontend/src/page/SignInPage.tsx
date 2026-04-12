@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 import './Auth.css';
 import { Link, useNavigate } from 'react-router-dom';
+
+const getRoleFromToken = (token: string) => {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) {
+      return null;
+    }
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '==='.slice((base64.length + 3) % 4);
+    const decoded = JSON.parse(atob(padded));
+    return typeof decoded?.role === 'string' ? decoded.role : null;
+  } catch {
+    return null;
+  }
+};
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -36,7 +50,16 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (response.ok) {
       localStorage.setItem('token', result);
       localStorage.setItem('userEmail', formData.email);
-      navigate('/user-profile'); 
+      const role = getRoleFromToken(result);
+      if (role === 'ROLE_ADMIN') {
+        navigate('/dashboard-admin');
+        return;
+      }
+      if (role === 'ROLE_INTERVIEWER') {
+        navigate('/dashboard');
+        return;
+      }
+      navigate('/user-profile');
     } else {
       setErrorMessage(result);
     }
@@ -116,13 +139,6 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           <div className="dividerLine"></div>
           <span className="dividerText">HOẶC</span>
           <div className="dividerLine"></div>
-        </div>
-
-        <div className="socialButtonsSection">
-          <button className="socialButton" type="button">
-            <FcGoogle />
-            Google
-          </button>
         </div>
 
         <div className="footerSection">
