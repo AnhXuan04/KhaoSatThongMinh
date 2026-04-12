@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiEdit2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import UserHeader from '../assets/components/UserHeader';
 import './UserProfilePage.css';
 
 // Danh sách các lĩnh vực quan tâm mặc định để render ra giao diện
@@ -28,6 +27,9 @@ export default function UserProfilePage() {
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Lấy thông tin xác thực từ LocalStorage
   const token = localStorage.getItem('token');
@@ -110,23 +112,60 @@ export default function UserProfilePage() {
 
       const result = await response.text();
 
-      if (response.ok) {
-        setMessage("Cập nhật thông tin thành công!");
-      } else {
+      if (!response.ok) {
         setErrorMessage(result);
+        return;
       }
+
+      const hasPasswordChange = oldPassword || newPassword || confirmPassword;
+      if (hasPasswordChange) {
+        if (!oldPassword || !newPassword) {
+          setErrorMessage('Vui lòng nhập mật khẩu hiện tại và mật khẩu mới.');
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          setErrorMessage('Mật khẩu mới không khớp.');
+          return;
+        }
+
+        const passwordResponse = await fetch('http://localhost:8080/api/user/change-password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            currentPassword: oldPassword,
+            newPassword: newPassword
+          })
+        });
+
+        const passwordResult = await passwordResponse.text();
+
+        if (!passwordResponse.ok) {
+          setErrorMessage(passwordResult || 'Mật khẩu hiện tại không đúng!');
+          return;
+        }
+
+        setMessage(passwordResult || 'Đổi mật khẩu thành công!');
+        return;
+      }
+
+      setMessage(result || 'Cập nhật thông tin thành công!');
     } catch (error) {
       console.error("Lỗi cập nhật:", error);
       setErrorMessage("Không thể kết nối đến máy chủ.");
     } finally {
       setIsLoading(false);
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     }
   };
 
   return (
     <div className="userProfileContainer">
-      <UserHeader />
-
       <main className="profileMainContent">
         {/* Tiêu đề trang */}
         <div className="pageHeader">
@@ -239,6 +278,57 @@ export default function UserProfilePage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            <div className="formRow">
+              <div className="inputGroup">
+                <label>MẬT KHẨU CŨ</label>
+                <input
+                  type="password"
+                  className="grayInput"
+                  value={oldPassword}
+                  onChange={(e) => {
+                    setOldPassword(e.target.value);
+                    setMessage('');
+                    setErrorMessage('');
+                  }}
+                  placeholder="Nhập mật khẩu cũ"
+                />
+              </div>
+            </div>
+
+            <div className="formRow">
+              <div className="inputGroup">
+                <label>MẬT KHẨU MỚI</label>
+                <input
+                  type="password"
+                  className="grayInput"
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    setMessage('');
+                    setErrorMessage('');
+                  }}
+                  placeholder="Nhập mật khẩu mới"
+                />
+              </div>
+            </div>
+
+            <div className="formRow">
+              <div className="inputGroup">
+                <label>NHẬP LẠI MẬT KHẨU MỚI</label>
+                <input
+                  type="password"
+                  className="grayInput"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setMessage('');
+                    setErrorMessage('');
+                  }}
+                  placeholder="Nhập lại mật khẩu mới"
+                />
               </div>
             </div>
 

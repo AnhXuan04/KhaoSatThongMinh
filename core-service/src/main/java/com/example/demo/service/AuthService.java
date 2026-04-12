@@ -27,8 +27,20 @@ public class AuthService {
     private JwtUtils jwtUtils;
 
     public String registerUser(SignUpRequest request) {
+        return registerByRole(request, Role.ROLE_INTERVIEWEE);
+    }
+
+    public String registerInterviewer(SignUpRequest request) {
+        return registerByRole(request, Role.ROLE_INTERVIEWER);
+    }
+
+    private String registerByRole(SignUpRequest request, Role role) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email này đã được sử dụng!");
+        }
+
+        if (role != Role.ROLE_INTERVIEWEE && role != Role.ROLE_INTERVIEWER) {
+            throw new RuntimeException("Không thể đăng ký với vai trò này!");
         }
 
         User user = new User();
@@ -37,17 +49,6 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        String roleStr = request.getRole();
-        Role role;
-        if (roleStr == null) {
-            role = Role.ROLE_INTERVIEWEE;
-        } else {
-            try {
-                role = Role.valueOf(roleStr.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Vai trò không hợp lệ!");
-            }
-        }
         user.setRole(role);
 
         userRepository.save(user);

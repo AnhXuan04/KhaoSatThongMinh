@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ChangePasswordRequest;
 import com.example.demo.dto.UserProfileDto;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +35,18 @@ public class UserController {
         String email = (String) auth.getPrincipal();
 
         return ResponseEntity.ok(userService.updateUserProfile(email, dto));
+    }
+
+    @PutMapping("/change-password")
+    @PreAuthorize("hasRole('INTERVIEWEE') or hasRole('ADMIN') or hasRole('INTERVIEWER')")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest dto) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = (String) auth.getPrincipal();
+
+            return ResponseEntity.ok(userService.changePassword(email, dto.getCurrentPassword(), dto.getNewPassword()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

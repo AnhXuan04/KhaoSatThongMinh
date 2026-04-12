@@ -26,6 +26,16 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/signup/interviewer")
+    public ResponseEntity<?> registerInterviewer(@RequestBody SignUpRequest signUpRequest) {
+        try {
+            String message = authService.registerInterviewer(signUpRequest);
+            return ResponseEntity.ok(message);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/signin")
     public ResponseEntity<?> loginUser(@RequestBody SignInRequest signInRequest) {
         try {
