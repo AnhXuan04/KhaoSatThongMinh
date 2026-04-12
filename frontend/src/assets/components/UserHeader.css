@@ -83,3 +83,22 @@
 .coinIcon {
   color: #0052ff;
 }
+/* Nút Đăng xuất */
+.logoutButton {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.logoutButton:hover {
+  color: #ff4d4f; 
+  background-color: rgba(255, 77, 79, 0.1);
+  transform: scale(1.1);
+}

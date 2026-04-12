@@ -1,11 +1,45 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 export default function ForgotPasswordPage() {
-  const handleSubmit = (event: React.FormEvent) => {
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState(''); 
+  const [errorMessage, setErrorMessage] = useState(''); 
+  const [isLoading, setIsLoading] = useState(false); 
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Đang gửi yêu cầu đặt lại mật khẩu...');
-    // Thêm logic gọi API gửi email ở đây
+    setMessage('');
+    setErrorMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email }) // Gửi email xuống BE
+      });
+
+      const result = await response.text();
+
+      if (response.ok) {
+        setMessage(result); 
+
+        setTimeout(() => {
+           navigate('/reset-password', { state: { email: email } }); 
+        }, 2000);
+      } else {
+        setErrorMessage(result);
+      }
+    } catch (error) {
+      console.error("Lỗi:", error);
+      setErrorMessage("Không thể kết nối đến máy chủ.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -14,25 +48,43 @@ export default function ForgotPasswordPage() {
         
         <div className="headerSection">
           <h2 className="title">Quên Mật Khẩu</h2>
-          <p className="subtitle">Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn mật khẩu mới.</p>
+          <p className="subtitle">Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn mã OTP khôi phục.</p>
         </div>
 
         <form className="formContainer" onSubmit={handleSubmit}>
           <div className="inputGroup">
             <label className="inputLabel" htmlFor="email">
-              EMAIL ADDRESS
+              ĐỊA CHỈ EMAIL
             </label>
             <input
               className="inputField"
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrorMessage('');
+                setMessage('');
+              }}
               placeholder="name@gmail.com"
               required
             />
           </div>
 
-          <button className="logInButton" type="submit">
-            Gửi Yêu Cầu
+          {errorMessage && (
+            <div className="errorMessageContainer">
+              {errorMessage}
+            </div>
+          )}
+
+          {message && (
+            <div className="errorMessageContainer" style={{ backgroundColor: '#dcfce7', color: '#166534', borderColor: '#86efac' }}>
+              {message}
+            </div>
+          )}
+
+          <button className="logInButton" type="submit" disabled={isLoading}>
+            {isLoading ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
           </button>
         </form>
 

@@ -1,17 +1,46 @@
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import { Link, useNavigate } from 'react-router-dom';
 
-// Nhúng chung file CSS giao diện
 import './Auth.css';
-import { Link } from 'react-router-dom';
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log('Đang đăng ký tài khoản mới...');
+  const [formData, setFormData] = useState({
+  fullName: '',
+  email: '',
+  password: ''
+});
+
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  setFormData({ ...formData, [e.target.id]: e.target.value });
+  if (errorMessage) setErrorMessage('');
+};
+
+  const handleSubmit = async (event: React.FormEvent) => {
+      event.preventDefault();
+      
+      try {
+      const response = await fetch('http://localhost:8080/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const result = await response.text(); // Lấy message trả về từ BE
+
+    if (response.ok) {
+      navigate('/login');
+    } else {
+      setErrorMessage(result);
+    }
+  } catch (error) {
+    console.error("Lỗi gọi API:", error);
+  }
   };
 
   return (
@@ -25,14 +54,16 @@ export default function SignUpPage() {
 
         <form className="formContainer" onSubmit={handleSubmit}>
           <div className="inputGroup">
-            <label className="inputLabel" htmlFor="fullname">
+            <label className="inputLabel" htmlFor="fullName">
               Họ và Tên
             </label>
             <input
               className="inputField"
-              id="fullname"
+              id="fullName"
               type="text"
               placeholder="Nguyễn Văn An"
+              value={formData.fullName}
+              onChange={handleChange}
               required
             />
           </div>
@@ -46,6 +77,8 @@ export default function SignUpPage() {
               id="email"
               type="email"
               placeholder="name@gmail.com"
+              value={formData.email}
+              onChange={handleChange}
               required
             />
           </div>
@@ -63,6 +96,8 @@ export default function SignUpPage() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
                 required
               />
               <button
@@ -74,6 +109,12 @@ export default function SignUpPage() {
               </button>
             </div>
           </div>
+
+          {errorMessage && (
+            <div className="errorMessageContainer">
+              {errorMessage}
+            </div>
+          )}
 
           <button className="logInButton" type="submit">
             Đăng Ký

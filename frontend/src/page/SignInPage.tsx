@@ -3,13 +3,47 @@ import { FcGoogle } from 'react-icons/fc';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 import './Auth.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const SignInPage = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = (event: React.FormEvent) => {
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const [formData, setFormData] = useState({
+  email: '',
+  password: ''
+});
+
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  setFormData({ ...formData, [e.target.id]: e.target.value });
+  if (errorMessage) setErrorMessage('');
+};
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Đang đăng nhập...');
+    setErrorMessage('');
+    
+    try {
+    const response = await fetch('http://localhost:8080/api/auth/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const result = await response.text();
+
+    if (response.ok) {
+      localStorage.setItem('token', result);
+      localStorage.setItem('userEmail', formData.email);
+      navigate('/user-profile'); 
+    } else {
+      setErrorMessage(result);
+    }
+  } catch (error) {
+    console.error("Lỗi kết nối server:", error);
+    setErrorMessage("Không thể kết nối đến máy chủ. Vui lòng thử lại sau!");
+  }
   };
 
   return (
@@ -31,6 +65,8 @@ const SignInPage = () => {
               id="email"
               type="email"
               placeholder="name@gmail.com"
+              value={formData.email}
+              onChange={handleChange}
               required
             />
           </div>
@@ -51,6 +87,8 @@ const SignInPage = () => {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
                 required
               />
               <button
@@ -62,6 +100,12 @@ const SignInPage = () => {
               </button>
             </div>
           </div>
+          
+          {errorMessage && (
+            <div className="errorMessageContainer">
+              {errorMessage}
+            </div>
+          )}
 
           <button className="logInButton" type="submit">
             Đăng Nhập
