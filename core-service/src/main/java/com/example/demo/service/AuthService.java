@@ -27,11 +27,11 @@ public class AuthService {
     private JwtUtils jwtUtils;
 
     public String registerUser(SignUpRequest request) {
-        return registerByRole(request, Role.ROLE_INTERVIEWEE);
+        return registerByRole(request, Role.INTERVIEWEE);
     }
 
     public String registerInterviewer(SignUpRequest request) {
-        return registerByRole(request, Role.ROLE_INTERVIEWER);
+        return registerByRole(request, Role.INTERVIEWER);
     }
 
     private String registerByRole(SignUpRequest request, Role role) {
@@ -39,7 +39,7 @@ public class AuthService {
             throw new RuntimeException("Email này đã được sử dụng!");
         }
 
-        if (role != Role.ROLE_INTERVIEWEE && role != Role.ROLE_INTERVIEWER) {
+        if (role != Role.INTERVIEWEE && role != Role.INTERVIEWER) {
             throw new RuntimeException("Không thể đăng ký với vai trò này!");
         }
 
@@ -62,6 +62,8 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu không chính xác!");
         }
+
+        userRepository.save(user);
 
         return jwtUtils.generateTokenFromEmailAndRole(user.getEmail(), user.getRole().name());
     }

@@ -17,19 +17,17 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // GET /api/user/profile  -> lấy thông tin profile của user đang đăng nhập
-    @GetMapping("/profile")
-    @PreAuthorize("hasRole('INTERVIEWEE') or hasRole('ADMIN') or hasRole('INTERVIEWER')")
+   @GetMapping("/profile")
+    @PreAuthorize("hasAuthority('INTERVIEWEE') or hasAuthority('ADMIN') or hasAuthority('INTERVIEWER')")
     public ResponseEntity<UserProfileDto> getProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = (String) auth.getPrincipal(); // email lấy từ JwtAuthenticationFilter
+        String email = (String) auth.getPrincipal();
 
         return ResponseEntity.ok(userService.getUserProfile(email));
     }
 
-    // PUT /api/user/profile -> cập nhật profile của user đang đăng nhập
     @PutMapping("/profile")
-    @PreAuthorize("hasRole('INTERVIEWEE') or hasRole('ADMIN') or hasRole('INTERVIEWER')")
+    @PreAuthorize("hasAuthority('INTERVIEWEE') or hasAuthority('ADMIN') or hasAuthority('INTERVIEWER')")
     public ResponseEntity<String> updateProfile(@RequestBody UserProfileDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) auth.getPrincipal();
@@ -38,7 +36,7 @@ public class UserController {
     }
 
     @PutMapping("/change-password")
-    @PreAuthorize("hasRole('INTERVIEWEE') or hasRole('ADMIN') or hasRole('INTERVIEWER')")
+    @PreAuthorize("hasAuthority('INTERVIEWEE') or hasAuthority('ADMIN') or hasAuthority('INTERVIEWER')")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest dto) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();

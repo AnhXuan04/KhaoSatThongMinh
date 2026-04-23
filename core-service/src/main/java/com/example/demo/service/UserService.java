@@ -25,8 +25,6 @@ public class UserService {
         dto.setFullName(user.getFullName());
         dto.setEmail(user.getEmail());
         dto.setJob(user.getJob());
-
-        // --- Thêm 2 dòng này ---
         dto.setPhone(user.getPhone());
         dto.setInterests(user.getInterests());
 
@@ -40,8 +38,6 @@ public class UserService {
 
         user.setFullName(dto.getFullName());
         user.setJob(dto.getJob());
-
-        // --- Thêm 2 dòng này ---
         user.setPhone(dto.getPhone());
         user.setInterests(dto.getInterests());
 
