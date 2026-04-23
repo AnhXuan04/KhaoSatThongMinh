@@ -40,9 +40,7 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
   }, []); 
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userEmail');
-    
+    localStorage.clear();
     navigate('/login');
   }
 

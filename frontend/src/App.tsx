@@ -6,6 +6,8 @@ import SignUpPage from './page/SignUpPage';
 import ForgotPasswordPage from './page/ForgotPass';
 import DashboardPage from './page/DashboardPage';
 import DashboardAdmin from './page/DashboardAdmin';
+import MngUser from './page/admin/MngUser';
+import MngSurveyField from './page/admin/MngSurveyField';
 import HomePage from './page/HomePage';
 import CreatorPackagePage from './page/CreatorPackagePage';
 import UpdateProfilePage from './page/UpdateProfilePage';
@@ -30,10 +32,10 @@ const getRoleFromToken = (token: string) => {
 };
 
 const getDefaultPathByRole = (role: string | null) => {
-  if (role === 'ROLE_ADMIN') {
+  if (role === 'ADMIN') {
     return '/dashboard-admin';
   }
-  if (role === 'ROLE_INTERVIEWER') {
+  if (role === 'INTERVIEWER') {
     return '/dashboard';
   }
   return '/user-profile';
@@ -76,12 +78,14 @@ function App() {
           <Route path="/login" element={<PublicOnly><SignInPage /></PublicOnly>} />
           <Route path="/signup" element={<PublicOnly><SignUpPage /></PublicOnly>} />
           <Route path="/forgot-password" element={<PublicOnly><ForgotPasswordPage /></PublicOnly>} />
-          <Route path="/dashboard" element={<RequireRole role="ROLE_INTERVIEWER"><DashboardPage /></RequireRole>} />
-          <Route path="/dashboard-admin" element={<RequireRole role="ROLE_ADMIN"><DashboardAdmin /></RequireRole>} />
+          <Route path="/dashboard" element={<RequireRole role="INTERVIEWER"><DashboardPage /></RequireRole>} />
+          <Route path="/dashboard-admin" element={<RequireRole role="ADMIN"><DashboardAdmin /></RequireRole>} />
+          <Route path="/dashboard-admin/users" element={<RequireRole role="ADMIN"><MngUser /></RequireRole>} />
+          <Route path="/dashboard-admin/categories" element={<RequireRole role="ADMIN"><MngSurveyField /></RequireRole>} />
           <Route path="/creator-package" element={<CreatorPackagePage />} />
           <Route path="/update-profile" element={<RequireAuth><UpdateProfilePage /></RequireAuth>} />
           <Route path="/surveys" element={<RequireAuth><SurveyListPage /></RequireAuth>} />
-          <Route path="/user-profile" element={<RequireRole role="ROLE_INTERVIEWEE"><UserProfilePage /></RequireRole>} />
+          <Route path="/user-profile" element={<RequireRole role="INTERVIEWEE"><UserProfilePage /></RequireRole>} />
           <Route path="/reset-password" element={<PublicOnly><ResetPasswordPage /></PublicOnly>} />
         </Routes>
       </AppShell>

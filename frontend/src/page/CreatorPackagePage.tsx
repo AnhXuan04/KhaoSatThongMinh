@@ -9,7 +9,7 @@ const planData: Record<PlanKey, { name: string; price: string; subtitle: string;
     name: 'CÁ NHÂN',
     price: '$29',
     subtitle: '/tháng',
-    features: ['10 khảo sát đang hoạt động', '1,000 lượt phản hồi']
+    features: ['10 khảo sát đồng thời', '1,000 lượt phản hồi']
   },
   pro: {
     name: 'CHUYÊN NGHIỆP',

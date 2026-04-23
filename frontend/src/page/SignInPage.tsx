@@ -48,14 +48,16 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const result = await response.text();
 
     if (response.ok) {
+      localStorage.clear();
       localStorage.setItem('token', result);
       localStorage.setItem('userEmail', formData.email);
+
       const role = getRoleFromToken(result);
-      if (role === 'ROLE_ADMIN') {
+      if (role === 'ADMIN') {
         navigate('/dashboard-admin');
         return;
       }
-      if (role === 'ROLE_INTERVIEWER') {
+      if (role === 'INTERVIEWER') {
         navigate('/dashboard');
         return;
       }

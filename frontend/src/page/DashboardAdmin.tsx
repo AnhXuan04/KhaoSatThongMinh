@@ -12,29 +12,33 @@ import { useNavigate } from 'react-router-dom';
 import './DashboardAdmin.css';
 
 const sideMenus = [
-  { key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: true },
-  { key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: false },
-  { key: 'categories', label: 'Quản lý Danh mục', icon: FiFolder, active: false },
-  { key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false }
+  { key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: true, path: '/dashboard-admin' },
+  { key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: false, path: '/dashboard-admin/users' },
+  { key: 'categories', label: 'Quản lý Lĩnh vực', icon: FiFolder, active: false, path: '/dashboard-admin/categories' },
+  { key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin' }
 ];
 
-const kpis = [
-  { title: 'Tổng người dùng', value: '42,850', note: '+12% tháng này', accent: false },
-  { title: 'Đang hoạt động', value: '1,204', note: 'Truy cập trong 15 phút qua', accent: true },
-  { title: 'Đăng ký mới hôm nay', value: '158', note: 'Mục tiêu: 200/ngày', accent: false }
-];
+type DashboardStats = {
+  totalUsers: number;
+};
 
-const categories = [
-  { name: 'Công nghệ', detail: '1,240 khảo sát • 85% hoàn thành' },
-  { name: 'Y tế & Sức khỏe', detail: '850 khảo sát • 92% hoàn thành' },
-  { name: 'Kinh doanh', detail: '2,100 khảo sát • 78% hoàn thành' }
-];
+type SurveyField = {
+  id: number;
+  name: string;
+  description?: string;
+};
 
-const bars = [42, 64, 56, 82, 68, 48, 78];
+const defaultStats: DashboardStats = {
+  totalUsers: 0
+};
+
+const numberFormatter = new Intl.NumberFormat('vi-VN');
 
 export default function DashboardAdmin() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
+  const [stats, setStats] = useState<DashboardStats>(defaultStats);
+  const [surveyFields, setSurveyFields] = useState<SurveyField[]>([]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -51,27 +55,73 @@ export default function DashboardAdmin() {
       return;
     }
 
-    const fetchProfile = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/user/profile', {
+        const profileResponse = await fetch('http://localhost:8080/api/user/profile', {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
 
-        if (!response.ok) {
-          return;
+        const statsResponse = await fetch('http://localhost:8080/api/admin/stats', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const surveyFieldsResponse = await fetch('http://localhost:8080/api/admin/survey-fields', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          setFullName(profileData.fullName || userEmail);
+        } else {
+          setFullName(userEmail);
         }
 
-        const data = await response.json();
-        setFullName(data.fullName || userEmail);
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setStats({
+            totalUsers: Number(statsData.totalUsers) || 0
+          });
+        } else {
+          setStats(defaultStats);
+        }
+
+        if (surveyFieldsResponse.ok) {
+          const surveyFieldsData = await surveyFieldsResponse.json();
+          setSurveyFields(Array.isArray(surveyFieldsData) ? surveyFieldsData : []);
+        } else {
+          setSurveyFields([]);
+        }
       } catch (error) {
         console.error('Không thể tải dữ liệu dashboard admin:', error);
+        setFullName(userEmail);
+        setStats(defaultStats);
+        setSurveyFields([]);
       }
     };
 
-    fetchProfile();
+    fetchDashboardData();
   }, [navigate]);
+
+  const bars = [
+    Math.min(stats.totalUsers / 10, 100),
+    Math.min(stats.totalUsers / 5, 100),
+    Math.min(stats.totalUsers > 0 ? 100 : 10, 100)
+  ];
+
+  const kpis = [
+    {
+      title: 'Tổng người dùng',
+      value: numberFormatter.format(stats.totalUsers),
+      note: 'Tổng tài khoản hiện có trong hệ thống',
+      accent: false
+    }
+  ];
 
   return (
     <div className="adminPage">
@@ -95,7 +145,12 @@ export default function DashboardAdmin() {
           {sideMenus.map((menu) => {
             const Icon = menu.icon;
             return (
-              <button key={menu.key} type="button" className={`adminMenuItem ${menu.active ? 'active' : ''}`}>
+              <button
+                key={menu.key}
+                type="button"
+                className={`adminMenuItem ${menu.active ? 'active' : ''}`}
+                onClick={() => navigate(menu.path)}
+              >
                 <Icon />
                 <span>{menu.label}</span>
               </button>
@@ -114,7 +169,6 @@ export default function DashboardAdmin() {
 
         <div className="adminSectionTitle">
           <h2>Tổng quan</h2>
-          <button type="button">Xem tất cả</button>
         </div>
 
         <div className="adminKpiGrid">
@@ -139,19 +193,22 @@ export default function DashboardAdmin() {
           <article className="adminPanel">
             <div className="adminPanelHead">
               <h3>Quản lý Danh mục</h3>
-              <button type="button">Thêm mới</button>
+              <button type="button" onClick={() => navigate('/dashboard-admin/categories?openAddField=1')}>
+                Thêm mới
+              </button>
             </div>
 
             <div className="adminCategoryList">
-              {categories.map((category) => (
-                <div className="adminCategoryItem" key={category.name}>
+              {surveyFields.map((category) => (
+                <div className="adminCategoryItem" key={category.id}>
                   <span className="adminCategoryIcon"><FiClipboard /></span>
                   <div>
                     <h4>{category.name}</h4>
-                    <p>{category.detail}</p>
+                    <p>{category.description || 'Chưa có mô tả'}</p>
                   </div>
                 </div>
               ))}
+              {!surveyFields.length && <p>Chưa có lĩnh vực khảo sát nào trong hệ thống.</p>}
             </div>
           </article>
 
@@ -173,12 +230,12 @@ export default function DashboardAdmin() {
 
             <div className="adminMetrics">
               <div>
-                <span>TỶ LỆ HOÀN THÀNH</span>
-                <strong>84.2%</strong>
+                <span>TỔNG NGƯỜI DÙNG</span>
+                <strong>{numberFormatter.format(stats.totalUsers)}</strong>
               </div>
               <div>
-                <span>ĐỘ TIN CẬY DỮ LIỆU</span>
-                <strong>98.1</strong>
+                <span>TỔNG DANH MỤC</span>
+                <strong>{numberFormatter.format(surveyFields.length)}</strong>
               </div>
             </div>
           </article>

@@ -1,0 +1,459 @@
+.mngUserPage {
+	min-height: 100vh;
+	display: grid;
+	grid-template-columns: 280px minmax(0, 1fr);
+	color: #1f2937;
+	background:
+		radial-gradient(circle at top left, rgba(11, 94, 215, 0.08), transparent 30%),
+		linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.mngUserSidebar {
+	background: #ffffff;
+	border-right: 1px solid #e5eaf2;
+	padding: 28px 20px 18px;
+	display: flex;
+	flex-direction: column;
+}
+
+.mngUserBrand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #0b5ed7;
+	font-size: 20px;
+	font-weight: 800;
+	margin-bottom: 24px;
+}
+
+.mngUserIdentity {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.mngUserIdentityIcon {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	background: #eaf1ff;
+	color: #0b5ed7;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.mngUserIdentity h4,
+.mngUserIdentity p {
+	margin: 0;
+}
+
+.mngUserIdentity h4 {
+	font-size: 14px;
+}
+
+.mngUserIdentity p {
+	font-size: 12px;
+	color: #8b94a7;
+}
+
+.mngUserMenu {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.mngUserMenuItem {
+	border: none;
+	background: transparent;
+	border-radius: 10px;
+	padding: 12px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+	color: #49556a;
+	cursor: pointer;
+	text-align: left;
+}
+
+.mngUserMenuItem.active {
+	background: #0b5ed7;
+	color: #ffffff;
+}
+
+.mngUserQuickActions {
+	margin-top: auto;
+	padding-top: 20px;
+}
+
+.mngUserQuickBtn {
+	width: 100%;
+	border: 1px solid #ffd2d2;
+	background: #fff5f5;
+	border-radius: 10px;
+	padding: 12px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #b42318;
+	cursor: pointer;
+}
+
+.mngUserMain {
+	padding: 22px 24px 24px;
+}
+
+.mngUserShell {
+	background: rgba(255, 255, 255, 0.82);
+	backdrop-filter: blur(8px);
+	border: 1px solid #edf1f7;
+	border-radius: 18px;
+	padding: 16px;
+	box-shadow: 0 18px 40px rgba(17, 24, 39, 0.06);
+}
+
+.mngUserTopBar {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	align-items: center;
+	margin-bottom: 14px;
+	flex-wrap: wrap;
+}
+
+.mngUserTabs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.mngUserTab {
+	border: 1px solid transparent;
+	background: transparent;
+	color: #566175;
+	font-size: 13px;
+	font-weight: 700;
+	padding: 10px 14px;
+	border-radius: 999px;
+	cursor: pointer;
+}
+
+.mngUserTab.active {
+	background: #ffffff;
+	border-color: #dbe4f0;
+	color: #0b5ed7;
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.mngUserTopActions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.mngUserGhostBtn {
+	border: 1px solid #e1e7f0;
+	background: #ffffff;
+	color: #536178;
+	border-radius: 10px;
+	padding: 10px 12px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
+}
+
+.mngUserCard {
+	background: #ffffff;
+	border: 1px solid #edf1f7;
+	border-radius: 18px;
+	padding: 14px;
+}
+
+.mngUserCardToolbar {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	align-items: center;
+	margin-bottom: 14px;
+}
+
+.mngUserSearch {
+	flex: 1;
+	min-width: 260px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: #f6f8fb;
+	border: 1px solid #e4e9f2;
+	border-radius: 12px;
+	padding: 0 14px;
+	color: #8b97ab;
+}
+
+.mngUserSearch input {
+	width: 100%;
+	border: none;
+	background: transparent;
+	outline: none;
+	height: 46px;
+	color: #1f2b3f;
+	font-size: 14px;
+}
+
+.mngUserMenuBtn {
+	width: 46px;
+	height: 46px;
+	border: 1px solid #e4e9f2;
+	background: #ffffff;
+	border-radius: 12px;
+	color: #536178;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.mngUserTableWrap {
+	overflow-x: auto;
+}
+
+.mngUserTable {
+	width: 100%;
+	min-width: 980px;
+	border-collapse: collapse;
+}
+
+.mngUserTable thead th {
+	text-align: left;
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	color: #7e899d;
+	font-weight: 800;
+	padding: 14px 12px;
+	border-bottom: 1px solid #edf1f7;
+}
+
+.mngUserTable tbody td {
+	padding: 16px 12px;
+	border-bottom: 1px solid #f0f3f8;
+	vertical-align: middle;
+	color: #2a374d;
+	font-size: 14px;
+}
+
+.mngUserTable tbody tr:hover {
+	background: #fbfcfe;
+}
+
+.mngUserId {
+	color: #6f7b8f;
+	font-weight: 600;
+	font-size: 12px;
+}
+
+.mngUserProfile {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.mngUserAvatar {
+	width: 38px;
+	height: 38px;
+	border-radius: 10px;
+	background: linear-gradient(135deg, #eaf1ff, #dfe9ff);
+	color: #0b5ed7;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	font-size: 12px;
+	flex: 0 0 auto;
+}
+
+.mngUserProfile strong {
+	display: block;
+	color: #1e2b3f;
+	font-size: 14px;
+	margin-bottom: 2px;
+}
+
+.mngUserProfile p {
+	margin: 0;
+	color: #6f7b8f;
+	font-size: 12px;
+}
+
+.mngUserRole {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 82px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+}
+
+.mngUserRole--admin {
+	background: #e6f0ff;
+	color: #0b5ed7;
+}
+
+.mngUserRole--creator {
+	background: #f1e8ff;
+	color: #7a3ee6;
+}
+
+.mngUserRole--participant {
+	background: #edf1f7;
+	color: #6a7588;
+}
+
+.mngUserJob {
+	color: #364457;
+	line-height: 1.45;
+}
+
+.mngUserTags {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.mngUserTag {
+	display: inline-flex;
+	align-items: center;
+	background: #f1f3f6;
+	color: #556175;
+	font-size: 11px;
+	border-radius: 6px;
+	padding: 5px 8px;
+}
+
+.mngUserPhone {
+	color: #5c697d;
+	line-height: 1.45;
+}
+
+.mngUserActions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.mngUserActions button {
+	border: 1px solid #e4e9f2;
+	background: #ffffff;
+	color: #607086;
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.mngUserFooter {
+	margin-top: 16px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.mngUserFooter p {
+	margin: 0;
+	font-size: 12px;
+	color: #657286;
+}
+
+.mngUserPagination {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.mngUserPagination button,
+.mngUserPagination span {
+	height: 34px;
+	min-width: 34px;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.mngUserPagination button {
+	border: 1px solid #e4e9f2;
+	background: #ffffff;
+	color: #526074;
+	cursor: pointer;
+}
+
+.mngUserPagination button.active {
+	background: #0b5ed7;
+	color: #ffffff;
+	border-color: #0b5ed7;
+}
+
+.mngUserPagination button:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.mngUserPagination span {
+	color: #7c8699;
+}
+
+@media (max-width: 1200px) {
+	.mngUserPage {
+		grid-template-columns: 1fr;
+	}
+
+	.mngUserSidebar {
+		border-right: none;
+		border-bottom: 1px solid #e5eaf2;
+	}
+
+	.mngUserMain {
+		padding: 18px;
+	}
+}
+
+@media (max-width: 720px) {
+	.mngUserShell {
+		padding: 12px;
+	}
+
+	.mngUserTopBar,
+	.mngUserCardToolbar,
+	.mngUserFooter {
+		align-items: stretch;
+	}
+
+	.mngUserTopBar {
+		flex-direction: column;
+	}
+
+	.mngUserTopActions,
+	.mngUserPagination {
+		width: 100%;
+	}
+
+	.mngUserPagination {
+		justify-content: center;
+	}
+}

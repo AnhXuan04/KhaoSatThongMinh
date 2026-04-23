@@ -1,0 +1,584 @@
+.mngFieldPage {
+	min-height: 100vh;
+	display: grid;
+	grid-template-columns: 280px minmax(0, 1fr);
+	color: #1f2937;
+	background:
+		radial-gradient(circle at top left, rgba(11, 94, 215, 0.08), transparent 30%),
+		linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.mngFieldSidebar {
+	background: #ffffff;
+	border-right: 1px solid #e5eaf2;
+	padding: 28px 20px 18px;
+	display: flex;
+	flex-direction: column;
+}
+
+.mngFieldBrand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #0b5ed7;
+	font-size: 20px;
+	font-weight: 800;
+	margin-bottom: 24px;
+}
+
+.mngFieldIdentity {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.mngFieldIdentityIcon {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	background: #eaf1ff;
+	color: #0b5ed7;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.mngFieldIdentity h4,
+.mngFieldIdentity p {
+	margin: 0;
+}
+
+.mngFieldIdentity h4 {
+	font-size: 14px;
+	color: #1f2937;
+}
+
+.mngFieldIdentity p {
+	font-size: 12px;
+	color: #8b94a7;
+}
+
+.mngFieldMenu {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	list-style: none;
+	padding: 0;
+}
+
+.mngFieldMenuItem {
+	border: none;
+	background: transparent;
+	border-radius: 10px;
+	padding: 12px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+	color: #49556a;
+	cursor: pointer;
+	text-align: left;
+	transition: all 0.2s ease;
+}
+
+.mngFieldMenuItem:hover {
+	background: #f3f6fb;
+}
+
+.mngFieldMenuItem.active {
+	background: #0b5ed7;
+	color: #ffffff;
+}
+
+.mngFieldQuickActions {
+	margin-top: auto;
+	padding-top: 20px;
+}
+
+.mngFieldQuickBtn {
+	width: 100%;
+	border: 1px solid #ffd2d2;
+	background: #fff5f5;
+	border-radius: 10px;
+	padding: 12px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #b42318;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.mngFieldQuickBtn:hover {
+	background: #ffebeb;
+	border-color: #ffc0c0;
+}
+
+.mngFieldMain {
+	padding: 32px 36px;
+	overflow-y: auto;
+}
+
+.mngFieldHeader {
+	margin-bottom: 32px;
+}
+
+.mngFieldHeader h1 {
+	margin: 0 0 8px;
+	font-size: 28px;
+	font-weight: 800;
+	color: #1f2b3f;
+	line-height: 1.2;
+}
+
+.mngFieldHeader p {
+	margin: 0;
+	font-size: 15px;
+	color: #6b7280;
+}
+
+.mngFieldHeader strong {
+	color: #0b5ed7;
+	font-weight: 700;
+}
+
+.mngFieldGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 20px;
+}
+
+.mngFieldCard {
+	background: #ffffff;
+	border: 1px solid #e5eaf2;
+	border-radius: 14px;
+	padding: 20px;
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+	display: flex;
+	flex-direction: column;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mngFieldCard:hover {
+	border-color: #c9d7ee;
+	box-shadow: 0 12px 24px rgba(11, 94, 215, 0.12);
+	transform: translateY(-4px);
+}
+
+.mngFieldCardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 16px;
+}
+
+.mngFieldCardIcon {
+	font-size: 32px;
+	display: inline-flex;
+	align-items: center;
+}
+
+.mngFieldCardActions {
+	display: flex;
+	gap: 8px;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.mngFieldCard:hover .mngFieldCardActions {
+	opacity: 1;
+}
+
+.mngFieldCardActions button {
+	border: 1px solid #e4e9f2;
+	background: #ffffff;
+	color: #607086;
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.mngFieldCardActions button:hover {
+	border-color: #0b5ed7;
+	color: #0b5ed7;
+	background: #f0f4ff;
+}
+
+.mngFieldCardContent {
+	display: flex;
+	flex-direction: column;
+}
+
+.mngFieldCardContent h3 {
+	margin: 0 0 8px;
+	font-size: 16px;
+	font-weight: 700;
+	color: #1f2b3f;
+}
+
+.mngFieldCardContent p {
+	margin: 0 0 16px;
+	font-size: 13px;
+	color: #6b7280;
+	line-height: 1.5;
+}
+
+.mngFieldCardMeta {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 12px;
+	border-top: 1px solid #f3f4f6;
+}
+
+.mngFieldCardMeta span {
+	font-size: 11px;
+	font-weight: 800;
+	color: #7e899d;
+	letter-spacing: 0.03em;
+}
+
+.mngFieldCardAvatars {
+	display: flex;
+	gap: -8px;
+	margin-left: auto;
+}
+
+.avatar {
+	width: 24px;
+	height: 24px;
+	border-radius: 999px;
+	background: linear-gradient(135deg, #f0f4ff, #e8ecff);
+	border: 2px solid #ffffff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 10px;
+	font-weight: 700;
+	color: #0b5ed7;
+	margin-right: -8px;
+}
+
+.avatar:first-child {
+	margin-right: 0;
+}
+
+.mngFieldCardAdd {
+	border: 2px dashed #d1d5db;
+	background: #fafbfc;
+	display: flex;
+	align-items: center;
+}
+
+.mngFieldCardAddContent {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: 12px;
+}
+
+.mngFieldAddBtn {
+	width: 48px;
+	height: 48px;
+	border: 2px dashed #9ca3af;
+	background: transparent;
+	color: #6b7280;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 24px;
+	transition: all 0.2s ease;
+}
+
+.mngFieldAddBtn:hover {
+	border-color: #0b5ed7;
+	color: #0b5ed7;
+	background: #f0f4ff;
+}
+
+.mngFieldModalOverlay {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: rgba(15, 23, 42, 0.45);
+	backdrop-filter: blur(4px);
+}
+
+.mngFieldModal {
+	width: min(100%, 420px);
+	background: #ffffff;
+	border-radius: 16px;
+	box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+	overflow: hidden;
+	animation: mngFieldModalIn 0.18s ease-out;
+}
+
+.mngFieldModalHeader {
+	padding: 16px 18px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 1px solid #eef2f7;
+}
+
+.mngFieldModalHeader h2 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+	color: #1f2b3f;
+}
+
+.mngFieldModalClose {
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 999px;
+	background: transparent;
+	color: #64748b;
+	font-size: 26px;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 0.2s ease, color 0.2s ease;
+}
+
+.mngFieldModalClose:hover {
+	background: #f1f5f9;
+	color: #0f172a;
+}
+
+.mngFieldModalBody {
+	padding: 16px 18px 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.mngFieldFormGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.mngFieldFormGroup span {
+	font-size: 11px;
+	font-weight: 800;
+	color: #6b7280;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.mngFieldFormGroup input,
+.mngFieldFormGroup textarea {
+	width: 100%;
+	border: 1px solid #e5eaf2;
+	border-radius: 10px;
+	background: #f9fafb;
+	padding: 12px 14px;
+	font: inherit;
+	font-size: 13px;
+	color: #1f2937;
+	outline: none;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.mngFieldFormGroup input::placeholder,
+.mngFieldFormGroup textarea::placeholder {
+	color: #9ca3af;
+}
+
+.mngFieldFormGroup input:focus,
+.mngFieldFormGroup textarea:focus {
+	border-color: #0b5ed7;
+	box-shadow: 0 0 0 3px rgba(11, 94, 215, 0.12);
+	background: #ffffff;
+}
+
+.mngFieldFormGroup textarea {
+	resize: none;
+}
+
+.mngFieldIconPicker {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.mngFieldIconOption {
+	height: 52px;
+	border: 1px solid #e5eaf2;
+	border-radius: 10px;
+	background: #f9fafb;
+	color: #64748b;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 18px;
+	transition: all 0.2s ease;
+}
+
+.mngFieldIconOption:hover {
+	border-color: #bfd1ee;
+	background: #f3f8ff;
+	color: #0b5ed7;
+}
+
+.mngFieldIconOption.selected {
+	border-color: #0b5ed7;
+	background: #eaf2ff;
+	color: #0b5ed7;
+	box-shadow: inset 0 0 0 1px rgba(11, 94, 215, 0.08);
+}
+
+.mngFieldModalFooter {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	padding-top: 4px;
+}
+
+.mngFieldModalSecondary,
+.mngFieldModalPrimary {
+	min-width: 92px;
+	height: 36px;
+	border-radius: 8px;
+	border: 1px solid transparent;
+	padding: 0 16px;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.mngFieldModalSecondary {
+	background: #ffffff;
+	border-color: #e5eaf2;
+	color: #4b5563;
+}
+
+.mngFieldModalSecondary:hover {
+	background: #f8fafc;
+}
+
+.mngFieldModalPrimary {
+	background: #0b5ed7;
+	color: #ffffff;
+	box-shadow: 0 8px 18px rgba(11, 94, 215, 0.22);
+}
+
+.mngFieldModalPrimary:hover {
+	background: #094db0;
+}
+
+@keyframes mngFieldModalIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.mngFieldCardAddContent h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #1f2b3f;
+}
+
+.mngFieldCardAddContent p {
+	margin: 0;
+	font-size: 12px;
+	color: #9ca3af;
+}
+
+@media (max-width: 1200px) {
+	.mngFieldPage {
+		grid-template-columns: 1fr;
+	}
+
+	.mngFieldSidebar {
+		border-right: none;
+		border-bottom: 1px solid #e5eaf2;
+	}
+
+	.mngFieldMain {
+		padding: 24px 24px;
+	}
+
+	.mngFieldGrid {
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 16px;
+	}
+}
+
+@media (max-width: 768px) {
+	.mngFieldMain {
+		padding: 16px 16px;
+	}
+
+	.mngFieldHeader h1 {
+		font-size: 24px;
+	}
+
+	.mngFieldGrid {
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 12px;
+	}
+
+	.mngFieldCard {
+		padding: 16px;
+	}
+
+	.mngFieldCardActions {
+		opacity: 1;
+	}
+
+	.mngFieldModal {
+		width: min(100%, 380px);
+	}
+
+	.mngFieldIconPicker {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 480px) {
+	.mngFieldModalOverlay {
+		padding: 12px;
+	}
+
+	.mngFieldModalHeader h2 {
+		font-size: 16px;
+	}
+
+	.mngFieldModalBody {
+		padding: 14px;
+	}
+
+	.mngFieldModalFooter {
+		flex-direction: column-reverse;
+	}
+
+	.mngFieldModalSecondary,
+	.mngFieldModalPrimary {
+		width: 100%;
+	}
+}
