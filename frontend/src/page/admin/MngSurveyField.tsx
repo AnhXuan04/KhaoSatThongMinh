@@ -44,8 +44,8 @@ export default function MngSurveyField() {
 	const [errorMsg, setErrorMsg] = useState('');
 
 	const handleLogout = () => {
-		localStorage.removeItem('token');
-		localStorage.removeItem('userEmail');
+		sessionStorage.removeItem('token');
+		sessionStorage.removeItem('userEmail');
 		navigate('/login');
 	};
 
@@ -82,7 +82,7 @@ export default function MngSurveyField() {
 
 		setIsLoading(true);
 		setErrorMsg('');
-		const token = localStorage.getItem('token');
+		const token = sessionStorage.getItem('token');
 
 		try {
 			const response = await fetch('http://localhost:8080/api/admin/survey-fields', {
@@ -123,7 +123,7 @@ export default function MngSurveyField() {
 
 		setIsLoading(true);
 		setErrorMsg('');
-		const token = localStorage.getItem('token');
+		const token = sessionStorage.getItem('token');
 
 		try {
 			const response = await fetch(`http://localhost:8080/api/admin/survey-fields/${editingField.id}`, {
@@ -152,7 +152,7 @@ export default function MngSurveyField() {
 	};
 
 	const fetchSurveyFields = async () => {
-		const token = localStorage.getItem('token');
+		const token = sessionStorage.getItem('token');
 		try {
 			const response = await fetch('http://localhost:8080/api/admin/survey-fields', {
 				headers: {
@@ -176,7 +176,7 @@ export default function MngSurveyField() {
 			return;
 		}
 
-		const token = localStorage.getItem('token');
+		const token = sessionStorage.getItem('token');
 		try {
 			const response = await fetch(`http://localhost:8080/api/admin/survey-fields/${fieldId}`, {
 				method: 'DELETE',
@@ -217,8 +217,8 @@ export default function MngSurveyField() {
 	}, [location.pathname, location.search, navigate]);
 
 	useEffect(() => {
-		const token = localStorage.getItem('token');
-		const userEmail = localStorage.getItem('userEmail');
+		const token = sessionStorage.getItem('token');
+		const userEmail = sessionStorage.getItem('userEmail');
 
 		if (!token || !userEmail) {
 			navigate('/login');

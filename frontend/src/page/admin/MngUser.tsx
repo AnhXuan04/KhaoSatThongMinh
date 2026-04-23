@@ -11,6 +11,7 @@ import {
 	FiShield,
 	FiTrash2,
 	FiUser,
+	FiUnlock,
 	FiUsers
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +42,7 @@ type UserRow = {
 	job: string;
 	interests: string[];
 	phone: string;
+	locked: boolean;
 };
 
 const roleApiMap: Record<UserTabKey, string | null> = {
@@ -68,14 +70,53 @@ export default function MngUser() {
 	const [activeTab, setActiveTab] = useState<UserTabKey>('all');
 
 	const handleLogout = () => {
-		localStorage.removeItem('token');
-		localStorage.removeItem('userEmail');
+		sessionStorage.removeItem('token');
+		sessionStorage.removeItem('userEmail');
 		navigate('/login');
 	};
 
+	const toggleLockUser = async (userId: number, nextLocked: boolean) => {
+		const token = sessionStorage.getItem('token');
+		if (!token) {
+			return;
+		}
+
+		const message = nextLocked
+			? "Bạn có chắc chắn muốn KHÓA người dùng này không?"
+			: "Bạn có muốn MỞ KHÓA cho người dùng này không?";
+
+		if (!window.confirm(message)) {
+			return;
+		}
+
+		const url = nextLocked
+			? `http://localhost:8080/api/admin/users/${userId}/lock`
+			: `http://localhost:8080/api/admin/users/${userId}/unlock`;
+
+		try {
+			const response = await fetch(url, {
+				method: 'PUT',
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
+
+			if (!response.ok) {
+				console.error('Không thể cập nhật trạng thái khóa:', response.status);
+				return;
+			}
+
+			setUsers((prev) =>
+				prev.map((user) => (user.id === userId ? { ...user, locked: nextLocked } : user))
+			);
+		} catch (error) {
+			console.error('Không thể cập nhật trạng thái khóa:', error);
+		}
+	};
+
 	useEffect(() => {
-		const token = localStorage.getItem('token');
-		const userEmail = localStorage.getItem('userEmail');
+		const token = sessionStorage.getItem('token');
+		const userEmail = sessionStorage.getItem('userEmail');
 
 		if (!token || !userEmail) {
 			navigate('/login');
@@ -132,7 +173,8 @@ export default function MngUser() {
 							rawRole: roleKeyValue,
 							job: item.job || '—',
 							interests: Array.isArray(item.interests) ? item.interests : [],
-							phone: item.phone || '—'
+							phone: item.phone || '—',
+							locked: Boolean(item.locked)
 						};
 					});
 
@@ -293,9 +335,25 @@ export default function MngUser() {
 										<td className="mngUserPhone">{user.phone}</td>
 										<td>
 											<div className="mngUserActions">
-												<button type="button" aria-label={`Khóa ${user.name}`}>
-													<FiLock />
-												</button>
+												{user.locked ? (
+													<button
+														type="button"
+														aria-label={`Mở khóa ${user.name}`}
+														title="Mở khóa"
+														onClick={() => toggleLockUser(user.id, false)}
+													>
+														<FiUnlock />
+													</button>
+												) : (
+													<button
+														type="button"
+														aria-label={`Khóa ${user.name}`}
+														title="Khóa"
+														onClick={() => toggleLockUser(user.id, true)}
+													>
+														<FiLock />
+													</button>
+												)}
 												<button type="button" aria-label={`Xóa ${user.name}`}>
 													<FiTrash2 />
 												</button>

@@ -24,6 +24,18 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getUsersForAdmin(role));
     }
 
+    @PutMapping("/users/{id}/lock")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserListItemDto> lockUser(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.lockUser(id));
+    }
+
+    @PutMapping("/users/{id}/unlock")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserListItemDto> unlockUser(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.unlockUser(id));
+    }
+
     @GetMapping("/survey-fields")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<SurveyField>> getSurveyFields() {

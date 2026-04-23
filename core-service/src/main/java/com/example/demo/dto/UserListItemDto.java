@@ -13,5 +13,5 @@ public class UserListItemDto {
     private String job;
     private String phone;
     private List<String> interests;
+    private boolean is_locked;
 }
-

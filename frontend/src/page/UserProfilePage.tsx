@@ -31,9 +31,9 @@ export default function UserProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Lấy thông tin xác thực từ LocalStorage
-  const token = localStorage.getItem('token');
-  const userEmail = localStorage.getItem('userEmail');
+  // Lấy thông tin xác thực từ sessionStorage
+  const token = sessionStorage.getItem('token');
+  const userEmail = sessionStorage.getItem('userEmail');
 
   // 2. Fetch dữ liệu khi vừa vào trang
   useEffect(() => {

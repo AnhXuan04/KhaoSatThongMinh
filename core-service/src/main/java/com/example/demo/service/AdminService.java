@@ -49,6 +49,7 @@ public class AdminService {
         dto.setJob(user.getJob());
         dto.setPhone(user.getPhone());
         dto.setInterests(splitInterests(user.getInterests()));
+        dto.set_locked(user.isLocked());
         return dto;
     }
 
@@ -95,4 +96,21 @@ public class AdminService {
         return surveyFieldRepository.save(existingField);
     }
 
+//Khóa tài khoản người dùng
+
+    public UserListItemDto lockUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+        user.setLocked(true);
+        userRepository.save(user);
+        return toUserListItem(user);
+    }
+
+    public UserListItemDto unlockUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+        user.setLocked(false);
+        userRepository.save(user);
+        return toUserListItem(user);
+    }
 }

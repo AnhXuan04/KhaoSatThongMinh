@@ -8,8 +8,8 @@ export default function DashboardPage() {
   const [fullName, setFullName] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userEmail = localStorage.getItem('userEmail');
+    const token = sessionStorage.getItem('token');
+    const userEmail = sessionStorage.getItem('userEmail');
 
     if (!token || !userEmail) {
       navigate('/login');

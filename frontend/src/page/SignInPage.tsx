@@ -48,10 +48,9 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const result = await response.text();
 
     if (response.ok) {
-      localStorage.clear();
-      localStorage.setItem('token', result);
-      localStorage.setItem('userEmail', formData.email);
-
+      sessionStorage.setItem('token', result);
+      sessionStorage.setItem('userEmail', formData.email);
+      
       const role = getRoleFromToken(result);
       if (role === 'ADMIN') {
         navigate('/dashboard-admin');

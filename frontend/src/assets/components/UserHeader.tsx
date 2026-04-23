@@ -15,8 +15,8 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
   //Tự động lấy tên người dùng khi Header được hiển thị
   useEffect(() => {
     const fetchUserName = async () => {
-      const email = localStorage.getItem('userEmail');
-      const token = localStorage.getItem('token');
+      const email = sessionStorage.getItem('userEmail');
+      const token = sessionStorage.getItem('token');
 
       if (email && token) {
         try {
@@ -40,7 +40,7 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
   }, []); 
 
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/login');
   }
 

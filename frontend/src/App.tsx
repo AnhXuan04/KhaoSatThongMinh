@@ -5,7 +5,7 @@ import SignInPage from './page/SignInPage';
 import SignUpPage from './page/SignUpPage';
 import ForgotPasswordPage from './page/ForgotPass';
 import DashboardPage from './page/DashboardPage';
-import DashboardAdmin from './page/DashboardAdmin';
+import DashboardAdmin from './page/admin/DashboardAdmin';
 import MngUser from './page/admin/MngUser';
 import MngSurveyField from './page/admin/MngSurveyField';
 import HomePage from './page/HomePage';
@@ -42,7 +42,7 @@ const getDefaultPathByRole = (role: string | null) => {
 };
 
 const RequireAuth = ({ children }: { children: JSX.Element }) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -50,7 +50,7 @@ const RequireAuth = ({ children }: { children: JSX.Element }) => {
 };
 
 const RequireRole = ({ role, children }: { role: string; children: JSX.Element }) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -62,7 +62,7 @@ const RequireRole = ({ role, children }: { role: string; children: JSX.Element }
 };
 
 const PublicOnly = ({ children }: { children: JSX.Element }) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (token) {
     return <Navigate to={getDefaultPathByRole(getRoleFromToken(token))} replace />;
   }

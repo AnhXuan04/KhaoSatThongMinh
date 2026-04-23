@@ -16,8 +16,8 @@ export default function UpdateProfilePage() {
   const [newPassword, setNewPassword] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userEmail = localStorage.getItem('userEmail');
+    const token = sessionStorage.getItem('token');
+    const userEmail = sessionStorage.getItem('userEmail');
 
     if (!token || !userEmail) {
       navigate('/login');
@@ -58,7 +58,7 @@ export default function UpdateProfilePage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
 
     if (!token) {
       navigate('/login');
