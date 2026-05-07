@@ -1,0 +1,304 @@
+.mngSurveyPage {
+	min-height: 100vh;
+	background:
+		radial-gradient(circle at top left, rgba(11, 94, 215, 0.08), transparent 30%),
+		linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+	color: #1f2937;
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.mngSurveyMain {
+	max-width: 1180px;
+	margin: 0 auto;
+	padding: 28px 24px 36px;
+}
+
+.mngSurveyHero {
+	display: flex;
+	justify-content: space-between;
+	gap: 20px;
+	align-items: flex-start;
+	margin-bottom: 18px;
+}
+
+.mngSurveyEyebrow {
+	display: inline-flex;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	color: #0b5ed7;
+	margin-bottom: 10px;
+}
+
+.mngSurveyHero h1 {
+	margin: 0;
+	font-size: 32px;
+	line-height: 1.1;
+	color: #122033;
+}
+
+.mngSurveyHero p {
+	margin: 10px 0 0;
+	font-size: 14px;
+	line-height: 1.5;
+	color: #64748b;
+	max-width: 680px;
+}
+
+.mngSurveyHeroActions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.mngSurveyPrimaryBtn {
+	border: none;
+	background: linear-gradient(135deg, #0b5ed7, #1d4ed8);
+	color: #ffffff;
+	border-radius: 12px;
+	padding: 12px 16px;
+	font-size: 13px;
+	font-weight: 700;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	box-shadow: 0 10px 24px rgba(11, 94, 215, 0.24);
+	cursor: pointer;
+}
+
+.mngSurveyPanel {
+	background: rgba(255, 255, 255, 0.88);
+	backdrop-filter: blur(10px);
+	border: 1px solid #e6ecf4;
+	border-radius: 18px;
+	box-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
+	padding: 18px;
+}
+
+.mngSurveyToolbar {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.mngSurveySearch {
+	flex: 1;
+	min-width: 280px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 14px;
+	height: 48px;
+	border-radius: 12px;
+	border: 1px solid #e4e9f2;
+	background: #f6f8fb;
+	color: #8b97ab;
+}
+
+.mngSurveySearch input {
+	flex: 1;
+	border: none;
+	background: transparent;
+	outline: none;
+	font-size: 14px;
+	color: #1f2b3f;
+}
+
+.mngSurveyToolbarMeta {
+	font-size: 12px;
+	font-weight: 700;
+	color: #64748b;
+	white-space: nowrap;
+}
+
+.mngSurveyTableWrap {
+	overflow-x: auto;
+}
+
+.mngSurveyTable {
+	width: 100%;
+	min-width: 920px;
+	border-collapse: separate;
+	border-spacing: 0 12px;
+}
+
+.mngSurveyTable thead th {
+	text-align: left;
+	padding: 0 18px 8px;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	font-weight: 800;
+	color: #94a3b8;
+}
+
+.mngSurveyTable thead th:last-child {
+	text-align: center;
+}
+
+.mngSurveyTable tbody tr {
+	background: #ffffff;
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+	border-radius: 14px;
+}
+
+.mngSurveyTable tbody td {
+	padding: 22px 18px;
+	vertical-align: middle;
+	border-top: 1px solid #edf2f7;
+	border-bottom: 1px solid #edf2f7;
+	font-size: 14px;
+}
+
+.mngSurveyTable tbody tr td:first-child {
+	border-left: 1px solid #edf2f7;
+	border-top-left-radius: 14px;
+	border-bottom-left-radius: 14px;
+}
+
+.mngSurveyTable tbody tr td:last-child {
+	border-right: 1px solid #edf2f7;
+	border-top-right-radius: 14px;
+	border-bottom-right-radius: 14px;
+}
+
+.mngSurveyId {
+	font-size: 12px;
+	font-weight: 700;
+	color: #64748b;
+	white-space: nowrap;
+}
+
+.mngSurveyTitleGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.mngSurveyTitleGroup strong {
+	font-size: 16px;
+	font-weight: 800;
+	color: #1f2937;
+}
+
+.mngSurveyTitleGroup span {
+	font-size: 12px;
+	color: #8b97ab;
+}
+
+.mngSurveyStatus {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 86px;
+	padding: 7px 12px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+}
+
+.mngSurveyStatus.active {
+	background: #dbeafe;
+	color: #2563eb;
+}
+
+.mngSurveyStatus.draft {
+	background: #f1f5f9;
+	color: #64748b;
+}
+
+.mngSurveyDate {
+	white-space: nowrap;
+	color: #64748b;
+	font-weight: 600;
+}
+
+.mngSurveyActions {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	width: 100%;
+}
+
+.mngSurveyActions .iconBtn {
+	width: 38px;
+	height: 38px;
+	border-radius: 12px;
+	border: 1px solid #e2e8f0;
+	background: #ffffff;
+	color: #64748b;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.mngSurveyActions .iconBtn:hover {
+	border-color: #0b5ed7;
+	color: #0b5ed7;
+	background: #f0f5ff;
+}
+
+.viewBtn {
+	border: none;
+	background: #e5e7eb;
+	color: #334155;
+	border-radius: 12px;
+	padding: 10px 14px;
+	min-height: 56px;
+	min-width: 116px;
+	font-size: 12px;
+	font-weight: 800;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	cursor: pointer;
+	text-align: center;
+	line-height: 1.2;
+}
+
+.viewBtn:hover {
+	background: #d9dde6;
+}
+
+.mngSurveyTable tbody td:last-child {
+	text-align: center;
+}
+
+@media (max-width: 1024px) {
+	.mngSurveyMain {
+		padding: 20px 16px 28px;
+	}
+
+	.mngSurveyHero {
+		flex-direction: column;
+	}
+
+	.mngSurveyToolbar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.mngSurveyToolbarMeta {
+		text-align: right;
+	}
+}
+
+@media (max-width: 720px) {
+	.mngSurveyHero h1 {
+		font-size: 26px;
+	}
+
+	.mngSurveyPanel {
+		padding: 14px;
+	}
+
+	.viewBtn {
+		width: 100%;
+	}
+}
