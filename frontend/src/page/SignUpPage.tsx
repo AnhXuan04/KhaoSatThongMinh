@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -125,13 +124,6 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           <div className="dividerLine"></div>
           <span className="dividerText">HOẶC</span>
           <div className="dividerLine"></div>
-        </div>
-
-        <div className="socialButtonsSection">
-          <button className="socialButton" type="button">
-            <FcGoogle />
-            Google
-          </button>
         </div>
 
         <div className="footerSection">

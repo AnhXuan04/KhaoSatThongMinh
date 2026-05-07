@@ -1,39 +1,148 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './CreatorPackagePage.css';
 
-type PlanKey = 'personal' | 'pro' | 'business';
+type PlanDto = {
+  id: number;
+  code: string;
+  name: string;
+  priceMonthly: number;
+  priceYearly: number;
+  featuresJson: string;
+  active: boolean;
+};
 
-const planData: Record<PlanKey, { name: string; price: string; subtitle: string; features: string[] }> = {
-  personal: {
-    name: 'CÁ NHÂN',
-    price: '$29',
-    subtitle: '/tháng',
-    features: ['10 khảo sát đồng thời', '1,000 lượt phản hồi']
-  },
-  pro: {
-    name: 'CHUYÊN NGHIỆP',
-    price: '$89',
-    subtitle: '/tháng',
-    features: ['Khảo sát không giới hạn', '10,000 lượt phản hồi', 'Phân tích logic']
-  },
-  business: {
-    name: 'DOANH NGHIỆP',
-    price: '$249',
-    subtitle: '/tháng',
-    features: ['Hỗ trợ tận tâm', 'Tùy chỉnh thương hiệu', 'Tích hợp SSO']
-  }
+type PaymentCreateDto = {
+  paymentUrl?: string;
+  txnRef?: string;
 };
 
 export default function CreatorPackagePage() {
-  const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<PlanKey>('pro');
+  const PAID_TXN_REF_KEY = 'pendingPremiumTxnRef';
+  const PAID_TXN_EMAIL_KEY = 'pendingPremiumEmail';
+  const PAYMENT_RETURN_URL_KEY = 'premiumPaymentReturnUrl';
+  const PAYMENT_SUCCESS_KEY = 'premiumPaymentSuccess';
+
+  const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
+  const [plan, setPlan] = useState<PlanDto | null>(null);
+  const [planLoading, setPlanLoading] = useState(true);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: ''
   });
   const [errorMessage, setErrorMessage] = useState('');
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paidTxnRef, setPaidTxnRef] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  const hasEnoughSignUpInfo = () => {
+    return formData.fullName.trim() && formData.email.trim() && formData.password.trim();
+  };
+
+  const createPaymentAndRedirect = async () => {
+    if (!plan) {
+      throw new Error('Chưa tải được gói dịch vụ.');
+    }
+
+    if (!hasEnoughSignUpInfo()) {
+      throw new Error('Vui lòng nhập đầy đủ họ tên, email và mật khẩu trước khi thanh toán.');
+    }
+
+    sessionStorage.setItem('premiumPaymentReturnUrl', '/creator-package');
+
+    const response = await fetch('http://localhost:8080/api/payments/vnpay/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        planCode: plan.code,
+        billingCycle,
+        payerEmail: formData.email.trim().toLowerCase()
+      })
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || 'Không thể tạo thanh toán.');
+    }
+
+    const result: PaymentCreateDto = await response.json();
+    if (result?.txnRef) {
+      sessionStorage.setItem(PAID_TXN_REF_KEY, result.txnRef);
+      sessionStorage.setItem(PAID_TXN_EMAIL_KEY, formData.email.trim().toLowerCase());
+      setPaidTxnRef(result.txnRef);
+    }
+
+    if (result?.paymentUrl) {
+      window.location.href = result.paymentUrl;
+      return;
+    }
+
+    throw new Error('Không nhận được URL thanh toán.');
+  };
+
+  useEffect(() => {
+    const paymentSuccessFlag = sessionStorage.getItem(PAYMENT_SUCCESS_KEY);
+    const paymentReturnUrl = sessionStorage.getItem(PAYMENT_RETURN_URL_KEY);
+
+    if (paymentSuccessFlag && paymentReturnUrl === '/creator-package') {
+      setPaymentSuccess(true);
+    }
+
+    sessionStorage.removeItem(PAYMENT_SUCCESS_KEY);
+    sessionStorage.removeItem(PAYMENT_RETURN_URL_KEY);
+
+    const storedTxnRef = sessionStorage.getItem(PAID_TXN_REF_KEY) || '';
+    const storedEmail = sessionStorage.getItem(PAID_TXN_EMAIL_KEY) || '';
+    if (storedTxnRef) {
+      setPaidTxnRef(storedTxnRef);
+      if (storedEmail) {
+        setFormData((prev) => ({ ...prev, email: storedEmail }));
+      }
+    }
+
+    const fetchCurrentPlan = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/plans/current');
+        if (!response.ok) {
+          throw new Error('Không thể tải thông tin gói.');
+        }
+
+        const result = await response.json();
+        setPlan(result);
+      } catch (error) {
+        console.error(' lỗi tải plan:', error);
+        setErrorMessage('Không thể tải thông tin gói dịch vụ. Vui lòng thử lại sau.');
+      } finally {
+        setPlanLoading(false);
+      }
+    };
+
+    fetchCurrentPlan();
+  }, []);
+
+  const getFeatures = () => {
+    if (!plan?.featuresJson) {
+      return [] as string[];
+    }
+
+    try {
+      const parsed = JSON.parse(plan.featuresJson);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0
+    }).format(price);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -42,23 +151,67 @@ export default function CreatorPackagePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+
+    if (!paidTxnRef) {
+      setErrorMessage('Vui lòng nhấn Chọn và thanh toán thành công trước khi hoàn tất đăng ký.');
+      return;
+    }
+
+    const paidEmail = sessionStorage.getItem(PAID_TXN_EMAIL_KEY);
+    if (paidEmail && paidEmail.toLowerCase() !== formData.email.trim().toLowerCase()) {
+      setErrorMessage('Email đăng ký phải trùng với email đã thanh toán.');
+      return;
+    }
+
+    if (!plan) {
+      setErrorMessage('Chưa tải được gói dịch vụ. Vui lòng thử lại sau.');
+      return;
+    }
+
+    setPaymentLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/signup/interviewer', {
+      const signUpResponse = await fetch('http://localhost:8080/api/auth/signup/interviewer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          paidTxnRef
+        })
       });
 
-      const result = await response.text();
-      if (response.ok) {
-        navigate('/login');
-      } else {
-        setErrorMessage(result);
+      const signUpResult = await signUpResponse.text();
+      if (!signUpResponse.ok) {
+        throw new Error(signUpResult || 'Đăng ký thất bại.');
       }
+
+      sessionStorage.removeItem(PAID_TXN_REF_KEY);
+      sessionStorage.removeItem(PAID_TXN_EMAIL_KEY);
+      window.location.href = '/login';
     } catch (error) {
       console.error('Loi goi API:', error);
-      setErrorMessage('Khong the ket noi den may chu.');
+      const message = error instanceof Error ? error.message : 'Không thể kết nối đến máy chủ.';
+      setErrorMessage(message);
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!plan) {
+      setErrorMessage('Chưa tải được gói dịch vụ.');
+      return;
+    }
+
+    setPaymentLoading(true);
+    try {
+      await createPaymentAndRedirect();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Không thể kết nối đến máy chủ.';
+      setErrorMessage(message);
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -85,60 +238,72 @@ export default function CreatorPackagePage() {
 
             {errorMessage && <p>{errorMessage}</p>}
 
-            <button type="submit" className="completeBtn">Hoàn Tất Đăng Ký</button>
+            <button type="submit" className="completeBtn" disabled={paymentLoading || planLoading}>
+              {paymentLoading ? 'Đang xử lý...' : 'Hoàn Tất Đăng Ký'}
+            </button>
           </form>
         </section>
 
         <section className="rightPanel">
           <div className="planHead">
             <h2>Chọn Gói Của Bạn</h2>
-            <p>Chọn gói giải pháp phù hợp nhất để thúc đẩy các nghiên cứu của bạn.</p>
+            <p>Hệ thống hiện cung cấp một gói Premium với lựa chọn thanh toán theo tháng hoặc năm.</p>
           </div>
 
           <div className="billingSwitch">
-            <button type="button">Hàng tháng</button>
-            <button type="button">Hàng năm - Giảm 20%</button>
+            <button type="button" className={billingCycle === 'MONTHLY' ? 'active' : ''} onClick={() => setBillingCycle('MONTHLY')}>
+              Hàng tháng
+            </button>
+            <button type="button" className={billingCycle === 'YEARLY' ? 'active' : ''} onClick={() => setBillingCycle('YEARLY')}>
+              Hàng năm
+            </button>
           </div>
 
           <div className="planGrid">
-            {(Object.keys(planData) as PlanKey[]).map((key) => {
-              const plan = planData[key];
-              const active = selectedPlan === key;
+            {!planLoading && plan && (
+              <article className="planCard active">
+                <div className="popularTag">Gói hiện hành</div>
+                <span className="planName">{plan.name}</span>
+                <div className="planPriceWrap">
+                  <strong>{formatPrice(billingCycle === 'MONTHLY' ? plan.priceMonthly : plan.priceYearly)}</strong>
+                  <span>{billingCycle === 'MONTHLY' ? '/tháng' : '/năm'}</span>
+                </div>
 
-              return (
-                <article key={key} className={`planCard ${active ? 'active' : ''}`}>
-                  {key === 'pro' && <div className="popularTag">Phổ biến nhất</div>}
-                  <span className="planName">{plan.name}</span>
-                  <div className="planPriceWrap">
-                    <strong>{plan.price}</strong>
-                    <span>{plan.subtitle}</span>
-                  </div>
-
-                  <ul>
-                    {plan.features.map((feature) => (
-                      <li key={feature}>{feature}</li>
-                    ))}
-                  </ul>
-
-                  <button type="button" onClick={() => setSelectedPlan(key)}>
-                    {active ? 'Đã chọn' : 'Chọn'}
+                <div className="planPriceOptions" aria-label="Bảng giá gói">
+                  <button
+                    type="button"
+                    className={`planPriceOption ${billingCycle === 'MONTHLY' ? 'active' : ''}`}
+                    onClick={() => setBillingCycle('MONTHLY')}
+                  >
+                    <span className="label">Gói tháng</span>
+                    <strong>{formatPrice(plan.priceMonthly)}</strong>
+                    <small className="period">Thanh toán mỗi tháng</small>
                   </button>
-                </article>
-              );
-            })}
-          </div>
+                  <button
+                    type="button"
+                    className={`planPriceOption ${billingCycle === 'YEARLY' ? 'active' : ''}`}
+                    onClick={() => setBillingCycle('YEARLY')}
+                  >
+                    <span className="label">Gói năm</span>
+                    <strong>{formatPrice(plan.priceYearly)}</strong>
+                    <small className="period">Thanh toán theo năm</small>
+                  </button>
+                </div>
 
-          <div className="rightBottom">
-            <div className="proofWrap">
-              <div className="avatarStack">
-                <span>A</span>
-                <span>B</span>
-                <span>C</span>
-                <span>+5k</span>
-              </div>
-              <p>Tham gia cùng hơn 5,000 tổ chức đang sử dụng các công cụ chính xác của chúng tôi.</p>
-            </div>
+                <ul>
+                  {getFeatures().map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
 
+                <button type="button" disabled={paymentLoading} onClick={handlePayment}>
+                  {paymentLoading ? 'Đang chuyển đến VNPay...' : 'Chọn'}
+                </button>
+                {paymentSuccess && paidTxnRef && <p>Đã thanh toán thành công. Vui lòng nhấn Hoàn Tất Đăng Ký để tạo tài khoản.</p>}
+              </article>
+            )}
+
+            {planLoading && <p>Đang tải thông tin gói...</p>}
           </div>
         </section>
       </main>

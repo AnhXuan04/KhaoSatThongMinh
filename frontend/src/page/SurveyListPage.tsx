@@ -62,16 +62,7 @@ const historySurveys = [
 export default function SurveyListPage() {
   return (
     <div className="surveyPageContainer">
-git add frontend/src/App.tsx
-git add frontend/src/assets/components/AppShell.tsx
-git add frontend/src/assets/components/PublicHeader.tsx
-git add frontend/src/assets/components/PublicHeader.css
-git add frontend/src/assets/components/UserHeader.tsx
-git add frontend/src/page/CreatorPackagePage.tsx
-git add frontend/src/page/CreatorPackagePage.css
-git add frontend/src/page/DashboardAdmin.tsx
-git add frontend/src/page/DashboardAdmin.css
-git add frontend/src/page/DashboardPage.tsx      {/* Nội dung chính */}
+   {/* Nội dung chính */}
       <main className="surveyContent">
         
         {/* Section 01: Khảo Sát Mới */}

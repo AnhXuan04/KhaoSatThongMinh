@@ -52,7 +52,7 @@ export default function DashboardPage() {
                   <div className="statusDot"></div>
                 </div>
                 <div className="profileText">
-                  <h2>Chào buổi sáng, {fullName || 'Thành viên mới'}</h2>
+                  <h2>Xin Chào, {fullName || 'Thành viên mới'}</h2>
                   <p>Người tạo khảo sát chuyên nghiệp</p>
                 </div>
               </div>
