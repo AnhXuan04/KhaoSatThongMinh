@@ -2,7 +2,9 @@ package com.example.demo.service;
 
 import com.example.demo.dto.UserProfileDto;
 import com.example.demo.entity.User;
+import com.example.demo.entity.UserProfile;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,9 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private UserProfileRepository userProfileRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     // 1. Hàm Lấy thông tin user (Trả về React)
@@ -22,11 +27,14 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
 
         UserProfileDto dto = new UserProfileDto();
-        dto.setFullName(user.getFullName());
         dto.setEmail(user.getEmail());
-        dto.setJob(user.getJob());
-        dto.setPhone(user.getPhone());
-        dto.setInterests(user.getInterests());
+
+        if (user.getProfile() != null) {
+            dto.setFullName(user.getProfile().getFullName());
+            dto.setJob(user.getProfile().getJob());
+            dto.setPhone(user.getProfile().getPhone());
+            dto.setInterests(user.getProfile().getInterests());
+        }
 
         return dto;
     }
@@ -36,12 +44,18 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
 
-        user.setFullName(dto.getFullName());
-        user.setJob(dto.getJob());
-        user.setPhone(dto.getPhone());
-        user.setInterests(dto.getInterests());
+        UserProfile profile = user.getProfile();
+        if (profile == null) {
+            profile = new UserProfile();
+            profile.setUser(user);
+        }
 
-        userRepository.save(user);
+        profile.setFullName(dto.getFullName());
+        profile.setJob(dto.getJob());
+        profile.setPhone(dto.getPhone());
+        profile.setInterests(dto.getInterests());
+
+        userProfileRepository.save(profile);
         return "Cập nhật hồ sơ thành công!";
     }
 

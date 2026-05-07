@@ -43,12 +43,16 @@ public class AdminService {
     private UserListItemDto toUserListItem(User user) {
         UserListItemDto dto = new UserListItemDto();
         dto.setId(user.getId());
-        dto.setFullName(user.getFullName());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole() == null ? null : user.getRole().name());
-        dto.setJob(user.getJob());
-        dto.setPhone(user.getPhone());
-        dto.setInterests(splitInterests(user.getInterests()));
+
+        if (user.getProfile() != null) {
+            dto.setFullName(user.getProfile().getFullName());
+            dto.setJob(user.getProfile().getJob());
+            dto.setPhone(user.getProfile().getPhone());
+            dto.setInterests(splitInterests(user.getProfile().getInterests()));
+        }
+
         dto.set_locked(user.isLocked());
         return dto;
     }
