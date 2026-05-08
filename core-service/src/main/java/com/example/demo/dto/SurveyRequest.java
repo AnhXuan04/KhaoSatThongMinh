@@ -8,5 +8,6 @@ import java.util.List;
 public class SurveyRequest {
     private String title;
     private String description;
+    private Long surveyFieldId;
     private List<QuestionRequest> questions;
 }

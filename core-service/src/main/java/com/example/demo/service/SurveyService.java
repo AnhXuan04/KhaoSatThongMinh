@@ -8,8 +8,10 @@ import com.example.demo.entity.Option;
 import com.example.demo.entity.Question;
 import com.example.demo.entity.Survey;
 import com.example.demo.entity.User;
+import com.example.demo.entity.SurveyField;
 import com.example.demo.repository.SurveyRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.SurveyFieldRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,8 @@ public class SurveyService {
     private UserRepository userRepository;
     @Autowired
     private SurveyRepository surveyRepository;
+    @Autowired
+    private SurveyFieldRepository surveyFieldRepository;
 
     public Survey createSurvey(String email, SurveyRequest request) {
         User user = userRepository.findByEmail(email)
@@ -33,10 +37,18 @@ public class SurveyService {
             throw new RuntimeException("Tài khoản của bạn chưa được nâng cấp để tạo khảo sát.");
         }
 
+        // Load survey field
+        SurveyField surveyField = null;
+        if (request.getSurveyFieldId() != null) {
+            surveyField = surveyFieldRepository.findById(request.getSurveyFieldId())
+                    .orElseThrow(() -> new RuntimeException("Survey field not found"));
+        }
+
         // Logic to create a survey
         Survey survey = new Survey();
         survey.setTitle(request.getTitle());
         survey.setDescription(request.getDescription());
+        survey.setSurveyField(surveyField);
         survey.setUser(user);
 
         List<Question> questionList = new ArrayList<>();
@@ -113,6 +125,13 @@ public class SurveyService {
         survey.setTitle(request.getTitle());
         survey.setDescription(request.getDescription());
 
+        SurveyField surveyField = null;
+        if (request.getSurveyFieldId() != null) {
+            surveyField = surveyFieldRepository.findById(request.getSurveyFieldId())
+                    .orElseThrow(() -> new RuntimeException("Survey field not found"));
+        }
+        survey.setSurveyField(surveyField);
+
         // Replace questions
         List<Question> questionList = new ArrayList<>();
         int qOrder = 1;
@@ -188,6 +207,7 @@ public class SurveyService {
         SurveyRequest dto = new SurveyRequest();
         dto.setTitle(survey.getTitle());
         dto.setDescription(survey.getDescription());
+        dto.setSurveyFieldId(survey.getSurveyField() != null ? survey.getSurveyField().getId() : null);
 
         List<QuestionRequest> qList = new ArrayList<>();
         if (survey.getQuestions() != null) {

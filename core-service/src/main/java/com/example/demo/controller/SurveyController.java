@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.dto.SurveyRequest;
 import com.example.demo.dto.SurveyListDto;
 import com.example.demo.service.SurveyService;
+import com.example.demo.entity.SurveyField;
+import com.example.demo.repository.SurveyFieldRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +20,9 @@ public class SurveyController {
 
     @Autowired
     private SurveyService surveyService;
+
+    @Autowired
+    private SurveyFieldRepository surveyFieldRepository;
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('INTERVIEWER')")
@@ -86,6 +91,17 @@ public class SurveyController {
         try {
             SurveyRequest dto = surveyService.getSurveyForEdit(email, id);
             return ResponseEntity.ok(dto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/fields/list")
+    @PreAuthorize("hasAuthority('INTERVIEWER')")
+    public ResponseEntity<List<SurveyField>> getSurveyFields() {
+        try {
+            List<SurveyField> fields = surveyFieldRepository.findByIsDeletedFalse();
+            return ResponseEntity.ok(fields);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
         }

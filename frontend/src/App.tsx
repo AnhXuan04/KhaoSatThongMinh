@@ -11,14 +11,15 @@ import MngSurveyField from './page/admin/MngSurveyField';
 import HomePage from './page/HomePage';
 import CreatorPackagePage from './page/CreatorPackagePage';
 import UpdateProfilePage from './page/interviewer/UpdateProfilePage';
-import SurveyListPage from './page/SurveyListPage';
-import UserProfilePage from './page/UserProfilePage';
+import SurveyListPage from './page/interviewee/SurveyListPage';
+import UserProfilePage from './page/interviewee/UserProfilePage';
 import ResetPasswordPage from './page/ResetPasswordPage';
 import MngSurvey from './page/interviewer/MngSurvey';
 import MngSurveyReview from './page/interviewer/MngSurveyReview';
 import PaymentResultPage from './page/interviewer/PaymentResultPage';
 import ServicePackage from './page/interviewer/ServicePackage';
 import CreateSurveys from './page/interviewer/CreateSurveys';
+import ViewSurvey from './page/interviewee/ViewSurvey';
 import type {JSX} from "react";
 
 const getRoleFromToken = (token: string) => {
@@ -97,6 +98,7 @@ function App() {
           <Route path="/payment-result" element={<PaymentResultPage />} />
           <Route path="/service-package" element={<ServicePackage />} />
           <Route path="/create-surveys" element={<RequireRole role="INTERVIEWER"><CreateSurveys /></RequireRole>} />
+          <Route path="/survey/:id" element={<ViewSurvey />} />
         </Routes>
       </AppShell>
     </BrowserRouter>

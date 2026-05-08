@@ -151,8 +151,8 @@ export default function MngSurvey() {
 											<td className="mngSurveyId">#{index + 1}</td>
 											<td>
 												<div className="mngSurveyTitleGroup">
-													<strong>{survey.title}</strong>
-													<span>{survey.description}</span>
+													<strong style={{ cursor: 'pointer' }} onClick={() => navigate(`/create-surveys?editId=${encodeURIComponent(survey.id)}`)}>{survey.title}</strong>
+													<span style={{ cursor: 'pointer' }} onClick={() => navigate(`/create-surveys?editId=${encodeURIComponent(survey.id)}`)}>{survey.description}</span>
 												</div>
 											</td>
 											<td>{survey.questionCount}</td>

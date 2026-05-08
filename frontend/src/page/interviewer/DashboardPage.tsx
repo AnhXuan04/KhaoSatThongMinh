@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiArrowRight, FiPlus, FiBarChart2} from 'react-icons/fi';
+import { FiArrowRight, FiPlus, FiBarChart2, FiEdit } from 'react-icons/fi';
 import './Dashboard.css';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -147,11 +147,11 @@ export default function DashboardPage() {
                   <div key={s.id || idx} className="card surveyCard">
                     <div className="surveyCardHeader">
                       <div className="iconBox"><FiBarChart2 /></div>
-                      <span className={`statusTag ${s.status === 'DRAFT' ? 'draft' : 'active'}`}>
-                        {s.status ? s.status : (idx === 0 ? 'HOẠT ĐỘNG' : 'BẢN NHÁP')}
-                      </span>
+                      
                     </div>
-                    <h4>{s.title}</h4>
+                    <h4 className="" style={{ cursor: 'pointer' }} onClick={() => navigate(`/create-surveys?editId=${encodeURIComponent(s.id)}`)}>
+                      {s.title}
+                    </h4>
                     <p>{s.description}</p>
                     {idx === 1 && (
                       <button className="addBtn" onClick={() => navigate('/create-surveys')}>

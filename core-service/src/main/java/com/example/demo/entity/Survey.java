@@ -24,6 +24,10 @@ public class Survey {
     @OneToMany(mappedBy = "survey", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
 
+    @ManyToOne
+    @JoinColumn(name = "survey_field_id")
+    private SurveyField surveyField;
+
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
 

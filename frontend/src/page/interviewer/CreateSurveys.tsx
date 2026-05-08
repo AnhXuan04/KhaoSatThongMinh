@@ -17,9 +17,16 @@ interface Question {
   required: boolean;
 }
 
+interface SurveyField {
+  id: number;
+  name: string;
+  description?: string;
+}
+
 interface Survey {
   title: string;
   description: string;
+  surveyFieldId?: number;
   questions: Question[];
 }
 
@@ -32,16 +39,39 @@ export default function CreateSurveys() {
   const [survey, setSurvey] = useState<Survey>({
     title: '',
     description: '',
+    surveyFieldId: undefined,
     questions: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [surveyFields, setSurveyFields] = useState<SurveyField[]>([]);
 
   // Get auth token from storage
   const getAuthToken = (): string | null => {
     return sessionStorage.getItem('token') || localStorage.getItem('token');
   };
+
+  // Fetch survey fields
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) return;
+
+    const fetchFields = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/api/surveys/fields/list', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setSurveyFields(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Lỗi khi tải lĩnh vực:', err);
+      }
+    };
+
+    fetchFields();
+  }, []);
 
   // Save survey to backend
   const handleSaveSurvey = async () => {
@@ -69,6 +99,7 @@ export default function CreateSurveys() {
       const surveyData = {
         title: survey.title,
         description: survey.description,
+        surveyFieldId: survey.surveyFieldId,
         questions: survey.questions.map((q) => ({
           title: q.title,
           type: q.type,
@@ -111,6 +142,7 @@ export default function CreateSurveys() {
         setSurvey({
           title: '',
           description: '',
+          surveyFieldId: undefined,
           questions: [],
         });
         setStep(1);
@@ -149,10 +181,10 @@ export default function CreateSurveys() {
         );
 
         const data = resp.data as any;
-        // Map backend SurveyRequest shape into local state
         setSurvey({
           title: data.title || '',
           description: data.description || '',
+          surveyFieldId: data.surveyFieldId,
           questions: (data.questions || []).map((q: any, idx: number) => ({
             id: `q-${idx}-${Date.now()}`,
             type: q.type || 'short_text',
@@ -161,7 +193,6 @@ export default function CreateSurveys() {
             required: q.required || false,
           })),
         });
-        setStep(2);
       } catch (e) {
         console.error('Load survey for edit failed', e);
       }
@@ -182,6 +213,10 @@ export default function CreateSurveys() {
 
   const handleNextStep = () => {
     if (survey.title.trim()) {
+      if (!survey.surveyFieldId) {
+        alert('Vui lòng chọn lĩnh vực');
+        return;
+      }
       setStep(2);
     } else {
       alert('Vui lòng nhập tiêu đề khảo sát');
@@ -364,6 +399,20 @@ export default function CreateSurveys() {
                 value={survey.description}
                 onChange={(e) => handleDescriptionChange(e.target.value)}
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">LĨNH VỰC <span style={{ color: 'red' }}>*</span></label>
+              <select
+                className="form-input"
+                value={survey.surveyFieldId || ''}
+                onChange={(e) => setSurvey({ ...survey, surveyFieldId: e.target.value ? parseInt(e.target.value) : undefined })}
+              >
+                <option value="">-- Chọn lĩnh vực --</option>
+                {surveyFields.map((field) => (
+                  <option key={field.id} value={field.id}>{field.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="form-actions">
