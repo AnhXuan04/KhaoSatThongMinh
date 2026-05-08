@@ -1,49 +1,94 @@
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import { FaQrcode } from 'react-icons/fa';
 import { FiEdit3, FiEye, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import './MngSurvey.css';
 
-type SurveyStatus = 'HOẠT ĐỘNG' | 'BẢN NHÁP';
-
 type SurveyRow = {
-	id: string;
+	id: number;
 	title: string;
-	category: string;
-	status: SurveyStatus;
+	description: string;
+	questionCount: number;
 	createdAt: string;
-};
-
-const surveyRows: SurveyRow[] = [
-	{
-		id: '#001',
-		title: 'Khảo sát sự hài lòng nhân viên 2024',
-		category: 'Nhân sự & Văn hóa',
-		status: 'HOẠT ĐỘNG',
-		createdAt: '15 Th05, 2024'
-	},
-	{
-		id: '#002',
-		title: 'Đánh giá sản phẩm - Q2',
-		category: 'Phát triển Sản phẩm',
-		status: 'BẢN NHÁP',
-		createdAt: '12 Th05, 2024'
-	},
-	{
-		id: '#003',
-		title: 'Nghiên cứu thị trường AI',
-		category: 'Chiến lược & Công nghệ',
-		status: 'HOẠT ĐỘNG',
-		createdAt: '08 Th05, 2024'
-	}
-];
-
-const statusLabelClass: Record<SurveyStatus, string> = {
-	'HOẠT ĐỘNG': 'active',
-	'BẢN NHÁP': 'draft'
 };
 
 export default function MngSurvey() {
 	const navigate = useNavigate();
+	const [surveys, setSurveys] = useState<SurveyRow[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string>('');
+	const [searchTerm, setSearchTerm] = useState('');
+
+	const getAuthToken = () => {
+		return sessionStorage.getItem('token') || localStorage.getItem('token') || '';
+	};
+
+	useEffect(() => {
+		loadSurveys();
+	}, []);
+
+	const loadSurveys = async () => {
+		try {
+			setLoading(true);
+			setError('');
+
+			const token = getAuthToken();
+			if (!token) {
+				setError('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn.');
+				setLoading(false);
+				return;
+			}
+
+			const response = await axios.get('http://localhost:8080/api/surveys/my', {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+
+			setSurveys(response.data);
+		} catch (err) {
+			console.error('Error loading surveys:', err);
+			setError('Không thể tải danh sách khảo sát. Vui lòng thử lại.');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handleEdit = (id: number) => {
+		navigate(`/create-surveys?editId=${encodeURIComponent(id)}`);
+	};
+
+	const handleDelete = async (id: number) => {
+		if (!window.confirm('Bạn có chắc muốn xóa khảo sát này?')) return;
+
+		try {
+			setLoading(true);
+			setError('');
+
+			const token = getAuthToken();
+			if (!token) {
+				setError('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn.');
+				setLoading(false);
+				return;
+			}
+
+			await axios.delete(`http://localhost:8080/api/surveys/${encodeURIComponent(id)}`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+
+			// Remove from local state
+			setSurveys(prev => prev.filter(s => s.id !== id));
+		} catch (err) {
+			console.error('Delete survey error', err);
+			setError('Xóa khảo sát thất bại. Vui lòng thử lại.');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const filteredSurveys = surveys.filter(survey =>
+		survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+		survey.description.toLowerCase().includes(searchTerm.toLowerCase())
+	);
 
 	return (
 		<div className="mngSurveyPage">
@@ -55,78 +100,111 @@ export default function MngSurvey() {
 					</div>
 
 					<div className="mngSurveyHeroActions">
-						<button type="button" className="mngSurveyPrimaryBtn">
+						<button type="button" className="mngSurveyPrimaryBtn" onClick={() => navigate('/create-surveys')}>
 							<FiPlus />
 							Tạo khảo sát mới
 						</button>
 					</div>
 				</section>
 
+				{error && <div style={{ color: 'red', padding: '10px', margin: '0 20px' }}>{error}</div>}
+
 				<section className="mngSurveyPanel">
 					<div className="mngSurveyToolbar">
 						<label className="mngSurveySearch">
 							<FiSearch />
-							<input type="search" placeholder="Tìm theo tiêu đề, danh mục..." aria-label="Tìm khảo sát" />
+							<input
+								type="search"
+								placeholder="Tìm theo tiêu đề, danh mục..."
+								aria-label="Tìm khảo sát"
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+							/>
 						</label>
 
 						<div className="mngSurveyToolbarMeta">
-							<span>3 khảo sát</span>
+							<span>{filteredSurveys.length} khảo sát</span>
 						</div>
 					</div>
 
 					<div className="mngSurveyTableWrap">
-						<table className="mngSurveyTable">
-							<thead>
-								<tr>
-									<th>ID</th>
-									<th>TIÊU ĐỀ &amp; DANH MỤC</th>
-									<th>TRẠNG THÁI</th>
-									<th>NGÀY TẠO</th>
-									<th>THAO TÁC</th>
-								</tr>
-							</thead>
-							<tbody>
-								{surveyRows.map((survey) => (
-									<tr key={survey.id}>
-										<td className="mngSurveyId">{survey.id}</td>
-										<td>
-											<div className="mngSurveyTitleGroup">
-												<strong>{survey.title}</strong>
-												<span>{survey.category}</span>
-											</div>
-										</td>
-										<td>
-											<span className={`mngSurveyStatus ${statusLabelClass[survey.status]}`}>
-												{survey.status}
-											</span>
-										</td>
-										<td className="mngSurveyDate">{survey.createdAt}</td>
-										<td>
-											<div className="mngSurveyActions">
-												<button type="button" className="iconBtn" aria-label={`Mã QR của ${survey.title}`} title="Mã QR">
-													<FaQrcode />
-												</button>
-												<button type="button" className="iconBtn" aria-label={`Chỉnh sửa ${survey.title}`} title="Chỉnh sửa">
-													<FiEdit3 />
-												</button>
-												<button type="button" className="iconBtn" aria-label={`Xóa ${survey.title}`} title="Xóa">
-													<FiTrash2 />
-												</button>
-												<button
-													type="button"
-													className="viewBtn"
-													aria-label={`Xem phản hồi của ${survey.title}`}
-													onClick={() => navigate(`/manage-surveys/review?surveyId=${encodeURIComponent(survey.id)}`)}
-												>
-													<FiEye />
-													<span>Xem phản hồi</span>
-												</button>
-											</div>
-										</td>
+						{loading ? (
+							<div style={{ textAlign: 'center', padding: '20px' }}>Đang tải...</div>
+						) : filteredSurveys.length === 0 ? (
+							<div style={{ textAlign: 'center', padding: '20px' }}>
+								{surveys.length === 0 ? 'Bạn chưa tạo khảo sát nào.' : 'Không tìm thấy khảo sát phù hợp.'}
+							</div>
+						) : (
+							<table className="mngSurveyTable">
+								<thead>
+									<tr>
+										<th>ID</th>
+										<th>TIÊU ĐỀ &amp; MÔ TẢ</th>
+										<th>SỐ CÂU HỎI</th>
+										<th>NGÀY TẠO</th>
+										<th>THAO TÁC</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
+								</thead>
+								<tbody>
+									{filteredSurveys.map((survey, index) => (
+										<tr key={survey.id}>
+											<td className="mngSurveyId">#{index + 1}</td>
+											<td>
+												<div className="mngSurveyTitleGroup">
+													<strong>{survey.title}</strong>
+													<span>{survey.description}</span>
+												</div>
+											</td>
+											<td>{survey.questionCount}</td>
+											<td className="mngSurveyDate">{survey.createdAt}</td>
+											<td>
+												<div className="mngSurveyActions">
+													<button
+														type="button"
+														className="iconBtn"
+														aria-label={`Mã QR của ${survey.title}`}
+														title="Mã QR"
+													>
+														<FaQrcode />
+													</button>
+													<button
+														type="button"
+														className="iconBtn"
+														aria-label={`Chỉnh sửa ${survey.title}`}
+														title="Chỉnh sửa"
+														onClick={() => handleEdit(survey.id)}
+													>
+														<FiEdit3 />
+													</button>
+													<button
+														type="button"
+														className="iconBtn"
+														aria-label={`Xóa ${survey.title}`}
+														title="Xóa"
+														onClick={() => handleDelete(survey.id)}
+													>
+														<FiTrash2 />
+													</button>
+													<button
+														type="button"
+														className="viewBtn"
+														aria-label={`Xem phản hồi của ${survey.title}`}
+														onClick={() =>
+															navigate(
+																`/manage-surveys/review?surveyId=${encodeURIComponent(survey.id)}`
+															)
+														}
+													>
+														<FiEye />
+														<span>Xem phản hồi</span>
+													</button>
+												</div>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						)}
 					</div>
 				</section>
 			</main>

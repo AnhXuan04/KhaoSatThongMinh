@@ -18,6 +18,7 @@ import MngSurvey from './page/interviewer/MngSurvey';
 import MngSurveyReview from './page/interviewer/MngSurveyReview';
 import PaymentResultPage from './page/interviewer/PaymentResultPage';
 import ServicePackage from './page/interviewer/ServicePackage';
+import CreateSurveys from './page/interviewer/CreateSurveys';
 import type {JSX} from "react";
 
 const getRoleFromToken = (token: string) => {
@@ -95,6 +96,7 @@ function App() {
           <Route path="/reset-password" element={<PublicOnly><ResetPasswordPage /></PublicOnly>} />
           <Route path="/payment-result" element={<PaymentResultPage />} />
           <Route path="/service-package" element={<ServicePackage />} />
+          <Route path="/create-surveys" element={<RequireRole role="INTERVIEWER"><CreateSurveys /></RequireRole>} />
         </Routes>
       </AppShell>
     </BrowserRouter>
