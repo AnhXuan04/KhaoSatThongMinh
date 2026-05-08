@@ -32,16 +32,13 @@ public class AuthService {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private SubscriptionService subscriptionService;
-
-    @Autowired
-    private EmailService emailService;
+    private UserProfileRepository userProfileRepository;
 
     @Autowired
     private OtpVerificationRepository otpVerificationRepository;
 
     @Autowired
-    private UserProfileRepository userProfileRepository;
+    private EmailService emailService;
 
     public String registerUser(SignUpRequest request) {
         return registerByRole(request, Role.INTERVIEWEE);
@@ -78,17 +75,12 @@ public class AuthService {
         user.setRole(Role.INTERVIEWER);
         userRepository.save(user);
 
-        // Create UserProfile for new structure
+        // Also create UserProfile for new structure
         UserProfile profile = new UserProfile();
         profile.setUser(user);
         profile.setFullName(request.getFullName());
         userProfileRepository.save(profile);
 
-        transaction.setUser(user);
-        transaction.setPayerEmail(request.getEmail().trim().toLowerCase());
-        transaction.setClaimed(true);
-        subscriptionService.applySubscription(user, transaction);
-        userRepository.save(user);
         paymentTransactionRepository.save(transaction);
 
         return "Đăng ký tài khoản thành công!";
@@ -107,10 +99,9 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
-
         userRepository.save(user);
 
-        // Create UserProfile for new structure
+        // Also create UserProfile for new structure
         UserProfile profile = new UserProfile();
         profile.setUser(user);
         profile.setFullName(request.getFullName());
@@ -119,19 +110,17 @@ public class AuthService {
         return "Đăng ký tài khoản thành công!";
     }
 
+    public String registerUserByRole(SignUpRequest request, Role role) {
+        return registerByRole(request, role);
+    }
+
     public String loginUser(SignInRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email không tồn tại!"));
-
-        if (user.isLocked()) {
-            throw new RuntimeException("Tài khoản đã bị khóa!");
-        }
+                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không chính xác!"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Mật khẩu không chính xác!");
+            throw new RuntimeException("Email hoặc mật khẩu không chính xác!");
         }
-
-        userRepository.save(user);
 
         return jwtUtils.generateTokenFromEmailAndRole(user.getEmail(), user.getRole().name());
     }
@@ -143,7 +132,7 @@ public class AuthService {
         // Tạo mã OTP ngẫu nhiên 6 chữ số
         String otp = String.format("%06d", new Random().nextInt(999999));
 
-        // Tạo OtpVerification entity cho cấu trúc mới
+        // Cũng tạo OtpVerification entity cho cấu trúc mới
         OtpVerification otpVerification = new OtpVerification();
         otpVerification.setUser(user);
         otpVerification.setOtpCode(otp);
@@ -156,17 +145,29 @@ public class AuthService {
         // Gửi email
         emailService.sendOtpEmail(email, otp);
 
-        return "Mã OTP đã được gửi đến email của bạn!";
+        return "OTP đã được gửi đến email của bạn!";
     }
 
     public String resetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email không tồn tại!"));
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại trong hệ thống!"));
 
-        // Tìm OTP gần đây nhất
+        // Xác thực OTP
+        if (request.getOtpCode() == null || request.getOtpCode().isBlank()) {
+            throw new RuntimeException("OTP không được để trống!");
+        }
+
         OtpVerification otpVerification = otpVerificationRepository
                 .findFirstByUserOrderByCreatedAtDesc(user)
-                .orElseThrow(() -> new RuntimeException("Không có mã OTP nào!"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mã OTP!"));
+
+        if (otpVerification.isExpired()) {
+            throw new RuntimeException("Mã OTP đã hết hạn!");
+        }
+
+        if (otpVerification.isUsed()) {
+            throw new RuntimeException("Mã OTP này đã được sử dụng!");
+        }
 
         if (!otpVerification.getOtpCode().equals(request.getOtpCode())) {
             otpVerification.setAttemptCount(otpVerification.getAttemptCount() + 1);
@@ -174,19 +175,13 @@ public class AuthService {
             throw new RuntimeException("Mã OTP không chính xác!");
         }
 
-        if (otpVerification.isExpired()) {
-            throw new RuntimeException("Mã OTP đã hết hạn! Vui lòng yêu cầu mã mới.");
-        }
-
-        if (otpVerification.isUsed()) {
-            throw new RuntimeException("Mã OTP này đã được sử dụng!");
-        }
-
+        // Cập nhật mật khẩu
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // Cập nhật OtpVerification entity
         otpVerification.setUsed(true);
         otpVerification.setUsedAt(LocalDateTime.now());
-
-        userRepository.save(user);
         otpVerificationRepository.save(otpVerification);
 
         return "Đặt lại mật khẩu thành công!";

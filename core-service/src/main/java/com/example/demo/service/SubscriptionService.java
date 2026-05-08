@@ -62,9 +62,7 @@ public class SubscriptionService {
             subscription.setUser(user);
             subscription.setStartedAt(now);
         } else {
-            if (subscription.getExpiresAt() != null && subscription.getExpiresAt().isAfter(now)) {
-                // Giữ nguyên baseDate
-            } else {
+            if (subscription.getExpiresAt() == null || !subscription.getExpiresAt().isAfter(now)) {
                 subscription.setStartedAt(now);
             }
         }
@@ -109,17 +107,11 @@ public class SubscriptionService {
         return dto;
     }
 
-
-
     private String normalizeBillingCycle(String billingCycle) {
         if (billingCycle == null || billingCycle.isBlank()) {
             return "MONTHLY";
         }
         return billingCycle.trim().toUpperCase(Locale.ROOT);
-    }
-
-    private boolean isExpired(LocalDateTime expiresAt) {
-        return expiresAt != null && expiresAt.isBefore(LocalDateTime.now());
     }
 
     private LocalDateTime addCycle(LocalDateTime baseDate, String billingCycle) {

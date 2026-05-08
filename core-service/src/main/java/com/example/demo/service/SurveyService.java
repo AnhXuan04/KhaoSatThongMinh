@@ -1,28 +1,218 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.OptionRequest;
+import com.example.demo.dto.QuestionRequest;
+import com.example.demo.dto.SurveyRequest;
+import com.example.demo.dto.SurveyListDto;
+import com.example.demo.entity.Option;
+import com.example.demo.entity.Question;
+import com.example.demo.entity.Survey;
 import com.example.demo.entity.User;
+import com.example.demo.repository.SurveyRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SurveyService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private SurveyRepository surveyRepository;
 
-    public ResponseEntity<String> createSurvey(String email) {
+    public Survey createSurvey(String email, SurveyRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!user.isPremium()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Tài khoản của bạn chưa được nâng cấp để tạo khảo sát.");
+            throw new RuntimeException("Tài khoản của bạn chưa được nâng cấp để tạo khảo sát.");
         }
 
         // Logic to create a survey
-        return ResponseEntity.ok("Khảo sát đã được tạo thành công.");
+        Survey survey = new Survey();
+        survey.setTitle(request.getTitle());
+        survey.setDescription(request.getDescription());
+        survey.setUser(user);
+
+        List<Question> questionList = new ArrayList<>();
+
+        int qOrder = 1;
+
+        for (QuestionRequest qReq : request.getQuestions()) {
+
+            Question question = new Question();
+            question.setTitle(qReq.getTitle());
+            question.setType(qReq.getType());
+            question.setRequired(qReq.getRequired());
+            question.setQuestionOrder(qOrder++);
+            question.setSurvey(survey);
+
+            // OPTIONS
+            if (!qReq.getType().equals("short_text")) {
+                List<Option> options = new ArrayList<>();
+                int oOrder = 1;
+
+                for (OptionRequest oReq : qReq.getOptions()) {
+                    Option option = new Option();
+                    option.setText(oReq.getText());
+                    option.setOptionOrder(oOrder++);
+                    option.setQuestion(question);
+
+                    options.add(option);
+                }
+
+                question.setOptions(options);
+            }
+
+            questionList.add(question);
+        }
+
+        // Update the managed questions collection to avoid JPA orphanRemoval issues
+        List<Question> existingQuestions = survey.getQuestions();
+        if (existingQuestions == null) {
+            survey.setQuestions(questionList);
+        } else {
+            existingQuestions.clear();
+            for (Question q : questionList) {
+                existingQuestions.add(q);
+            }
+        }
+
+        return surveyRepository.save(survey);
+    }
+
+    public List<SurveyListDto> getUserSurveys(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Survey> surveys = surveyRepository.findByUserAndIsDeletedFalseOrderByCreatedAtDesc(user);
+        return surveys.stream()
+                .map(SurveyListDto::fromSurvey)
+                .collect(Collectors.toList());
+    }
+
+    public Survey updateSurvey(String email, Long surveyId, SurveyRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Survey not found"));
+
+        if (!survey.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Không có quyền chỉnh sửa khảo sát này.");
+        }
+
+        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+            throw new RuntimeException("Khảo sát đã bị xóa.");
+        }
+
+        survey.setTitle(request.getTitle());
+        survey.setDescription(request.getDescription());
+
+        // Replace questions
+        List<Question> questionList = new ArrayList<>();
+        int qOrder = 1;
+
+        for (QuestionRequest qReq : request.getQuestions()) {
+            Question question = new Question();
+            question.setTitle(qReq.getTitle());
+            question.setType(qReq.getType());
+            question.setRequired(qReq.getRequired());
+            question.setQuestionOrder(qOrder++);
+            question.setSurvey(survey);
+
+            if (!qReq.getType().equals("short_text")) {
+                List<Option> options = new ArrayList<>();
+                int oOrder = 1;
+                for (OptionRequest oReq : qReq.getOptions()) {
+                    Option option = new Option();
+                    option.setText(oReq.getText());
+                    option.setOptionOrder(oOrder++);
+                    option.setQuestion(question);
+                    options.add(option);
+                }
+                question.setOptions(options);
+            }
+
+            questionList.add(question);
+        }
+
+        // Update the managed questions collection to avoid JPA orphanRemoval issues
+        List<Question> existingQuestions = survey.getQuestions();
+        if (existingQuestions == null) {
+            survey.setQuestions(questionList);
+        } else {
+            existingQuestions.clear();
+            for (Question q : questionList) {
+                existingQuestions.add(q);
+            }
+        }
+
+        return surveyRepository.save(survey);
+    }
+
+    public void softDeleteSurvey(String email, Long surveyId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Survey not found"));
+
+        if (!survey.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Không có quyền xóa khảo sát này.");
+        }
+
+        survey.setIsDeleted(true);
+        surveyRepository.save(survey);
+    }
+
+    public SurveyRequest getSurveyForEdit(String email, Long surveyId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Survey not found"));
+
+        if (!survey.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Không có quyền xem khảo sát này.");
+        }
+
+        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+            throw new RuntimeException("Khảo sát đã bị xóa.");
+        }
+
+        SurveyRequest dto = new SurveyRequest();
+        dto.setTitle(survey.getTitle());
+        dto.setDescription(survey.getDescription());
+
+        List<QuestionRequest> qList = new ArrayList<>();
+        if (survey.getQuestions() != null) {
+            for (Question q : survey.getQuestions()) {
+                QuestionRequest qr = new QuestionRequest();
+                qr.setTitle(q.getTitle());
+                qr.setType(q.getType());
+                qr.setRequired(q.getRequired());
+
+                List<OptionRequest> opts = new ArrayList<>();
+                if (q.getOptions() != null) {
+                    for (Option o : q.getOptions()) {
+                        OptionRequest or = new OptionRequest();
+                        or.setText(o.getText());
+                        opts.add(or);
+                    }
+                }
+
+                qr.setOptions(opts);
+                qList.add(qr);
+            }
+        }
+
+        dto.setQuestions(qList);
+        return dto;
     }
 }
 
