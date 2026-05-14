@@ -13,6 +13,8 @@ import com.example.demo.repository.PlanRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.util.VnPayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PaymentService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private static final String VNP_VERSION = "2.1.0";
     private static final String VNP_COMMAND = "pay";
@@ -108,12 +112,20 @@ public class PaymentService {
 
         String responseCode = params.get("vnp_ResponseCode");
         boolean success = "00".equals(responseCode);
+        log.info("[handleReturn] txnRef={} responseCode={} currentStatus={}", txnRef, responseCode, transaction.getStatus());
         if (success && transaction.getStatus() != PaymentStatus.SUCCESS) {
             transaction.setStatus(PaymentStatus.SUCCESS);
             User user = transaction.getUser();
+            log.info("[handleReturn] user={}", user != null ? user.getId() : "NULL");
             if (user != null) {
-                subscriptionService.applySubscription(user, transaction);
-                userRepository.save(user);
+                try {
+                    subscriptionService.applySubscription(user, transaction);
+                    userRepository.save(user);
+                    log.info("[handleReturn] subscription applied for user={}", user.getId());
+                } catch (Exception e) {
+                    log.error("[handleReturn] FAILED applySubscription for user={}", user.getId(), e);
+                    throw e;
+                }
             }
         } else if (!success) {
             transaction.setStatus(PaymentStatus.FAILED);
@@ -144,12 +156,19 @@ public class PaymentService {
 
         String responseCode = params.get("vnp_ResponseCode");
         boolean success = "00".equals(responseCode);
+        log.info("[handleIpn] txnRef={} responseCode={} currentStatus={}", txnRef, responseCode, transaction.getStatus());
         if (success && transaction.getStatus() != PaymentStatus.SUCCESS) {
             transaction.setStatus(PaymentStatus.SUCCESS);
             User user = transaction.getUser();
+            log.info("[handleIpn] user={}", user != null ? user.getId() : "NULL");
             if (user != null) {
-                subscriptionService.applySubscription(user, transaction);
-                userRepository.save(user);
+                try {
+                    subscriptionService.applySubscription(user, transaction);
+                    userRepository.save(user);
+                    log.info("[handleIpn] subscription applied for user={}", user.getId());
+                } catch (Exception e) {
+                    log.error("[handleIpn] FAILED applySubscription for user={}", user.getId(), e);
+                }
             }
         } else if (!success) {
             transaction.setStatus(PaymentStatus.FAILED);

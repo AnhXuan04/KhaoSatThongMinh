@@ -78,7 +78,10 @@ public class SubscriptionService {
         subscription.setExpiresAt(newExpiry);
         subscription.setCanceledAt(null);
         subscription.setStatus(SubscriptionStatus.ACTIVE);
-        subscriptionRepository.save(subscription);
+        Subscription saved = subscriptionRepository.save(subscription);
+
+        // Gắn lại subscription vào user object trong memory để isPremium() hoạt động đúng
+        user.setSubscription(saved);
     }
 
     private SubscriptionDto toDto(Subscription subscription) {

@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, Long> {
     Optional<PaymentTransaction> findByVnpTxnRef(String vnpTxnRef);
-
     List<PaymentTransaction> findByPayerEmailIgnoreCaseOrderByCreatedAtDesc(String payerEmail);
 }
 
