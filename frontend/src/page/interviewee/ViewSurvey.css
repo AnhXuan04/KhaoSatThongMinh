@@ -1,0 +1,279 @@
+.view-survey-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.survey-header {
+  margin-bottom: 18px;
+}
+.survey-header h1 {
+  margin: 8px 0;
+  font-size: 28px;
+}
+.survey-desc {
+  color: #555;
+  margin-bottom: 12px;
+}
+.back-link {
+  background: none;
+  border: none;
+  color: #0366d6;
+  cursor: pointer;
+  margin-right: 8px;
+}
+.survey-questions {
+  margin-top: 12px;
+}
+.question-block {
+  padding: 14px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.question-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.question-number {
+  font-weight: 700;
+  color: #0366d6;
+}
+.question-text {
+  flex: 1;
+}
+.required {
+  color: #d9534f;
+  font-weight: 600;
+  margin-left: 8px;
+}
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+.short-text-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.dropdown-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.dropdown-select:disabled {
+  background-color: #f5f5f5;
+  cursor: default;
+}
+.survey-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+.btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-primary {
+  background: #0b79f7;
+  color: #fff;
+  border: none;
+}
+.btn-secondary {
+  background: #f1f1f1;
+  border: none;
+}
+
+.readonly-badge {
+  display: inline-block;
+  margin-top: 8px;
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.question-block.readonly {
+  opacity: 0.85;
+}
+
+.question-block.readonly input {
+  cursor: default;
+}
+
+/* File Upload Styles */
+.file-upload-container {
+  margin-top: 8px;
+}
+
+.file-upload-label {
+  display: block;
+  cursor: pointer;
+}
+
+.upload-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px dashed #0b79f7;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.file-upload-label:hover .upload-box {
+  background: #e8f1ff;
+  border-color: #0366d6;
+}
+
+.upload-text {
+  color: #555;
+  font-size: 14px;
+}
+
+.uploading-text {
+  color: #0b79f7;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-info {
+  margin-top: 8px;
+  padding: 8px;
+  background: #e8f5e9;
+  border-left: 3px solid #4caf50;
+  border-radius: 4px;
+}
+
+.file-name {
+  color: #2e7d32;
+  font-weight: 600;
+  margin: 0;
+  font-size: 14px;
+}
+
+.file-size {
+  color: #558b2f;
+  margin: 4px 0 0 0;
+  font-size: 12px;
+}
+
+.file-download-link {
+  display: inline-block;
+  color: #2e7d32;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 0;
+  transition: color 0.2s ease;
+}
+
+.file-download-link:hover {
+  color: #1b5e20;
+  text-decoration: underline;
+}
+
+.file-info.no-file {
+  background: #fff3e0;
+  border-left-color: #ff9800;
+  color: #e65100;
+  font-size: 14px;
+}
+
+/* Linear Scale Styles */
+.linear-scale-container {
+  margin-top: 12px;
+}
+
+.scale-options {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.scale-button {
+  width: 48px;
+  height: 48px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.scale-button:hover:not(:disabled) {
+  border-color: #0b79f7;
+  background: #f0f7ff;
+}
+
+.scale-button.selected {
+  background: #0b79f7;
+  color: #fff;
+  border-color: #0b79f7;
+}
+
+.scale-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Rating Styles */
+.rating-container {
+  margin-top: 12px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.star-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.star-button:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+.star-button:disabled {
+  cursor: default;
+}
+
+.star-icon {
+  color: #ddd;
+  transition: color 0.2s ease;
+}
+
+.star-icon.filled {
+  color: #ffc107;
+  fill: #ffc107;
+}
+

@@ -1,0 +1,308 @@
+.surveyResponseQuestionPage {
+	min-height: 100vh;
+	background: #f5f7fa;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	color: #1a1a1a;
+	display: flex;
+	flex-direction: column;
+}
+
+.surveyResponseQuestionHeader {
+	background: #ffffff;
+	border-bottom: 1px solid #e8e8e8;
+	padding: 16px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.surveyResponseQuestionTitle h1 {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 600;
+	color: #1a1a1a;
+}
+
+.surveyResponseQuestionMenuBtn {
+	border: none;
+	background: transparent;
+	font-size: 24px;
+	cursor: pointer;
+	color: #666;
+}
+
+.surveyResponseQuestionMain {
+	flex: 1;
+	padding: 24px 20px;
+	max-width: 900px;
+	margin: 0 auto;
+	width: 100%;
+}
+
+.surveyResponseQuestionState {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	color: #666;
+	font-size: 16px;
+}
+
+.surveyResponseQuestionStateError {
+	color: #d32f2f;
+}
+
+.surveyResponseQuestionFocus {
+	margin-bottom: 24px;
+}
+
+.surveyResponseQuestionFocusLabel {
+	display: block;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+	color: #0052cc;
+	margin-bottom: 12px;
+	text-transform: uppercase;
+}
+
+.surveyResponseQuestionFocusDropdown {
+	position: relative;
+}
+
+.surveyResponseQuestionSelect {
+	width: 100%;
+	padding: 12px 16px;
+	font-size: 15px;
+	font-weight: 500;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	background: #f9f9f9;
+	appearance: none;
+	cursor: pointer;
+	color: #1a1a1a;
+	padding-right: 40px;
+}
+
+.surveyResponseQuestionSelect:hover {
+	border-color: #ccc;
+	background: #fafafa;
+}
+
+.surveyResponseQuestionSelectIcon {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	pointer-events: none;
+	color: #666;
+}
+
+.surveyResponseQuestionDetail {
+	background: #ffffff;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 24px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.surveyResponseQuestionText {
+	margin: 0 0 12px;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.4;
+	color: #1a1a1a;
+}
+
+.surveyResponseQuestionMeta {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 20px;
+	align-items: center;
+}
+
+.surveyResponseQuestionType,
+.surveyResponseQuestionCount {
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #666;
+	background: #f0f0f0;
+	padding: 6px 12px;
+	border-radius: 4px;
+	display: inline-block;
+}
+
+.surveyResponseQuestionOptions {
+	display: grid;
+	gap: 20px;
+}
+
+.surveyResponseQuestionOptionItem {
+	display: grid;
+	gap: 8px;
+}
+
+.surveyResponseQuestionOptionHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 15px;
+	font-weight: 500;
+}
+
+.surveyResponseQuestionOptionName {
+	color: #1a1a1a;
+}
+
+.surveyResponseQuestionOptionPercentage {
+	color: #0052cc;
+	font-weight: 700;
+	font-size: 16px;
+}
+
+.surveyResponseQuestionOptionBar {
+	height: 8px;
+	background: #e8e8e8;
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.surveyResponseQuestionOptionBarFill {
+	height: 100%;
+	background: linear-gradient(90deg, #0052cc, #0066ff);
+	border-radius: 999px;
+	transition: width 0.3s ease;
+}
+
+.surveyResponseQuestionOptionCount {
+	font-size: 12px;
+	color: #999;
+	font-weight: 500;
+}
+
+.surveyResponseQuestionFeedback {
+	margin-bottom: 24px;
+}
+
+.surveyResponseQuestionFeedbackTitle {
+	margin: 0 0 16px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1a1a1a;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.surveyResponseQuestionFeedbackTitle::after {
+	content: 'ⓘ';
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: #f0f0f0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	color: #999;
+}
+
+.surveyResponseQuestionFeedbackList {
+	display: grid;
+	gap: 16px;
+}
+
+.surveyResponseQuestionFeedbackCard {
+	background: #ffffff;
+	border-left: 4px solid #0052cc;
+	border-radius: 4px;
+	padding: 16px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.surveyResponseQuestionFeedbackText {
+	margin: 0 0 12px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: #333;
+	font-style: italic;
+}
+
+.surveyResponseQuestionFeedbackAuthor {
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	color: #0052cc;
+	text-transform: uppercase;
+}
+
+.surveyResponseQuestionFooter {
+	background: #ffffff;
+	border-top: 1px solid #e8e8e8;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0;
+	padding: 0;
+	box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.surveyResponseQuestionFooterBtn {
+	border: none;
+	background: transparent;
+	padding: 16px;
+	font-size: 13px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #666;
+	cursor: pointer;
+	border-top: 3px solid transparent;
+	transition: all 0.2s ease;
+}
+
+.surveyResponseQuestionFooterBtn:hover {
+	color: #0052cc;
+	background: #f9f9f9;
+}
+
+.surveyResponseQuestionFooterBtnActive {
+	color: #0052cc;
+	background: #f5f7ff;
+	border-top-color: #0052cc;
+}
+
+@media (max-width: 768px) {
+	.surveyResponseQuestionMain {
+		padding: 16px 12px;
+	}
+
+	.surveyResponseQuestionDetail {
+		padding: 16px;
+	}
+
+	.surveyResponseQuestionText {
+		font-size: 18px;
+	}
+
+	.surveyResponseQuestionFooter {
+		grid-template-columns: 1fr;
+		gap: 1px;
+		background: #e8e8e8;
+	}
+
+	.surveyResponseQuestionFooterBtn {
+		background: #ffffff;
+		border-top: none;
+		border-left: 3px solid transparent;
+		padding: 14px;
+	}
+
+	.surveyResponseQuestionFooterBtnActive {
+		border-left-color: #0052cc;
+		border-top: none;
+	}
+}
