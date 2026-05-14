@@ -19,7 +19,7 @@ public class EmailService {
         String subject;
         String content;
 
-        if (purpose == OtpPurpose.REGISTER) {
+        if (purpose == OtpPrpose.REGISTER) {
             subject = "Xác minh tài khoản";
 
             content = "Xin chào " + (fullName != null ? fullName : "") + ",\n\n"
