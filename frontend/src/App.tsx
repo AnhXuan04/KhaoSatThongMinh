@@ -3,6 +3,7 @@ import './App.css'
 import AppShell from './assets/components/AppShell';
 import SignInPage from './page/SignInPage';
 import SignUpPage from './page/SignUpPage';
+import VerifyOtpPage from './page/VerifyOtpPage';
 import ForgotPasswordPage from './page/ForgotPass';
 import DashboardPage from './page/interviewer/DashboardPage';
 import DashboardAdmin from './page/admin/DashboardAdmin';
@@ -12,6 +13,7 @@ import HomePage from './page/HomePage';
 import CreatorPackagePage from './page/CreatorPackagePage';
 import UpdateProfilePage from './page/interviewer/UpdateProfilePage';
 import SurveyListPage from './page/interviewee/SurveyListPage';
+import HistorySurvey from './page/interviewee/HistorySurvey';
 import UserProfilePage from './page/interviewee/UserProfilePage';
 import ResetPasswordPage from './page/ResetPasswordPage';
 import MngSurvey from './page/interviewer/MngSurvey';
@@ -20,6 +22,7 @@ import PaymentResultPage from './page/interviewer/PaymentResultPage';
 import ServicePackage from './page/interviewer/ServicePackage';
 import CreateSurveys from './page/interviewer/CreateSurveys';
 import ViewSurvey from './page/interviewee/ViewSurvey';
+import ReviewSurvey from './page/interviewee/ReviewSurvey';
 import type {JSX} from "react";
 
 const getRoleFromToken = (token: string) => {
@@ -50,7 +53,8 @@ const getDefaultPathByRole = (role: string | null) => {
 const RequireAuth = ({ children }: { children: JSX.Element }) => {
   const token = sessionStorage.getItem('token');
   if (!token) {
-    return <Navigate to="/login" replace />;
+    const currentPath = window.location.pathname + window.location.search;
+    return <Navigate to={`/login?returnUrl=${encodeURIComponent(currentPath)}`} replace />;
   }
   return children;
 };
@@ -83,6 +87,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<PublicOnly><SignInPage /></PublicOnly>} />
           <Route path="/signup" element={<PublicOnly><SignUpPage /></PublicOnly>} />
+          <Route path="/verify-otp" element={<PublicOnly><VerifyOtpPage /></PublicOnly>} />
           <Route path="/forgot-password" element={<PublicOnly><ForgotPasswordPage /></PublicOnly>} />
           <Route path="/dashboard" element={<RequireRole role="INTERVIEWER"><DashboardPage /></RequireRole>} />
           <Route path="/dashboard-admin" element={<RequireRole role="ADMIN"><DashboardAdmin /></RequireRole>} />
@@ -93,12 +98,14 @@ function App() {
           <Route path="/creator-package" element={<CreatorPackagePage />} />
           <Route path="/update-profile" element={<RequireAuth><UpdateProfilePage /></RequireAuth>} />
           <Route path="/surveys" element={<RequireAuth><SurveyListPage /></RequireAuth>} />
+          <Route path="/survey-history" element={<RequireRole role="INTERVIEWEE"><HistorySurvey /></RequireRole>} />
           <Route path="/user-profile" element={<RequireRole role="INTERVIEWEE"><UserProfilePage /></RequireRole>} />
           <Route path="/reset-password" element={<PublicOnly><ResetPasswordPage /></PublicOnly>} />
           <Route path="/payment-result" element={<PaymentResultPage />} />
           <Route path="/service-package" element={<ServicePackage />} />
           <Route path="/create-surveys" element={<RequireRole role="INTERVIEWER"><CreateSurveys /></RequireRole>} />
-          <Route path="/survey/:id" element={<ViewSurvey />} />
+          <Route path="/survey/:id" element={<RequireAuth><ViewSurvey /></RequireAuth>} />
+          <Route path="/survey-review/:responseId" element={<RequireRole role="INTERVIEWEE"><ReviewSurvey /></RequireRole>} />
         </Routes>
       </AppShell>
     </BrowserRouter>

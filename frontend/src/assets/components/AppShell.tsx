@@ -11,7 +11,8 @@ const publicPaths = new Set([
   '/login',
   '/signup',
   '/forgot-password',
-  '/reset-password'
+  '/reset-password',
+  '/verify-otp'
 ]);
 
 const sharedPublicHeaderPaths = new Set(['/', '/creator-package']);

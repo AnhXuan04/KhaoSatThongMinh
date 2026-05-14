@@ -40,8 +40,8 @@ const navItemsByRole: Record<UserRole, Array<{ to: string; label: string }>> = {
   ],
   INTERVIEWEE: [
     { to: '/surveys', label: 'KHẢO SÁT' },
-    { to: '/user-profile', label: 'HỒ SƠ CỦA TÔI' },
-    { to: '', label: 'LỊCH SỬ KHẢO SÁT' }
+    { to: '/survey-history', label: 'LỊCH SỬ KHẢO SÁT' },
+    { to: '/user-profile', label: 'HỒ SƠ CỦA TÔI' }
   ],
   ADMIN: [{ to: '/dashboard-admin', label: 'QUẢN TRỊ' }]
 };
@@ -101,6 +101,9 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
     }
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
+    }
+    if (path === '/manage-surveys') {
+      return location.pathname.startsWith('/manage-surveys');
     }
     return location.pathname === path;
   };
