@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @Table(name = "otp_verifications", indexes = {
         @Index(name = "idx_otp_verification_user_purpose", columnList = "user_id,purpose"),
+        @Index(name = "idx_otp_verification_email_purpose", columnList = "email,purpose"),
         @Index(name = "idx_otp_verification_code", columnList = "otp_code")
 })
 public class OtpVerification {
@@ -18,11 +19,14 @@ public class OtpVerification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
+
+    @Column(name = "email")
+    private String email;
 
     @Column(name = "otp_code", nullable = false, length = 10)
     private String otpCode;
@@ -45,6 +49,10 @@ public class OtpVerification {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    // lưu tạm thông tin register
+    private String tempPassword;
+    private String tempFullName;
 
     @PrePersist
     protected void onCreate() {

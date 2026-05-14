@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 import './Auth.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 const getRoleFromToken = (token: string) => {
   try {
@@ -21,6 +21,8 @@ const getRoleFromToken = (token: string) => {
 
 const SignInPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -51,6 +53,12 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       sessionStorage.setItem('token', result);
       sessionStorage.setItem('userEmail', formData.email);
       
+      // If there's a returnUrl (e.g., survey page), redirect back to it
+      if (returnUrl) {
+        navigate(returnUrl);
+        return;
+      }
+      
       const role = getRoleFromToken(result);
       if (role === 'ADMIN') {
         navigate('/dashboard-admin');
@@ -60,7 +68,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         navigate('/dashboard');
         return;
       }
-      navigate('/user-profile');
+      navigate('/surveys');
     } else {
       setErrorMessage(result);
     }
@@ -137,8 +145,6 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         </form>
 
         <div className="dividerContainer">
-          <div className="dividerLine"></div>
-          <span className="dividerText">HOẶC</span>
           <div className="dividerLine"></div>
         </div>
 

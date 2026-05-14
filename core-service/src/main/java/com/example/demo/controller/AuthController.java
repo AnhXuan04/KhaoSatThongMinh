@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Tạm thời cho phép mọi domain (React) gọi API này tránh lỗi CORS
 public class AuthController {
 
     @Autowired
@@ -25,6 +24,20 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/verify-register-otp")
+    public ResponseEntity<?> verifyRegisterOtp(@RequestBody java.util.Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String otp = request.get("otp");
+
+            String message = authService.verifyRegisterOtp(email, otp);
+            return ResponseEntity.ok(message);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     @PostMapping("/signup/interviewer")
     public ResponseEntity<?> registerInterviewer(@RequestBody SignUpRequest signUpRequest) {

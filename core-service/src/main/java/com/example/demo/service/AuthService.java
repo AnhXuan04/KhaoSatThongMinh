@@ -40,8 +40,69 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private SubscriptionService subscriptionService;
+
     public String registerUser(SignUpRequest request) {
-        return registerByRole(request, Role.INTERVIEWEE);
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email này đã được sử dụng!");
+        }
+        String otp = String.format("%06d", new Random().nextInt(999999));
+
+        OtpVerification otpVerification = new OtpVerification();
+        otpVerification.setEmail(request.getEmail());
+        otpVerification.setOtpCode(otp);
+        otpVerification.setPurpose(OtpPurpose.REGISTER);
+        otpVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+        otpVerification.setAttemptCount(0);
+        otpVerification.setUsed(false);
+
+        // Lưu tạm thông tin đăng ký
+        otpVerification.setTempPassword(passwordEncoder.encode(request.getPassword()));
+        otpVerification.setTempFullName(request.getFullName());
+
+        otpVerificationRepository.save(otpVerification);
+        emailService.sendOtpEmail(request.getEmail(), otp, OtpPurpose.REGISTER, request.getFullName());
+
+        return "OTP đã được gửi đến email của bạn! Vui lòng nhập OTP để hoàn tất đăng ký.";
+    }
+
+    public String verifyRegisterOtp(String email, String otp) {
+        OtpVerification otpVerification = otpVerificationRepository
+                .findFirstByEmailAndPurposeOrderByCreatedAtDesc(email, OtpPurpose.REGISTER)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy OTP!"));
+
+        if (otpVerification.isExpired()) {
+            throw new RuntimeException("OTP đã hết hạn!");
+        }
+
+        if (otpVerification.isUsed()) {
+            throw new RuntimeException("OTP đã được sử dụng!");
+        }
+
+        if (!otpVerification.getOtpCode().equals(otp)) {
+            otpVerification.setAttemptCount(otpVerification.getAttemptCount() + 1);
+            otpVerificationRepository.save(otpVerification);
+            throw new RuntimeException("OTP không đúng!");
+        }
+
+        // Tạo user tại đây
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(otpVerification.getTempPassword());
+        user.setRole(Role.INTERVIEWEE);
+        userRepository.save(user);
+
+        UserProfile profile = new UserProfile();
+        profile.setUser(user);
+        profile.setFullName(otpVerification.getTempFullName());
+        userProfileRepository.save(profile);
+
+        otpVerification.setUsed(true);
+        otpVerification.setUsedAt(LocalDateTime.now());
+        otpVerificationRepository.save(otpVerification);
+
+        return "Đăng ký thành công!";
     }
 
     public String registerInterviewer(SignUpRequest request) {
@@ -75,13 +136,17 @@ public class AuthService {
         user.setRole(Role.INTERVIEWER);
         userRepository.save(user);
 
-        // Also create UserProfile for new structure
         UserProfile profile = new UserProfile();
         profile.setUser(user);
         profile.setFullName(request.getFullName());
         userProfileRepository.save(profile);
 
+        // Gán subscription cho user mới từ transaction đã thanh toán
+        transaction.setUser(user);
+        transaction.setClaimed(true);
         paymentTransactionRepository.save(transaction);
+
+        subscriptionService.applySubscription(user, transaction);
 
         return "Đăng ký tài khoản thành công!";
     }
@@ -116,7 +181,7 @@ public class AuthService {
 
     public String loginUser(SignInRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không chính xác!"));
+                .orElseThrow(() -> new RuntimeException("Email chưa được đăng ký!"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Email hoặc mật khẩu không chính xác!");
@@ -143,7 +208,7 @@ public class AuthService {
         otpVerificationRepository.save(otpVerification);
 
         // Gửi email
-        emailService.sendOtpEmail(email, otp);
+        emailService.sendOtpEmail(email, otp, OtpPurpose.PASSWORD_RESET, null);
 
         return "OTP đã được gửi đến email của bạn!";
     }

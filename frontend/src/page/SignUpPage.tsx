@@ -33,7 +33,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const result = await response.text(); // Lấy message trả về từ BE
 
     if (response.ok) {
-      navigate('/login');
+      navigate('/verify-otp', { state: { email: formData.email } });
     } else {
       setErrorMessage(result);
     }
@@ -121,8 +121,6 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         </form>
 
         <div className="dividerContainer">
-          <div className="dividerLine"></div>
-          <span className="dividerText">HOẶC</span>
           <div className="dividerLine"></div>
         </div>
 
