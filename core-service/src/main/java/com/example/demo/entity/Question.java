@@ -16,8 +16,14 @@ public class Question {
     private String title;
 
     private String type;
+    
+    private String kind;
 
     private Boolean required;
+
+    private Integer maxFileSizeMb;
+
+    private Integer maxFileCount;
 
     private Integer questionOrder;
 

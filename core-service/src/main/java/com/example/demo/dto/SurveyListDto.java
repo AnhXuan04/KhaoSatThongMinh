@@ -15,17 +15,21 @@ public class SurveyListDto {
     private String description;
     private Integer questionCount;
     private String createdAt;
+    private String surveyField;
 
     public static SurveyListDto fromSurvey(Survey survey) {
         String formattedDate = survey.getCreatedAt()
                 .format(DateTimeFormatter.ofPattern("dd MMM, yyyy", new java.util.Locale("vi", "VN")));
+
+        String field = (survey.getSurveyField() != null) ? survey.getSurveyField().getName() : "Khác";
 
         return new SurveyListDto(
                 survey.getId(),
                 survey.getTitle(),
                 survey.getDescription(),
                 survey.getQuestions() != null ? survey.getQuestions().size() : 0,
-                formattedDate
+                formattedDate,
+                field
         );
     }
 }

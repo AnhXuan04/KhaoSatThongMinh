@@ -12,10 +12,12 @@ import com.example.demo.entity.SurveyField;
 import com.example.demo.repository.SurveyRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.SurveyFieldRepository;
+import com.example.demo.repository.SurveyResponseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,9 @@ public class SurveyService {
     private SurveyRepository surveyRepository;
     @Autowired
     private SurveyFieldRepository surveyFieldRepository;
+
+    @Autowired
+    private SurveyResponseRepository surveyResponseRepository;
 
     public Survey createSurvey(String email, SurveyRequest request) {
         User user = userRepository.findByEmail(email)
@@ -60,7 +65,10 @@ public class SurveyService {
             Question question = new Question();
             question.setTitle(qReq.getTitle());
             question.setType(qReq.getType());
+            question.setKind(qReq.getKind());
             question.setRequired(qReq.getRequired());
+            question.setMaxFileSizeMb(qReq.getMaxFileSizeMb());
+            question.setMaxFileCount(qReq.getMaxFileCount());
             question.setQuestionOrder(qOrder++);
             question.setSurvey(survey);
 
@@ -98,6 +106,26 @@ public class SurveyService {
         return surveyRepository.save(survey);
     }
 
+    public List<SurveyListDto> getAllSurveys() {
+        List<Survey> surveys = surveyRepository.findByIsDeletedFalseOrderByCreatedAtDesc();
+        return surveys.stream()
+                .map(SurveyListDto::fromSurvey)
+                .collect(Collectors.toList());
+    }
+
+    public List<SurveyListDto> getCompletedSurveys(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Long> completedIds = surveyResponseRepository.findCompletedSurveyIdsByUserId(user.getId());
+        if (completedIds.isEmpty()) return Collections.emptyList();
+        return completedIds.stream()
+                .distinct()
+                .map(id -> surveyRepository.findById(id).orElse(null))
+                .filter(s -> s != null && !Boolean.TRUE.equals(s.getIsDeleted()))
+                .map(SurveyListDto::fromSurvey)
+                .collect(Collectors.toList());
+    }
+
     public List<SurveyListDto> getUserSurveys(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -132,7 +160,6 @@ public class SurveyService {
         }
         survey.setSurveyField(surveyField);
 
-        // Replace questions
         List<Question> questionList = new ArrayList<>();
         int qOrder = 1;
 
@@ -140,7 +167,10 @@ public class SurveyService {
             Question question = new Question();
             question.setTitle(qReq.getTitle());
             question.setType(qReq.getType());
+            question.setKind(qReq.getKind());
             question.setRequired(qReq.getRequired());
+            question.setMaxFileSizeMb(qReq.getMaxFileSizeMb());
+            question.setMaxFileCount(qReq.getMaxFileCount());
             question.setQuestionOrder(qOrder++);
             question.setSurvey(survey);
 
@@ -160,7 +190,6 @@ public class SurveyService {
             questionList.add(question);
         }
 
-        // Update the managed questions collection to avoid JPA orphanRemoval issues
         List<Question> existingQuestions = survey.getQuestions();
         if (existingQuestions == null) {
             survey.setQuestions(questionList);
@@ -189,6 +218,47 @@ public class SurveyService {
         surveyRepository.save(survey);
     }
 
+    public SurveyRequest getSurveyForView(Long surveyId) {
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Survey not found"));
+
+        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+            throw new RuntimeException("Khảo sát không tồn tại.");
+        }
+
+        SurveyRequest dto = new SurveyRequest();
+        dto.setTitle(survey.getTitle());
+        dto.setDescription(survey.getDescription());
+        dto.setSurveyFieldId(survey.getSurveyField() != null ? survey.getSurveyField().getId() : null);
+
+        List<QuestionRequest> qList = new ArrayList<>();
+        if (survey.getQuestions() != null) {
+            for (Question q : survey.getQuestions()) {
+                QuestionRequest qr = new QuestionRequest();
+                qr.setId(q.getId());
+                qr.setTitle(q.getTitle());
+                qr.setType(q.getType());
+                qr.setKind(q.getKind());
+                qr.setRequired(q.getRequired());
+                qr.setMaxFileSizeMb(q.getMaxFileSizeMb());
+                qr.setMaxFileCount(q.getMaxFileCount());
+
+                List<OptionRequest> opts = new ArrayList<>();
+                if (q.getOptions() != null) {
+                    for (Option o : q.getOptions()) {
+                        OptionRequest or = new OptionRequest();
+                        or.setText(o.getText());
+                        opts.add(or);
+                    }
+                }
+                qr.setOptions(opts);
+                qList.add(qr);
+            }
+        }
+        dto.setQuestions(qList);
+        return dto;
+    }
+
     public SurveyRequest getSurveyForEdit(String email, Long surveyId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -215,7 +285,10 @@ public class SurveyService {
                 QuestionRequest qr = new QuestionRequest();
                 qr.setTitle(q.getTitle());
                 qr.setType(q.getType());
+                qr.setKind(q.getKind());
                 qr.setRequired(q.getRequired());
+                qr.setMaxFileSizeMb(q.getMaxFileSizeMb());
+                qr.setMaxFileCount(q.getMaxFileCount());
 
                 List<OptionRequest> opts = new ArrayList<>();
                 if (q.getOptions() != null) {
