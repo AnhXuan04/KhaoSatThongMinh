@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiArrowRight, FiPlus, FiBarChart2, FiEdit } from 'react-icons/fi';
+import { FiArrowRight, FiPlus, FiBarChart2 } from 'react-icons/fi';
 import './Dashboard.css';
 import { Link, useNavigate } from 'react-router-dom';
 

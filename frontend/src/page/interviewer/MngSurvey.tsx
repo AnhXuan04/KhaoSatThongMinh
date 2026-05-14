@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { FaQrcode } from 'react-icons/fa';
-import { FiEdit3, FiEye, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
+import { FiEdit3, FiEye, FiPlus, FiSearch, FiTrash2, FiX, FiDownload } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import QRCode from 'qrcode';
 import './MngSurvey.css';
 
 type SurveyRow = {
@@ -19,6 +20,9 @@ export default function MngSurvey() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string>('');
 	const [searchTerm, setSearchTerm] = useState('');
+	const [qrModalOpen, setQrModalOpen] = useState(false);
+	const [selectedSurvey, setSelectedSurvey] = useState<SurveyRow | null>(null);
+	const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
 	const getAuthToken = () => {
 		return sessionStorage.getItem('token') || localStorage.getItem('token') || '';
@@ -26,6 +30,7 @@ export default function MngSurvey() {
 
 	useEffect(() => {
 		loadSurveys();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const loadSurveys = async () => {
@@ -85,6 +90,39 @@ export default function MngSurvey() {
 		}
 	};
 
+	const handleShowQR = (survey: SurveyRow) => {
+		setSelectedSurvey(survey);
+		setQrModalOpen(true);
+		const surveyUrl = `${window.location.origin}/survey/${survey.id}`;
+
+		QRCode.toDataURL(surveyUrl, {
+			errorCorrectionLevel: 'H',
+			type: 'image/png',
+			width: 256,
+			margin: 2,
+			color: {
+				dark: '#000000',
+				light: '#ffffff',
+			},
+		})
+			.then((url: string) => setQrDataUrl(url))
+			.catch((err: Error) => console.error('Error generating QR code:', err));
+	};
+
+	const handleCloseQRModal = () => {
+		setQrModalOpen(false);
+		setSelectedSurvey(null);
+		setQrDataUrl('');
+	};
+
+	const handleDownloadQR = () => {
+		if (!qrDataUrl || !selectedSurvey) return;
+		const link = document.createElement('a');
+		link.href = qrDataUrl;
+		link.download = `QR-${selectedSurvey.title || 'survey'}.png`;
+		link.click();
+	};
+
 	const filteredSurveys = surveys.filter(survey =>
 		survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
 		survey.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -95,7 +133,6 @@ export default function MngSurvey() {
 			<main className="mngSurveyMain">
 				<section className="mngSurveyHero">
 					<div>
-						<span className="mngSurveyEyebrow">QUẢN LÝ KHẢO SÁT</span>
 						<h1>Danh sách khảo sát</h1>
 					</div>
 
@@ -148,7 +185,7 @@ export default function MngSurvey() {
 								<tbody>
 									{filteredSurveys.map((survey, index) => (
 										<tr key={survey.id}>
-											<td className="mngSurveyId">#{index + 1}</td>
+											<td className="mngSurveyId">{index + 1}</td>
 											<td>
 												<div className="mngSurveyTitleGroup">
 													<strong style={{ cursor: 'pointer' }} onClick={() => navigate(`/create-surveys?editId=${encodeURIComponent(survey.id)}`)}>{survey.title}</strong>
@@ -164,6 +201,7 @@ export default function MngSurvey() {
 														className="iconBtn"
 														aria-label={`Mã QR của ${survey.title}`}
 														title="Mã QR"
+														onClick={() => handleShowQR(survey)}
 													>
 														<FaQrcode />
 													</button>
@@ -189,11 +227,7 @@ export default function MngSurvey() {
 														type="button"
 														className="viewBtn"
 														aria-label={`Xem phản hồi của ${survey.title}`}
-														onClick={() =>
-															navigate(
-																`/manage-surveys/review?surveyId=${encodeURIComponent(survey.id)}`
-															)
-														}
+														onClick={() => navigate(`/manage-surveys/review?surveyId=${encodeURIComponent(survey.id)}`)}
 													>
 														<FiEye />
 														<span>Xem phản hồi</span>
@@ -208,6 +242,40 @@ export default function MngSurvey() {
 					</div>
 				</section>
 			</main>
+
+			{qrModalOpen && selectedSurvey && (
+				<div className="mngSurveyQRModal" onClick={handleCloseQRModal}>
+					<div className="mngSurveyQRContent" onClick={(e) => e.stopPropagation()}>
+						<div className="mngSurveyQRHeader">
+							<h2>Mã QR - {selectedSurvey.title}</h2>
+							<button
+								type="button"
+								className="mngSurveyQRClose"
+								onClick={handleCloseQRModal}
+								aria-label="Đóng"
+							>
+								<FiX />
+							</button>
+						</div>
+
+						<div className="mngSurveyQRBody">
+							<div className="mngSurveyQRCodeContainer">
+								{qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="mngSurveyQRImage" />}
+							</div>
+							<p className="mngSurveyQRText">Quét mã QR này để truy cập khảo sát</p>
+						</div>
+
+						<div className="mngSurveyQRFooter">
+							<button type="button" className="mngSurveyQRDownloadBtn" onClick={handleDownloadQR}>
+								<FiDownload /> Tải xuống
+							</button>
+							<button type="button" className="mngSurveyQRCloseBtn" onClick={handleCloseQRModal}>
+								Đóng
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
