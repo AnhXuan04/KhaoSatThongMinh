@@ -13,5 +13,6 @@ public class QuestionRequest {
     private Boolean required;
     private Integer maxFileSizeMb;
     private Integer maxFileCount;
+    private String mediaUrl;
     private List<OptionRequest> options;
 }

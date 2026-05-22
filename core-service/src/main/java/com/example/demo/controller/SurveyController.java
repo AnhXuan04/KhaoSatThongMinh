@@ -133,6 +133,19 @@ public class SurveyController {
         }
     }
 
+    @GetMapping("/analytics/quality")
+    @PreAuthorize("hasAuthority('INTERVIEWER')")
+    public ResponseEntity<SurveyQualityAnalyticsDto> getQualityAnalytics() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        try {
+            return ResponseEntity.ok(surveyResponseService.getQualityAnalyticsForInterviewer(email));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     @PostMapping("/{id}/responses")
     public ResponseEntity<String> submitResponse(
             @PathVariable("id") Long id,
@@ -165,6 +178,27 @@ public class SurveyController {
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi tải tệp: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/upload/media")
+    @PreAuthorize("hasAuthority('INTERVIEWER')")
+    public ResponseEntity<Map<String, Object>> uploadMedia(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File trống"));
+            }
+
+            String contentType = file.getContentType();
+            if (contentType == null || (!contentType.startsWith("image/") && !contentType.startsWith("video/"))) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Chỉ hỗ trợ hình ảnh và video"));
+            }
+
+            Map<String, Object> result = cloudinaryService.uploadFileWithFolder(file, "survey-media");
+            result.put("mediaType", contentType.startsWith("video/") ? "video" : "image");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Lỗi tải media: " + e.getMessage()));
         }
     }
 

@@ -12,8 +12,8 @@ import {
   Upload,
   LineChart,
   Star,
-  Grid2x2,
-  Table2,
+  Image,
+  Video,
 } from 'lucide-react';
 import { MdAddCircleOutline } from "react-icons/md";
 import { MdCheckBox } from "react-icons/md";
@@ -39,7 +39,9 @@ type QuestionKind =
   | 'linear_scale'
   | 'rating'
   | 'multiple_choice_grid'
-  | 'checkbox_grid';
+  | 'checkbox_grid'
+  | 'image'
+  | 'video';
 
 interface Question {
   id: string;
@@ -50,6 +52,8 @@ interface Question {
   required: boolean;
   maxFileSizeMb?: number;
   maxFileCount?: number;
+  mediaUrl?: string;
+  mediaFileName?: string;
 }
 
 interface SurveyField {
@@ -72,6 +76,8 @@ interface SurveyApiQuestion {
   required?: boolean;
   maxFileSizeMb?: number;
   maxFileCount?: number;
+  mediaUrl?: string;
+  mediaFileName?: string;
   options?: Array<{
     text?: string;
   }>;
@@ -100,8 +106,6 @@ const QUESTION_TOOL_OPTIONS: QuestionToolOption[] = [
   { label: 'Tải tệp lên', icon: <Upload size={18} />, kind: 'file_upload', type: 'short_text' },
   { label: 'Phạm vi tuyến tính', icon: <LineChart size={18} />, kind: 'linear_scale', type: 'short_text' },
   { label: 'Xếp hạng', icon: <Star size={18} />, kind: 'rating', type: 'short_text' },
-  { label: 'Lưới trắc nghiệm', icon: <Grid2x2 size={18} />, kind: 'multiple_choice_grid', type: 'multiple_choice' },
-  { label: 'Lưới hộp kiểm', icon: <Table2 size={18} />, kind: 'checkbox_grid', type: 'checkbox' },
 ];
 
 const getQuestionBackendType = (kind: QuestionKind): QuestionBackendType => {
@@ -119,11 +123,15 @@ const getQuestionBackendType = (kind: QuestionKind): QuestionBackendType => {
 };
 
 const getQuestionKindLabel = (kind: QuestionKind): string => {
+  if (kind === 'image') return 'Hình ảnh';
+  if (kind === 'video') return 'Video';
   const option = QUESTION_TOOL_OPTIONS.find((item) => item.kind === kind);
   return option?.label || 'Trả lời ngắn';
 };
 
 const getQuestionKindIcon = (kind: QuestionKind): ReactNode => {
+  if (kind === 'image') return <Image size={18} />;
+  if (kind === 'video') return <Video size={18} />;
   return QUESTION_TOOL_OPTIONS.find((item) => item.kind === kind)?.icon || <Minus size={18} />;
 };
 
@@ -184,6 +192,8 @@ export default function CreateSurveys() {
   const params = new URLSearchParams(location.search);
   const editId = params.get('editId');
   const questionsEndRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const [survey, setSurvey] = useState<Survey>({
     title: '',
     description: '',
@@ -195,6 +205,7 @@ export default function CreateSurveys() {
   const [success, setSuccess] = useState(false);
   const [surveyFields, setSurveyFields] = useState<SurveyField[]>([]);
   const [openQuestionMenuId, setOpenQuestionMenuId] = useState<string | null>(null);
+  const [uploadingMediaType, setUploadingMediaType] = useState<'image' | 'video' | null>(null);
 
   // Get auth token from storage
   const getAuthToken = (): string | null => {
@@ -256,6 +267,8 @@ export default function CreateSurveys() {
           required: q.required,
           maxFileSizeMb: q.maxFileSizeMb,
           maxFileCount: q.maxFileCount,
+          mediaUrl: q.mediaUrl,
+          mediaFileName: q.mediaFileName,
           options: q.options.map((opt) => ({
             text: opt.text,
           })),
@@ -345,6 +358,8 @@ export default function CreateSurveys() {
             required: q.required || false,
             maxFileSizeMb: q.maxFileSizeMb,
             maxFileCount: q.maxFileCount,
+            mediaUrl: q.mediaUrl,
+            mediaFileName: q.mediaFileName,
           })),
         });
       } catch (e) {
@@ -380,6 +395,70 @@ export default function CreateSurveys() {
       ...survey,
       questions: [...survey.questions, newQuestion],
     });
+  };
+
+  const addMediaQuestion = async (kind: 'image' | 'video', file: File) => {
+    const token = getAuthToken();
+    if (!token) {
+      setError('Bạn cần đăng nhập để tải media');
+      return;
+    }
+
+    const expectedPrefix = kind === 'image' ? 'image/' : 'video/';
+    if (!file.type.startsWith(expectedPrefix)) {
+      setError(kind === 'image' ? 'Vui lòng chọn tệp hình ảnh.' : 'Vui lòng chọn tệp video.');
+      return;
+    }
+
+    setUploadingMediaType(kind);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('http://localhost:8080/api/surveys/upload/media', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result?.error || 'Tải media thất bại');
+        return;
+      }
+
+      const newQuestion = {
+        ...createQuestion(kind),
+        title: '',
+        mediaUrl: result.secureUrl,
+        mediaFileName: result.originalFileName || file.name,
+      };
+
+      setSurvey((current) => ({
+        ...current,
+        questions: [...current.questions, newQuestion],
+      }));
+    } catch (err) {
+      console.error('Upload survey media failed', err);
+      setError('Không thể tải media lên máy chủ');
+    } finally {
+      setUploadingMediaType(null);
+    }
+  };
+
+  const handleMediaInputChange = (kind: 'image' | 'video', fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (file) {
+      addMediaQuestion(kind, file);
+    }
+    if (kind === 'image' && imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+    if (kind === 'video' && videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
   };
 
   const updateQuestion = (id: string, updates: Partial<Question>) => {
@@ -472,6 +551,7 @@ export default function CreateSurveys() {
       type: getQuestionBackendType(selectedKind),
       options:
         selectedKind === 'short_answer' || selectedKind === 'paragraph' || selectedKind === 'file_upload' || selectedKind === 'linear_scale' || selectedKind === 'rating'
+          || selectedKind === 'image' || selectedKind === 'video'
           ? []
           : survey.questions.find((q) => q.id === questionId)?.options?.length
             ? survey.questions.find((q) => q.id === questionId)!.options
@@ -487,7 +567,6 @@ export default function CreateSurveys() {
     <div className="create-surveys-container">
       <div className="surveys-wrapper">
         <div className="surveys-main">
-          {/* Error Message */}
           {error && (
             <div
               style={{
@@ -503,7 +582,6 @@ export default function CreateSurveys() {
             </div>
           )}
 
-          {/* Success Message */}
           {success && (
             <div
               style={{
@@ -591,7 +669,7 @@ export default function CreateSurveys() {
                             <input
                               type="text"
                               className="question-title-input question-title-input-plain"
-                              placeholder="Câu hỏi chưa có tiêu đề"
+                              placeholder={question.kind === 'image' || question.kind === 'video' ? 'Thêm chú thích cho media...' : 'Câu hỏi chưa có tiêu đề'}
                               value={question.title}
                               onChange={(e) => updateQuestion(question.id, { title: e.target.value })}
                             />
@@ -661,7 +739,7 @@ export default function CreateSurveys() {
                                       {question.kind === 'checkbox' || question.kind === 'checkbox_grid' ? (
                                         <span className="icon-checkbox">☐</span>
                                       ) : (
-                                        <span className="icon-multiple-choice">◯</span>
+                                        <Circle className="icon-multiple-choice" size={16} />
                                       )}
                                     </div>
                                     <input
@@ -683,6 +761,32 @@ export default function CreateSurveys() {
                               <button className="add-option-btn" onClick={() => addOption(question.id)}>
                                 <Plus size={16} /> Thêm đáp án
                               </button>
+                            </div>
+                          )}
+
+                          {question.kind === 'image' && (
+                            <div className="media-preview-panel">
+                              {question.mediaUrl ? (
+                                <img src={question.mediaUrl} alt={question.title || question.mediaFileName || 'Hình ảnh khảo sát'} />
+                              ) : (
+                                <div className="media-empty-state">
+                                  <Image size={22} />
+                                  <span>Chưa có hình ảnh</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {question.kind === 'video' && (
+                            <div className="media-preview-panel">
+                              {question.mediaUrl ? (
+                                <video src={question.mediaUrl} controls />
+                              ) : (
+                                <div className="media-empty-state">
+                                  <Video size={22} />
+                                  <span>Chưa có video</span>
+                                </div>
+                              )}
                             </div>
                           )}
 
@@ -792,30 +896,32 @@ export default function CreateSurveys() {
                                 </div>
                                 <div className="grid-preview-row">
                                   <span>Hàng 1</span>
-                                  <span>◯</span>
-                                  <span>◯</span>
-                                  <span>◯</span>
+                                  <span><Circle size={16} /></span>
+                                  <span><Circle size={16} /></span>
+                                  <span><Circle size={16} /></span>
                                 </div>
                                 <div className="grid-preview-row">
                                   <span>Hàng 2</span>
-                                  <span>◯</span>
-                                  <span>◯</span>
-                                  <span>◯</span>
+                                  <span><Circle size={16} /></span>
+                                  <span><Circle size={16} /></span>
+                                  <span><Circle size={16} /></span>
                                 </div>
                               </div>
                             </div>
                           )}
 
-                          <div className="question-footer">
-                            <label className="required-checkbox">
-                              <input
-                                type="checkbox"
-                                checked={question.required}
-                                onChange={(e) => updateQuestion(question.id, { required: e.target.checked })}
-                              />
-                              <span>Bắt buộc trả lời</span>
-                            </label>
-                          </div>
+                          {question.kind !== 'image' && question.kind !== 'video' && (
+                            <div className="question-footer">
+                              <label className="required-checkbox">
+                                <input
+                                  type="checkbox"
+                                  checked={question.required}
+                                  onChange={(e) => updateQuestion(question.id, { required: e.target.checked })}
+                                />
+                                <span>Bắt buộc trả lời</span>
+                              </label>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
@@ -825,7 +931,7 @@ export default function CreateSurveys() {
               </div>
 
               <div className="floating-toolbar">
-                <button onClick={() => addQuestion('multiple_choice')} title="Multiple Choice">
+                <button onClick={() => addQuestion('multiple_choice')} title="Thêm câu hỏi">
                   <MdAddCircleOutline size={22} />
                 </button>
 
@@ -833,9 +939,40 @@ export default function CreateSurveys() {
                   <MdCheckBox size={22} />
                 </button>
 
-                <button onClick={() => addQuestion('short_answer')} title="Short Answer">
+                <button onClick={() => addQuestion('short_answer')} title="Trả lời ngắn">
                   <MdShortText size={22} />
                 </button>
+
+                <button
+                  onClick={() => imageInputRef.current?.click()}
+                  title="Thêm hình ảnh"
+                  disabled={uploadingMediaType === 'image'}
+                >
+                  <Image size={21} />
+                </button>
+
+                <button
+                  onClick={() => videoInputRef.current?.click()}
+                  title="Thêm video"
+                  disabled={uploadingMediaType === 'video'}
+                >
+                  <Video size={21} />
+                </button>
+
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="toolbar-file-input"
+                  onChange={(event) => handleMediaInputChange('image', event.target.files)}
+                />
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  className="toolbar-file-input"
+                  onChange={(event) => handleMediaInputChange('video', event.target.files)}
+                />
               </div>
             </div>
 

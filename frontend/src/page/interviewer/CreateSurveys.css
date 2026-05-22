@@ -770,10 +770,22 @@
   transition: 0.2s;
   color: #4b5563;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .floating-toolbar button:hover {
   background: #f5f7fb;
+}
+
+.floating-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.toolbar-file-input {
+  display: none;
 }
 
 .empty-state {
@@ -1042,6 +1054,33 @@
   border-radius: 8px;
   background: #fafbfc;
   color: #5f6368;
+}
+
+.media-preview-panel {
+  margin-top: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.media-preview-panel img,
+.media-preview-panel video {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  background: #0f172a;
+}
+
+.media-empty-state {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 14px;
 }
 
 .file-upload-settings {

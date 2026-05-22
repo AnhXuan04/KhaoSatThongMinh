@@ -25,6 +25,9 @@ public class Question {
 
     private Integer maxFileCount;
 
+    @Column(columnDefinition = "TEXT")
+    private String mediaUrl;
+
     private Integer questionOrder;
 
     @ManyToOne

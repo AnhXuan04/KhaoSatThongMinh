@@ -114,6 +114,22 @@
   cursor: default;
 }
 
+.survey-media-block {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.survey-media-block img,
+.survey-media-block video {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  background: #0f172a;
+}
+
 /* File Upload Styles */
 .file-upload-container {
   margin-top: 8px;

@@ -1,11 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Upload, Star, Eye } from 'lucide-react';
 import './ViewSurvey.css';
 
 interface Option { id?: number | string; text: string }
-interface Question { id?: number | string; title: string; type: string; kind?: string; options?: Option[]; required?: boolean; maxFileSizeMb?: number; maxFileCount?: number }
+interface Question {
+  id?: number | string;
+  title: string;
+  type: string;
+  kind?: string;
+  options?: Option[];
+  required?: boolean;
+  maxFileSizeMb?: number;
+  maxFileCount?: number;
+  mediaUrl?: string;
+}
 interface Survey { id?: number | string; title: string; description?: string; questions: Question[] }
+interface BehaviorLog { questionId?: number; eventType: string; eventValue?: string; durationMs?: number }
 
 export default function ViewSurvey() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +32,9 @@ export default function ViewSurvey() {
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [previewFile, setPreviewFile] = useState<{ name: string; url: string } | null>(null);
   const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const surveyStartedAtRef = useRef(Date.now());
+  const questionTouchedAtRef = useRef<Record<string, number>>({});
+  const behaviorLogsRef = useRef<BehaviorLog[]>([]);
 
   const getGoogleViewerUrl = (fileUrl?: string | null) => {
     if (!fileUrl) return '';
@@ -146,6 +160,16 @@ export default function ViewSurvey() {
 
   const handleChange = (qId: any, value: any, multiple = false) => {
     if (isReadonly) return;
+    const key = String(qId);
+    const now = Date.now();
+    const previousTouch = questionTouchedAtRef.current[key] || surveyStartedAtRef.current;
+    questionTouchedAtRef.current[key] = now;
+    behaviorLogsRef.current.push({
+      questionId: Number(qId),
+      eventType: 'answer_change',
+      eventValue: Array.isArray(value) ? value.join(', ') : String(value ?? ''),
+      durationMs: now - previousTouch,
+    });
     setAnswers((prev) => {
       const copy = { ...prev };
       if (multiple) {
@@ -162,7 +186,9 @@ export default function ViewSurvey() {
   const handleSubmit = async () => {
     if (!survey || !id) return;
 
-    for (const q of survey.questions) {
+    const answerableQuestions = survey.questions.filter((q) => q.kind !== 'image' && q.kind !== 'video');
+
+    for (const q of answerableQuestions) {
       const ans = answers[q.id as any];
       if (q.required && (ans === undefined || ans === '' || (Array.isArray(ans) && ans.length === 0))) {
         alert('Vui lòng trả lời tất cả các câu hỏi bắt buộc');
@@ -170,7 +196,7 @@ export default function ViewSurvey() {
       }
     }
 
-    const answerList = survey.questions
+    const answerList = answerableQuestions
       .filter(q => answers[q.id as any] !== undefined && answers[q.id as any] !== '')
       .map(q => {
         const answer: any = { questionId: q.id };
@@ -193,13 +219,23 @@ export default function ViewSurvey() {
       });
 
     try {
+      const totalDurationMs = Date.now() - surveyStartedAtRef.current;
+      const behaviorLogs = [
+        {
+          eventType: 'survey_submit',
+          eventValue: `answered=${answerList.length}/${answerableQuestions.length}`,
+          durationMs: totalDurationMs,
+        },
+        ...behaviorLogsRef.current.slice(-120),
+      ];
+
       const res = await fetch(`http://localhost:8080/api/surveys/${encodeURIComponent(id)}/responses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ answers: answerList }),
+        body: JSON.stringify({ answers: answerList, behaviorLogs }),
       });
 
       if (res.ok) {
@@ -236,11 +272,23 @@ export default function ViewSurvey() {
           <div key={q.id || idx} className={`question-block ${isReadonly ? 'readonly' : ''}`}>
             <div className="question-title">
               <span className="question-number">{String(idx + 1).padStart(2, '0')}.</span>
-              <span className="question-text">{q.title}</span>
-              {q.required && !isReadonly && <span className="required">BẮT BUỘC</span>}
+              <span className="question-text">{q.title || (q.kind === 'image' ? 'Hình ảnh' : q.kind === 'video' ? 'Video' : '')}</span>
+              {q.required && q.kind !== 'image' && q.kind !== 'video' && !isReadonly && <span className="required">BẮT BUỘC</span>}
             </div>
 
             <div className="question-body">
+              {q.kind === 'image' && q.mediaUrl && (
+                <div className="survey-media-block">
+                  <img src={q.mediaUrl} alt={q.title || 'Hình ảnh khảo sát'} />
+                </div>
+              )}
+
+              {q.kind === 'video' && q.mediaUrl && (
+                <div className="survey-media-block">
+                  <video src={q.mediaUrl} controls />
+                </div>
+              )}
+
               {(q.kind === 'dropdown' || (q.type === 'multiple_choice' && q.kind === 'dropdown')) ? (
                 <select
                   value={answers[q.id as any] || ''}
@@ -279,7 +327,7 @@ export default function ViewSurvey() {
                 </label>
               ))}
 
-              {q.type === 'short_text' && (
+              {q.type === 'short_text' && q.kind !== 'file_upload' && q.kind !== 'image' && q.kind !== 'video' && (
                 <input
                   className="short-text-input"
                   type="text"
