@@ -10,14 +10,14 @@ interface SubscriptionResponse {
     startedAt: string;
     expiresAt: string;
     premium: boolean;
-    planCode: string;
+    planId: number;
 }
 
 interface ServicePackageType {
 	status: string;
 	paymentType: string;
 	name: string;
-	planCode: string;
+	planId: number;
 	billingCycle: string;
 	startDate: string;
 	endDate: string;
@@ -105,7 +105,7 @@ const mapSubscriptionToUI = (data: SubscriptionResponse): ServicePackageType => 
 		status: convertStatus(data.status),
 		paymentType: convertBilling(data.billingCycle),
 		name: data.planName || "Gói cơ bản",
-		planCode: data.planCode,
+		planId: data.planId,
 		billingCycle: data.billingCycle,
 		startDate: formatDate(data.startedAt),
 		endDate: formatDate(data.expiresAt),
@@ -243,7 +243,7 @@ const ServicePackage: React.FC = () => {
 			const res = await axios.post(
 				'http://localhost:8080/api/payments/vnpay/create',
 				{
-					planCode: currentPackage.planCode,
+					planId: currentPackage.planId,
 					billingCycle: renewBillingCycle,
 				},
 				{

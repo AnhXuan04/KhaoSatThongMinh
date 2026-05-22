@@ -57,7 +57,7 @@ export default function CreatorPackagePage() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        planCode: plan.code,
+        planId: plan.id,
         billingCycle,
         payerEmail: formData.email.trim().toLowerCase()
       })

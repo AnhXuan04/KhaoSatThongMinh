@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class PaymentCreateRequest {
-    private String planCode;
+    private Long planId;
     private String billingCycle;
     private String payerEmail;
 }

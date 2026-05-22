@@ -21,8 +21,11 @@ public class Subscription {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(name = "plan_code", nullable = false, length = 50)
-    private String planCode;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
 
     @Column(name = "billing_cycle", nullable = false, length = 20)
     private String billingCycle;

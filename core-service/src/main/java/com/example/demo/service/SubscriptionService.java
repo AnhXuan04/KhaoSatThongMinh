@@ -2,7 +2,6 @@ package com.example.demo.service;
 
 import com.example.demo.dto.SubscriptionDto;
 import com.example.demo.entity.*;
-import com.example.demo.repository.PlanRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.SubscriptionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +18,6 @@ public class SubscriptionService {
 
     @Autowired
     private SubscriptionRepository subscriptionRepository;
-
-    @Autowired
-    private PlanRepository planRepository;
 
     public SubscriptionDto getCurrentSubscription(String email) {
         User user = userRepository.findByEmail(email)
@@ -73,7 +69,7 @@ public class SubscriptionService {
         }
 
         LocalDateTime newExpiry = addCycle(baseDate, billingCycle);
-        subscription.setPlanCode(transaction.getPlanCode());
+        subscription.setPlan(transaction.getPlan());
         subscription.setBillingCycle(billingCycle);
         subscription.setExpiresAt(newExpiry);
         subscription.setCanceledAt(null);
@@ -94,17 +90,17 @@ public class SubscriptionService {
         }
 
         dto.setPremium(subscription.isActive());
-        dto.setPlanCode(subscription.getPlanCode());
+        Plan plan = subscription.getPlan();
+        dto.setPlanId(plan != null ? plan.getId() : null);
         dto.setBillingCycle(subscription.getBillingCycle());
         dto.setStartedAt(subscription.getStartedAt());
         dto.setExpiresAt(subscription.getExpiresAt());
         dto.setCanceledAt(subscription.getCanceledAt());
         dto.setStatus(subscription.getStatus() != null ? subscription.getStatus().name() : "NONE");
 
-        if (subscription.getPlanCode() != null) {
-            Plan plan = planRepository.findByCode(subscription.getPlanCode()).orElse(null);
-            dto.setPlanName(plan != null ? plan.getName() : subscription.getPlanCode());
-            dto.setFeaturesJson(plan != null ? plan.getFeaturesJson() : null);
+        if (plan != null) {
+            dto.setPlanName(plan.getName());
+            dto.setFeaturesJson(plan.getFeaturesJson());
         }
 
         return dto;

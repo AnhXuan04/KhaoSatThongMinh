@@ -11,6 +11,7 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+    private OtpPurpose OtpPrpose;
 
     public void sendOtpEmail(String toEmail, String otp, OtpPurpose purpose, String fullName) {
         SimpleMailMessage message = new SimpleMailMessage();

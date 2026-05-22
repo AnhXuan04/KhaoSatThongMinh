@@ -24,8 +24,9 @@ public class PaymentTransaction {
     @Column(name = "is_claimed")
     private Boolean claimed = false;
 
-    @Column(name = "plan_code", nullable = false, length = 50)
-    private String planCode;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
 
     @Column(name = "billing_cycle", length = 20)
     private String billingCycle;
