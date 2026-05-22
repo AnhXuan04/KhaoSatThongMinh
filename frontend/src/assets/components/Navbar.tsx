@@ -1,4 +1,4 @@
-import { FiMenu } from 'react-icons/fi';
+import { FiMenu, FiUser } from 'react-icons/fi';
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
@@ -25,12 +25,8 @@ export default function Navbar() {
       </div>
       
       <div className="navRight">
-        <Link to="/profile">
-          <img 
-            className="avatar" 
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-            alt="User Avatar" 
-          />
+        <Link to="/profile" className="avatar" aria-label="User profile">
+          <FiUser size={18} />
         </Link>
       </div>
     </nav>

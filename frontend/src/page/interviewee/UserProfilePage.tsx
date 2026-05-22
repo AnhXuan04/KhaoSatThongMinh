@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FiEdit2 } from 'react-icons/fi';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiEdit2, FiUser } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import './UserProfilePage.css';
 
@@ -21,6 +21,7 @@ export default function UserProfilePage() {
     email: '',
     phone: '',
     job: 'bien_tap', // Giá trị mặc định
+    avatarUrl: '',
     interests: [] as string[] // Mảng chứa các lĩnh vực đã chọn
   });
 
@@ -30,6 +31,8 @@ export default function UserProfilePage() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   // Lấy thông tin xác thực từ sessionStorage
   const token = sessionStorage.getItem('token');
@@ -57,6 +60,7 @@ export default function UserProfilePage() {
             email: data.email || userEmail,
             phone: data.phone || '',
             job: data.job || 'bien_tap',
+            avatarUrl: data.avatarUrl || '',
             // Backend có thể trả về chuỗi cách nhau dấu phẩy hoặc mảng, ta xử lý ép kiểu về mảng
             interests: data.interests ? (Array.isArray(data.interests) ? data.interests : data.interests.split(',')) : []
           });
@@ -91,6 +95,51 @@ export default function UserProfilePage() {
   };
 
   // 5. Xử lý khi bấm nút Lưu
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file || !token) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('Vui lòng chọn tệp ảnh.');
+      e.target.value = '';
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+
+    setIsUploadingAvatar(true);
+    setMessage('');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('http://localhost:8080/api/user/avatar', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: uploadData
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result?.error || 'Tải ảnh đại diện thất bại.');
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, avatarUrl: result.avatarUrl || '' }));
+      setMessage('Tải ảnh đại diện thành công!');
+    } catch (error) {
+      console.error('Lỗi tải ảnh đại diện:', error);
+      setErrorMessage('Không thể tải ảnh đại diện lên máy chủ.');
+    } finally {
+      setIsUploadingAvatar(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
     setMessage('');
@@ -182,19 +231,35 @@ export default function UserProfilePage() {
           <div className="sectionBody">
             <div className="avatarGroup">
               <div className="avatarWrapper">
-                <img 
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.fullName || 'User'}`} 
-                  alt="Avatar" 
-                  className="avatarImg" 
+                <div className="avatarImg">
+                  {formData.avatarUrl ? (
+                    <img src={formData.avatarUrl} alt="Avatar" />
+                  ) : (
+                    <FiUser size={42} />
+                  )}
+                </div>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="avatarFileInput"
+                  onChange={handleAvatarChange}
                 />
-                <button className="editIconBtn">
+                <button
+                  type="button"
+                  className="editIconBtn"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                >
                   <FiEdit2 size={14} />
                 </button>
               </div>
               <div className="avatarInfo">
                 <h3>{formData.fullName || 'Thành viên mới'}</h3>
                 <p>Thành viên tiêu chuẩn</p>
-                <span className="changePhotoText">THAY ĐỔI ẢNH</span>
+                <span className="changePhotoText">
+                  {isUploadingAvatar ? 'ĐANG TẢI ẢNH...' : 'THAY ĐỔI ẢNH'}
+                </span>
               </div>
             </div>
           </div>

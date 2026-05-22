@@ -86,8 +86,27 @@
   width: 100%;
   height: 100%;
   border-radius: 16px;
+  background-color: #f3f4f6;
+  color: #0052ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.avatarImg img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  background-color: #1e293b;
+}
+
+.avatarFileInput {
+  display: none;
+}
+
+.editIconBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .editIconBtn {

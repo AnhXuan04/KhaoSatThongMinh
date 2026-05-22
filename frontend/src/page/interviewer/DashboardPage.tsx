@@ -1,12 +1,51 @@
 import { useEffect, useState } from 'react';
-import { FiArrowRight, FiPlus, FiBarChart2 } from 'react-icons/fi';
+import { FiArrowRight, FiPlus, FiBarChart2, FiUser } from 'react-icons/fi';
 import './Dashboard.css';
 import { Link, useNavigate } from 'react-router-dom';
+
+type QualityAnalytics = {
+  totalResponses: number;
+  totalAnalyzedResponses: number;
+  seriousResponses: number;
+  superficialResponses: number;
+  qualityResponses: number;
+  rewardEligibleResponses: number;
+  rewardEligibleRate: number;
+  pendingCoinTransactions: number;
+  averageQualityScore: number;
+  recentResults: Array<{
+    responseId: number;
+    surveyId: number;
+    surveyTitle: string;
+    respondentEmail: string;
+    qualityScore: number;
+    superficial: boolean;
+    rewardEligible: boolean;
+    recommendation: string;
+    coinStatus: string;
+    submittedAt: string;
+  }>;
+};
+
+const defaultAnalytics: QualityAnalytics = {
+  totalResponses: 0,
+  totalAnalyzedResponses: 0,
+  seriousResponses: 0,
+  superficialResponses: 0,
+  qualityResponses: 0,
+  rewardEligibleResponses: 0,
+  rewardEligibleRate: 0,
+  pendingCoinTransactions: 0,
+  averageQualityScore: 0,
+  recentResults: [],
+};
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [recentSurveys, setRecentSurveys] = useState<any[]>([]);
+  const [qualityAnalytics, setQualityAnalytics] = useState<QualityAnalytics>(defaultAnalytics);
 
   useEffect(() => {
     const token = sessionStorage.getItem('token');
@@ -31,6 +70,7 @@ export default function DashboardPage() {
 
         const data = await response.json();
         setFullName(data.fullName || userEmail);
+        setAvatarUrl(data.avatarUrl || '');
       } catch (error) {
         console.error('Không thể tải dữ liệu dashboard:', error);
       }
@@ -45,12 +85,26 @@ export default function DashboardPage() {
 
     const fetchSurveys = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/surveys/my', {
+        const surveyRes = await fetch('http://localhost:8080/api/surveys/my', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (!res.ok) return;
-        const data = await res.json();
-        setRecentSurveys(Array.isArray(data) ? data.slice(0, 2) : []);
+        const analyticsRes = await fetch('http://localhost:8080/api/surveys/analytics/quality', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (surveyRes.ok) {
+          const data = await surveyRes.json();
+          setRecentSurveys(Array.isArray(data) ? data.slice(0, 2) : []);
+        }
+
+        if (analyticsRes.ok) {
+          const data = await analyticsRes.json();
+          setQualityAnalytics({
+            ...defaultAnalytics,
+            ...data,
+            recentResults: Array.isArray(data?.recentResults) ? data.recentResults : [],
+          });
+        }
       } catch (err) {
         console.error('Không thể tải khảo sát gần đây:', err);
       }
@@ -58,6 +112,15 @@ export default function DashboardPage() {
 
     fetchSurveys();
   }, []);
+
+  const analyzedResponses = qualityAnalytics.totalAnalyzedResponses;
+  const seriousResponses = qualityAnalytics.seriousResponses || qualityAnalytics.qualityResponses;
+  const superficialResponses = qualityAnalytics.superficialResponses;
+  const rewardEligibleRate = qualityAnalytics.rewardEligibleRate;
+  const averageQualityScore = Math.max(0, Math.min(100, qualityAnalytics.averageQualityScore || 0));
+  const chartDescription = analyzedResponses
+    ? `Đã phân tích ${analyzedResponses} phản hồi, trong đó ${seriousResponses} phản hồi nghiêm túc và ${superficialResponses} phản hồi hời hợt. Tỷ lệ đủ điều kiện cộng Coin hiện là ${rewardEligibleRate}%.`
+    : 'Chưa có phản hồi nào được AI phân tích. Khi khảo sát có dữ liệu, biểu đồ này sẽ tự cập nhật theo chất lượng phản hồi thực tế.';
 
   return (
     <div className="dashboardContainer">
@@ -68,8 +131,11 @@ export default function DashboardPage() {
             <div className="card profileCard">
               <div className="profileInfo">
                 <div className="profileAvatar">
-                  {/* Thay link ảnh thật của bạn vào đây */}
-                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName || 'User'}`} alt={fullName || 'Người dùng'} />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={fullName || 'Người dùng'} />
+                  ) : (
+                    <FiUser size={30} />
+                  )}
                   <div className="statusDot"></div>
                 </div>
                 <div className="profileText">
@@ -90,19 +156,18 @@ export default function DashboardPage() {
             
             {/* Chart Card */}
             <div className="card chartCard">
-              <div className="chartCircle">
+              <div
+                className="chartCircle"
+                style={{ background: `conic-gradient(#0052ff ${averageQualityScore}%, #e5e7eb 0)` }}
+              >
                 <div className="chartInner">
-                  <h3>78%</h3>
+                  <h3>{averageQualityScore}%</h3>
                   <span>HOÀN TẤT</span>
                 </div>
               </div>
               <div className="chartText">
                 <h3>Hiệu suất Khảo sát</h3>
-                <p>
-                  Các chỉ số phản hồi của bạn đang vượt 12% so với 
-                  tháng trước. Sự tham gia của khách hàng đạt mức kỷ 
-                  lục trong tuần này.
-                </p>
+                <p>{chartDescription}</p>
                 <div className="legend">
                   <div className="legendItem">
                     <div className="dot blue"></div> Hoàn thành
@@ -125,6 +190,44 @@ export default function DashboardPage() {
               </button>
             </div>
 
+          </div>
+        </div>
+
+        <div className="sectionWrapper">
+          <div className="sectionContent qualityGrid">
+            <div className="card qualitySummaryCard">
+              <h3>Tổng hợp AI</h3>
+              <div className="qualityStats">
+                <div><span>Tổng phản hồi</span><strong>{qualityAnalytics.totalResponses}</strong></div>
+                <div><span>Nghiêm túc</span><strong>{qualityAnalytics.seriousResponses || qualityAnalytics.qualityResponses}</strong></div>
+                <div><span>Hời hợt</span><strong>{qualityAnalytics.superficialResponses}</strong></div>
+                <div><span>Đủ điều kiện cộng Coin</span><strong>{qualityAnalytics.rewardEligibleRate}%</strong></div>
+              </div>
+            </div>
+
+            <div className="card qualityRecentCard">
+              <div className="recentHeader compact">
+                <h3>Phản hồi mới được phân tích</h3>
+              </div>
+              <div className="qualityList">
+                {qualityAnalytics.recentResults.length ? qualityAnalytics.recentResults.map((item) => (
+                  <button
+                    type="button"
+                    key={item.responseId}
+                    className="qualityItem"
+                    onClick={() => navigate(`/manage-surveys/review?surveyId=${item.surveyId}&tab=personal&responseId=${item.responseId}`)}
+                  >
+                    <div>
+                      <strong>{item.surveyTitle}</strong>
+                      <span>{item.respondentEmail} - {item.submittedAt}</span>
+                    </div>
+                    <div className={`qualityBadge ${item.superficial ? 'bad' : 'good'}`}>
+                      {item.qualityScore}%
+                    </div>
+                  </button>
+                )) : <p className="emptyQuality">Chưa có phản hồi nào được AI phân tích.</p>}
+              </div>
+            </div>
           </div>
         </div>
 

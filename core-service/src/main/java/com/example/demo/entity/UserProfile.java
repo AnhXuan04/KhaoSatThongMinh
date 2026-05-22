@@ -30,6 +30,12 @@ public class UserProfile {
 
     @Column(name = "interests", columnDefinition = "TEXT")
     private String interests;
+
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+
+    @Column(name = "coin_balance", nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer coinBalance = 0;
 }
 
 

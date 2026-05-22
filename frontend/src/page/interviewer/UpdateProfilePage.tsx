@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiUser } from 'react-icons/fi';
 import './UpdateProfile.css';
 
 export default function UpdateProfilePage() {
@@ -7,13 +8,16 @@ export default function UpdateProfilePage() {
   const [formData, setFormData] = useState({
     fullName: '',
     job: '',
-    email: ''
+    email: '',
+    avatarUrl: ''
   });
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const token = sessionStorage.getItem('token');
@@ -40,7 +44,8 @@ export default function UpdateProfilePage() {
         setFormData({
           fullName: data.fullName || '',
           job: data.job || '',
-          email: data.email || userEmail
+          email: data.email || userEmail,
+          avatarUrl: data.avatarUrl || ''
         });
       } catch (error) {
         console.error('Không thể tải dữ liệu hồ sơ:', error);
@@ -54,6 +59,52 @@ export default function UpdateProfilePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setMessage('');
     setErrorMessage('');
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const token = sessionStorage.getItem('token');
+
+    if (!file || !token) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('Vui lòng chọn tệp ảnh.');
+      e.target.value = '';
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+
+    setIsUploadingAvatar(true);
+    setMessage('');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('http://localhost:8080/api/user/avatar', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: uploadData
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result?.error || 'Tải ảnh đại diện thất bại.');
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, avatarUrl: result.avatarUrl || '' }));
+      setMessage('Tải ảnh đại diện thành công!');
+    } catch (error) {
+      console.error('Lỗi tải ảnh đại diện:', error);
+      setErrorMessage('Không thể tải ảnh đại diện lên máy chủ.');
+    } finally {
+      setIsUploadingAvatar(false);
+      e.target.value = '';
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -78,7 +129,8 @@ export default function UpdateProfilePage() {
         },
         body: JSON.stringify({
           fullName: formData.fullName,
-          job: formData.job
+          job: formData.job,
+          avatarUrl: formData.avatarUrl
         })
       });
 
@@ -143,16 +195,38 @@ export default function UpdateProfilePage() {
           
           {/* Khu vực đổi Avatar */}
           <div className="avatarSection">
-            <img 
-              className="avatarPreview" 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-              alt="Avatar" 
-            />
+            <div className="avatarPreview">
+              {formData.avatarUrl ? (
+                <img src={formData.avatarUrl} alt="Avatar" />
+              ) : (
+                <FiUser size={42} />
+              )}
+            </div>
             <div className="avatarActions">
               <h3>Ảnh đại diện</h3>
               <p>Nên dùng ảnh vuông, tối thiểu 200x200px để hiển thị tốt trên dashboard.</p>
-              <button type="button" className="changePicBtn">Đổi ảnh mới</button>
-              <button type="button" className="removePicBtn">Gỡ ảnh</button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="avatarFileInput"
+                onChange={handleAvatarChange}
+              />
+              <button
+                type="button"
+                className="changePicBtn"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+              >
+                {isUploadingAvatar ? 'Đang tải...' : 'Đổi ảnh mới'}
+              </button>
+              <button
+                type="button"
+                className="removePicBtn"
+                onClick={() => setFormData(prev => ({ ...prev, avatarUrl: '' }))}
+              >
+                Gỡ ảnh
+              </button>
             </div>
           </div>
 
@@ -213,7 +287,6 @@ export default function UpdateProfilePage() {
             </div>
           )}
 
-          {/* Nút thao tác */}
           <div className="actionButtons">
             <button 
               type="button" 

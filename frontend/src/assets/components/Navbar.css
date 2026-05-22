@@ -41,6 +41,10 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  object-fit: cover;
+  background: #f3f4f6;
+  color: #0052ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }

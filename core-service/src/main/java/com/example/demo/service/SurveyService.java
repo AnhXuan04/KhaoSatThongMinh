@@ -69,6 +69,7 @@ public class SurveyService {
             question.setRequired(qReq.getRequired());
             question.setMaxFileSizeMb(qReq.getMaxFileSizeMb());
             question.setMaxFileCount(qReq.getMaxFileCount());
+            question.setMediaUrl(qReq.getMediaUrl());
             question.setQuestionOrder(qOrder++);
             question.setSurvey(survey);
 
@@ -171,6 +172,7 @@ public class SurveyService {
             question.setRequired(qReq.getRequired());
             question.setMaxFileSizeMb(qReq.getMaxFileSizeMb());
             question.setMaxFileCount(qReq.getMaxFileCount());
+            question.setMediaUrl(qReq.getMediaUrl());
             question.setQuestionOrder(qOrder++);
             question.setSurvey(survey);
 
@@ -242,6 +244,7 @@ public class SurveyService {
                 qr.setRequired(q.getRequired());
                 qr.setMaxFileSizeMb(q.getMaxFileSizeMb());
                 qr.setMaxFileCount(q.getMaxFileCount());
+                qr.setMediaUrl(q.getMediaUrl());
 
                 List<OptionRequest> opts = new ArrayList<>();
                 if (q.getOptions() != null) {
@@ -289,6 +292,7 @@ public class SurveyService {
                 qr.setRequired(q.getRequired());
                 qr.setMaxFileSizeMb(q.getMaxFileSizeMb());
                 qr.setMaxFileCount(q.getMaxFileCount());
+                qr.setMediaUrl(q.getMediaUrl());
 
                 List<OptionRequest> opts = new ArrayList<>();
                 if (q.getOptions() != null) {

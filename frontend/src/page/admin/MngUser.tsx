@@ -21,7 +21,7 @@ const sideMenus = [
 	{ key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: false, path: '/dashboard-admin' },
 	{ key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: true, path: '/dashboard-admin/users' },
 	{ key: 'categories', label: 'Quản lý Lĩnh vực', icon: FiFolder, active: false, path: '/dashboard-admin/categories' },
-	{ key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin' }
+	{ key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin/quality' }
 ];
 
 const userTabs = [
@@ -65,6 +65,7 @@ const getInitials = (fullName: string) => {
 export default function MngUser() {
 	const navigate = useNavigate();
 	const [fullName, setFullName] = useState('');
+	const [adminEmail, setAdminEmail] = useState('');
 	const [users, setUsers] = useState<UserRow[]>([]);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [activeTab, setActiveTab] = useState<UserTabKey>('all');
@@ -137,6 +138,7 @@ export default function MngUser() {
 
 				const data = await response.json();
 				setFullName(data.fullName || userEmail);
+				setAdminEmail(data.email || userEmail);
 			} catch (error) {
 				console.error('Không thể tải dữ liệu quản lý người dùng:', error);
 			}
@@ -225,7 +227,7 @@ export default function MngUser() {
 					</div>
 					<div>
 						<h4>{fullName || 'Quản trị viên'}</h4>
-						<p>admin@survey.vn</p>
+						<p>{adminEmail || 'admin@survey.vn'}</p>
 					</div>
 				</div>
 
@@ -308,7 +310,7 @@ export default function MngUser() {
 										<td className="mngUserId">{String(user.id)}</td>
 										<td>
 											<div className="mngUserProfile">
-												<div className="mngUserAvatar">{user.initials}</div>
+												<div className="mngUserAvatar"><FiUser size={18} /></div>
 												<div>
 													<strong>{user.name}</strong>
 													<p>{user.email}</p>

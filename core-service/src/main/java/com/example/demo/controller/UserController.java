@@ -9,6 +9,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -33,6 +36,30 @@ public class UserController {
         String email = (String) auth.getPrincipal();
 
         return ResponseEntity.ok(userService.updateUserProfile(email, dto));
+    }
+
+    @PostMapping("/avatar")
+    @PreAuthorize("hasAuthority('INTERVIEWEE') or hasAuthority('ADMIN') or hasAuthority('INTERVIEWER')")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File trống"));
+            }
+
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Chỉ hỗ trợ tải ảnh đại diện."));
+            }
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = (String) auth.getPrincipal();
+
+            return ResponseEntity.ok(userService.updateAvatar(email, file));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Lỗi tải ảnh đại diện: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/change-password")

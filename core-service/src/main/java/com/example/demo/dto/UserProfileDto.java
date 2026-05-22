@@ -9,4 +9,6 @@ public class UserProfileDto {
     private String job;
     private String phone;
     private String interests;
+    private String avatarUrl;
+    private Integer coinBalance;
 }

@@ -18,7 +18,7 @@ const sideMenus = [
 	{ key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: false, path: '/dashboard-admin' },
 	{ key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: false, path: '/dashboard-admin/users' },
 	{ key: 'categories', label: 'Quản lý Lĩnh vực', icon: FiFolder, active: true, path: '/dashboard-admin/categories' },
-	{ key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin' }
+	{ key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin/quality' }
 ];
 
 type SurveyFieldData = {
@@ -32,6 +32,7 @@ export default function MngSurveyField() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const [fullName, setFullName] = useState('');
+	const [adminEmail, setAdminEmail] = useState('');
 	const [surveyFields, setSurveyFields] = useState<SurveyFieldData[]>([]);
 	const [isAddFieldOpen, setIsAddFieldOpen] = useState(false);
 	const [isEditFieldOpen, setIsEditFieldOpen] = useState(false);
@@ -239,6 +240,7 @@ export default function MngSurveyField() {
 
 				const data = await response.json();
 				setFullName(data.fullName || userEmail);
+				setAdminEmail(data.email || userEmail);
 			} catch (error) {
 				console.error('Không thể tải dữ liệu quản lý danh mục:', error);
 			}
@@ -387,7 +389,7 @@ export default function MngSurveyField() {
 					</div>
 					<div>
 						<h4>{fullName || 'Quản trị viên'}</h4>
-						<p>admin@survey.vn</p>
+						<p>{adminEmail || 'admin@survey.vn'}</p>
 					</div>
 				</div>
 
@@ -452,8 +454,8 @@ export default function MngSurveyField() {
 								<div className="mngFieldCardMeta">
 									<span>0 KHẢO SÁT</span>
 									<div className="mngFieldCardAvatars">
-										<span className="avatar">+</span>
-										<span className="avatar">+</span>
+										<span className="avatar"><FiUser size={13} /></span>
+										<span className="avatar"><FiUser size={13} /></span>
 									</div>
 								</div>
 							</div>

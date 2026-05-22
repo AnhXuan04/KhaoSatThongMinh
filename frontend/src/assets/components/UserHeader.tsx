@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaUserAstronaut, FaCoins, FaSignOutAlt } from 'react-icons/fa';
+import { FaCoins, FaSignOutAlt } from 'react-icons/fa';
+import { FiUser } from 'react-icons/fi';
 import './UserHeader.css';
 
 interface UserHeaderProps {
@@ -57,6 +58,8 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('Thành viên');
   const [userRole, setUserRole] = useState<UserRole>('INTERVIEWEE');
+  const [coinBalance, setCoinBalance] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState('');
 
   //Tự động lấy tên người dùng khi Header được hiển thị
   useEffect(() => {
@@ -77,6 +80,8 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
           if (response.ok) {
             const data = await response.json();
             setUserName(data.fullName || email.split('@')[0]);
+            setCoinBalance(Number(data.coinBalance) || 0);
+            setAvatarUrl(data.avatarUrl || '');
           }
         } catch (error) {
           console.error("Lỗi tải tên người dùng ở Header:", error);
@@ -114,7 +119,11 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
     <header className="userHeader">
       <Link to={homePath} className="userInfo">
         <div className="userAvatarBox">
-          <FaUserAstronaut size={20} />
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={userName} />
+          ) : (
+            <FiUser size={20} />
+          )}
         </div>
         <div className="userNameText">
           <span className="welcomeText">CHÀO MỪNG,</span>
@@ -133,7 +142,7 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
       {canShowCoin && (
         <div className="coinBalance">
           <FaCoins className="coinIcon" />
-          <span>2,450 Coins</span>
+          <span>{coinBalance.toLocaleString('vi-VN')} Coins</span>
         </div>
       )}
 

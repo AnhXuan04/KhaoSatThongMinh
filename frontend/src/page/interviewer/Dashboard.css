@@ -62,8 +62,12 @@
   width: 64px;
   height: 64px;
   border-radius: 12px;
-  background-color: #ff7a59;
+  background-color: #f3f4f6;
   position: relative;
+  color: #0052ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profileAvatar img {
@@ -196,50 +200,76 @@
 .dot.gray { background-color: #e5e7eb; }
 
 /* Nút Tạo khảo sát Mới (Action Card) */
-.actionCard {
-  background-color: #0052ff;
+.dashboardContainer .actionCard {
+  min-height: 143px;
+  background: #0754d8;
   color: #ffffff;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: flex-start;
+  justify-content: flex-start;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: none;
 }
 
-.actionIcon {
-  width: 32px;
-  height: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+.dashboardContainer .actionIcon {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffffff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
-.actionCard h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
+.dashboardContainer .actionIcon svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 3;
 }
 
-.actionCard p {
-  margin: 0 0 20px 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.4;
+.dashboardContainer .actionCard h3 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #ffffff;
 }
 
-.actionBtn {
+.dashboardContainer .actionCard p {
+  max-width: 150px;
+  margin: 0 0 18px 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.35;
+}
+
+.dashboardContainer .actionBtn {
   background: none;
   border: none;
   color: #ffffff;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 9px;
+  line-height: 1;
   text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   cursor: pointer;
   padding: 0;
+  margin-top: auto;
+  letter-spacing: 0.02em;
+}
+
+.dashboardContainer .actionBtn svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 3;
 }
 
 /* Recent Section */
@@ -342,4 +372,112 @@
   font-size: 20px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 82, 255, 0.3);
+}
+
+.qualityGrid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+}
+
+.qualitySummaryCard h3,
+.qualityRecentCard h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+}
+
+.qualityStats {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.qualityStats div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #edf0f5;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.qualityStats span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.qualityStats strong {
+  color: #111827;
+  font-size: 22px;
+}
+
+.recentHeader.compact {
+  margin-bottom: 14px;
+}
+
+.qualityList {
+  display: grid;
+  gap: 10px;
+}
+
+.qualityItem {
+  width: 100%;
+  border: 1px solid #edf0f5;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+}
+
+.qualityItem strong {
+  display: block;
+  color: #111827;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.qualityItem span,
+.emptyQuality {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.qualityBadge {
+  min-width: 52px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.qualityBadge.good {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.qualityBadge.bad {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+@media (max-width: 900px) {
+  .insightsGrid,
+  .qualityGrid,
+  .recentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileCard,
+  .chartCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
