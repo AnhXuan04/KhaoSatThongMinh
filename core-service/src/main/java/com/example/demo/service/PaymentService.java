@@ -54,7 +54,7 @@ public class PaymentService {
     private SubscriptionService subscriptionService;
 
     public PaymentCreateResponse createPayment(String authorizationHeader, PaymentCreateRequest request, String clientIp) {
-        Plan plan = planRepository.findByCode(request.getPlanCode())
+        Plan plan = planRepository.findById(request.getPlanId())
                 .orElseThrow(() -> new RuntimeException("Gói không tồn tại."));
 
         BigDecimal amount = resolveAmount(plan, request.getBillingCycle());
@@ -78,7 +78,7 @@ public class PaymentService {
         PaymentTransaction transaction = new PaymentTransaction();
         transaction.setUser(user);
         transaction.setPayerEmail(payerEmail);
-        transaction.setPlanCode(plan.getCode());
+        transaction.setPlan(plan);
         transaction.setBillingCycle(request.getBillingCycle());
         transaction.setAmount(amount);
         transaction.setStatus(PaymentStatus.PENDING);
@@ -208,7 +208,7 @@ public class PaymentService {
     private PaymentHistoryItemDto toHistoryItemDto(PaymentTransaction transaction) {
         PaymentHistoryItemDto dto = new PaymentHistoryItemDto();
         dto.setTxnRef(transaction.getVnpTxnRef());
-        dto.setPlanName(resolvePlanName(transaction.getPlanCode()));
+        dto.setPlanName(resolvePlanName(transaction.getPlan()));
         dto.setBillingCycle(transaction.getBillingCycle());
         dto.setAmount(transaction.getAmount());
         dto.setStatus(transaction.getStatus() != null ? transaction.getStatus().name() : "PENDING");
@@ -216,14 +216,12 @@ public class PaymentService {
         return dto;
     }
 
-    private String resolvePlanName(String planCode) {
-        if (planCode == null || planCode.isBlank()) {
+    private String resolvePlanName(Plan plan) {
+        if (plan == null) {
             return "Không xác định";
         }
 
-        return planRepository.findByCode(planCode)
-                .map(Plan::getName)
-                .orElse(planCode);
+        return plan.getName();
     }
 
     private LocalDateTime resolvePaymentDate(PaymentTransaction transaction) {

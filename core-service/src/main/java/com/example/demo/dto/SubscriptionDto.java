@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class SubscriptionDto {
     private boolean premium;
     private String status;
-    private String planCode;
+    private Long planId;
     private String planName;
     private String featuresJson;
     private String billingCycle;
