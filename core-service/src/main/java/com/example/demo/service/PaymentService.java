@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,6 +35,8 @@ public class PaymentService {
     private static final String VNP_ORDER_TYPE = "other";
     private static final String VNP_CURR_CODE = "VND";
     private static final String VNP_LOCALE = "vn";
+    private static final ZoneId VNP_TIME_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final DateTimeFormatter VNP_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     @Autowired
     private VnPayProperties vnPayProperties;
@@ -229,7 +232,6 @@ public class PaymentService {
             try {
                 return LocalDateTime.parse(transaction.getVnpPayDate(), DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             } catch (Exception ignored) {
-                // Fallback to createdAt below.
             }
         }
 
@@ -272,15 +274,15 @@ public class PaymentService {
         params.put("vnp_Amount", amount.multiply(BigDecimal.valueOf(100)).toBigInteger().toString());
         params.put("vnp_CurrCode", VNP_CURR_CODE);
         params.put("vnp_TxnRef", txnRef);
-        params.put("vnp_OrderInfo", "Thanh toan goi " + planName + " - " + payerLabel);
+        params.put("vnp_OrderInfo", "Thanh toán gói " + planName + " - " + payerLabel);
         params.put("vnp_OrderType", VNP_ORDER_TYPE);
         params.put("vnp_Locale", VNP_LOCALE);
         params.put("vnp_ReturnUrl", vnPayProperties.getReturnUrl());
         params.put("vnp_IpAddr", clientIp);
 
-        LocalDateTime now = LocalDateTime.now();
-        params.put("vnp_CreateDate", now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
-        params.put("vnp_ExpireDate", now.plusMinutes(15).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        LocalDateTime now = LocalDateTime.now(VNP_TIME_ZONE);
+        params.put("vnp_CreateDate", now.format(VNP_DATE_FORMAT));
+        params.put("vnp_ExpireDate", now.plusMinutes(15).format(VNP_DATE_FORMAT));
 
         return params;
     }
