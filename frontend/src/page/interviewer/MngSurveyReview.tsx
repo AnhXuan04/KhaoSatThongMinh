@@ -1,4 +1,4 @@
-import { FiDownload, FiStar } from 'react-icons/fi';
+import { FiStar } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
@@ -69,7 +69,9 @@ type ResponseDetail = {
 export default function MngSurveyReview() {
   const [searchParams] = useSearchParams();
   const surveyId = searchParams.get('surveyId');
-  const [activeTab, setActiveTab] = useState<'summary' | 'questions' | 'personal'>('summary');
+  const requestedTab = searchParams.get('tab');
+  const initialTab = requestedTab === 'questions' || requestedTab === 'personal' ? requestedTab : 'summary';
+  const [activeTab, setActiveTab] = useState<'summary' | 'questions' | 'personal'>(initialTab);
 
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [questionStats, setQuestionStats] = useState<ApiQuestionStatistic[]>([]);
@@ -214,21 +216,8 @@ export default function MngSurveyReview() {
             <section className="mngSurveyReviewHero">
               <div className="mngSurveyReviewHeroLeft">
                 <span className="mngSurveyReviewEyebrow">THỐNG KÊ CHUNG</span>
-                <div className="mngSurveyReviewHeroNumber">{summary.total}</div>
-                <p>Phản hồi đã nhận được trong quý này.</p>
-              </div>
-
-              <div className="mngSurveyReviewHeroRight">
-                <div className="mngSurveyReviewStatusBlock">
-                  <span className="mngSurveyReviewLabel">TÌNH TRẠNG KHẢO SÁT</span>
-                  <div className="mngSurveyReviewStatusDotRow">
-                    <span className="mngSurveyReviewStatusDot" />
-                    <span>Đang mở</span>
-                  </div>
-                </div>
-                <button type="button" className="mngSurveyReviewExportBtn">
-                  <FiDownload /> Xuất dữ liệu CSV
-                </button>
+                <div className="mngSurveyReviewHeroNumber">{summary.total} Phản hồi đã nhận.</div>
+                
               </div>
             </section>
 

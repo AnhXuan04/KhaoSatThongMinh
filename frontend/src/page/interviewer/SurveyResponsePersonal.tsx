@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { FiPrinter, FiTrash2, FiChevronLeft, FiChevronRight, FiEye } from 'react-icons/fi';
+import { FiPrinter, FiTrash2, FiChevronLeft, FiChevronRight, FiEye, FiUser } from 'react-icons/fi';
 import './SurveyResponsePersonal.css';
 
 type AnswerDetail = {
@@ -42,6 +42,7 @@ type ApiResponseDetail = {
 export default function SurveyResponsePersonal() {
 	const [searchParams] = useSearchParams();
 	const surveyId = searchParams.get('surveyId');
+	const targetResponseId = searchParams.get('responseId');
 
 	const [responses, setResponses] = useState<ResponseDetail[]>([]);
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -107,6 +108,12 @@ export default function SurveyResponsePersonal() {
 				}
 
 				setResponses(detailedResponses);
+				if (targetResponseId) {
+					const targetIndex = detailedResponses.findIndex((response) => String(response.responseId) === targetResponseId);
+					if (targetIndex >= 0) {
+						setCurrentIndex(targetIndex);
+					}
+				}
 				setError(null);
 			} catch (err) {
 				console.error('Error fetching data:', err);
@@ -117,7 +124,7 @@ export default function SurveyResponsePersonal() {
 		};
 
 		fetchData();
-	}, [surveyId]);
+	}, [surveyId, targetResponseId]);
 
 	const currentResponse = useMemo(() => {
 		return responses[currentIndex] || null;
@@ -303,7 +310,7 @@ export default function SurveyResponsePersonal() {
 						<section className="surveyResponsePersonalRespondent">
 							<div className="surveyResponsePersonalRespondentCard">
 								<div className="surveyResponsePersonalRespondentAvatar">
-									{currentResponse.userAvatar || 'A'}
+									<FiUser size={32} />
 								</div>
 								<div className="surveyResponsePersonalRespondentInfo">
 									<span className="surveyResponsePersonalRespondentLabel">NGƯỜI TRẢ LỜI</span>
