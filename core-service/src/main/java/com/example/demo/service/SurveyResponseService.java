@@ -3,12 +3,17 @@ package com.example.demo.service;
 import com.example.demo.dto.SubmitAnswerDto;
 import com.example.demo.dto.SubmitSurveyRequest;
 import com.example.demo.dto.SurveyHistoryItemDto;
+import com.example.demo.dto.SurveyQualityAnalyticsDto;
 import com.example.demo.dto.SurveyResponseDetailDto;
 import com.example.demo.dto.SurveyResponseListItemDto;
 import com.example.demo.dto.QuestionStatisticsDto;
 import com.example.demo.dto.OptionStatisticDto;
+import com.example.demo.dto.AiAnalyzeRequestDto;
+import com.example.demo.dto.AiAnalyzeResponseDto;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +25,8 @@ import java.util.Map;
 
 @Service
 public class SurveyResponseService {
+
+    private static final Logger log = LoggerFactory.getLogger(SurveyResponseService.class);
 
     @Autowired
     private SurveyRepository surveyRepository;
@@ -35,6 +42,18 @@ public class SurveyResponseService {
 
     @Autowired
     private OptionRepository optionRepository;
+
+    @Autowired
+    private UserBehaviorLogRepository userBehaviorLogRepository;
+
+    @Autowired
+    private AiAnalysisResultRepository aiAnalysisResultRepository;
+
+    @Autowired
+    private CoinTransactionRepository coinTransactionRepository;
+
+    @Autowired
+    private AiAnalysisClient aiAnalysisClient;
 
     public List<SurveyHistoryItemDto> getHistory(String email) {
         User user = userRepository.findByEmail(email)
@@ -133,7 +152,8 @@ public class SurveyResponseService {
 
         List<SurveyAnswer> answerList = new ArrayList<>();
 
-        for (SubmitAnswerDto dto : request.getAnswers()) {
+        List<SubmitAnswerDto> submittedAnswers = request.getAnswers() != null ? request.getAnswers() : List.of();
+        for (SubmitAnswerDto dto : submittedAnswers) {
             Question question = questionRepository.findById(dto.getQuestionId())
                     .orElseThrow(() -> new RuntimeException("Câu hỏi không tồn tại: " + dto.getQuestionId()));
 
@@ -182,7 +202,177 @@ public class SurveyResponseService {
         }
 
         response.setAnswers(answerList);
-        surveyResponseRepository.save(response);
+        SurveyResponse savedResponse = surveyResponseRepository.save(response);
+        saveBehaviorLogs(savedResponse, survey, resolvedUser, request);
+        java.util.Optional<AiAnalysisResult> analysisResult = analyzeResponseQuality(savedResponse);
+        if (analysisResult.isPresent()) {
+            createPendingCoinTransactionForAnalysis(savedResponse, analysisResult.get());
+        } else {
+            log.warn("Survey response {} was saved but AI analysis was not created. Check AI Service and trained model.",
+                    savedResponse.getId());
+        }
+    }
+
+    private void saveBehaviorLogs(SurveyResponse response, Survey survey, User user, SubmitSurveyRequest request) {
+        if (request.getBehaviorLogs() == null || request.getBehaviorLogs().isEmpty()) {
+            return;
+        }
+
+        List<UserBehaviorLog> logs = request.getBehaviorLogs().stream()
+                .filter(dto -> dto.getEventType() != null && !dto.getEventType().isBlank())
+                .map(dto -> {
+                    UserBehaviorLog log = new UserBehaviorLog();
+                    log.setResponse(response);
+                    log.setSurvey(survey);
+                    log.setUser(user);
+                    log.setQuestionId(dto.getQuestionId());
+                    log.setEventType(dto.getEventType());
+                    log.setEventValue(dto.getEventValue());
+                    log.setDurationMs(dto.getDurationMs());
+                    return log;
+                })
+                .collect(java.util.stream.Collectors.toList());
+
+        if (!logs.isEmpty()) {
+            userBehaviorLogRepository.saveAll(logs);
+        }
+    }
+
+    private java.util.Optional<AiAnalysisResult> analyzeResponseQuality(SurveyResponse response) {
+        List<UserBehaviorLog> logs = userBehaviorLogRepository.findByResponseId(response.getId());
+        AiAnalyzeRequestDto request = buildAiAnalyzeRequest(response, logs);
+        java.util.Optional<AiAnalyzeResponseDto> aiResponse = aiAnalysisClient.analyze(request);
+
+        if (aiResponse.isPresent()) {
+            AiAnalyzeResponseDto dto = aiResponse.get();
+            AiAnalysisResult result = new AiAnalysisResult();
+            result.setResponse(response);
+            result.setQualityScore(dto.getQualityScore() != null ? dto.getQualityScore() : 0);
+            result.setSuperficial(dto.resolvedSuperficial());
+            result.setRewardEligible(Boolean.TRUE.equals(dto.getRewardEligible()) && response.getUser() != null);
+            result.setModelName(dto.getModelName() != null ? dto.getModelName() : "fastapi-ai-service");
+            result.setAnalysisSummary(dto.getAnalysisSummary());
+            result.setRecommendation(dto.getRecommendation());
+            return java.util.Optional.of(aiAnalysisResultRepository.save(result));
+        }
+
+        return java.util.Optional.empty();
+    }
+
+    private AiAnalyzeRequestDto buildAiAnalyzeRequest(SurveyResponse response, List<UserBehaviorLog> logs) {
+        List<AiAnalyzeRequestDto.AiAnswerDto> answers = new ArrayList<>();
+        if (response.getAnswers() != null) {
+            for (SurveyAnswer answer : response.getAnswers()) {
+                Question question = answer.getQuestion();
+                answers.add(new AiAnalyzeRequestDto.AiAnswerDto(
+                        question != null ? question.getId() : null,
+                        question != null ? question.getType() : null,
+                        question != null ? question.getKind() : null,
+                        answer.getAnswerText() != null ? answer.getAnswerText() : ""
+                ));
+            }
+        }
+
+        List<AiAnalyzeRequestDto.AiBehaviorLogDto> behaviorLogs = logs.stream()
+                .map(log -> new AiAnalyzeRequestDto.AiBehaviorLogDto(
+                        log.getQuestionId(),
+                        log.getEventType(),
+                        log.getEventValue(),
+                        log.getDurationMs()
+                ))
+                .collect(java.util.stream.Collectors.toList());
+
+        return new AiAnalyzeRequestDto(
+                response.getId(),
+                response.getSurvey().getId(),
+                answers,
+                behaviorLogs
+        );
+    }
+
+    private void createPendingCoinTransactionForAnalysis(SurveyResponse response, AiAnalysisResult analysisResult) {
+        if (response.getUser() == null) {
+            return;
+        }
+
+        if (coinTransactionRepository.findByResponseId(response.getId()).isPresent()) {
+            return;
+        }
+
+        CoinTransaction transaction = new CoinTransaction();
+        transaction.setUser(response.getUser());
+        transaction.setResponse(response);
+        transaction.setAnalysisResult(analysisResult);
+        transaction.setAmount(10);
+        transaction.setStatus(CoinTransactionStatus.PENDING);
+        transaction.setReason(Boolean.TRUE.equals(analysisResult.getRewardEligible())
+                ? "AI danh gia phan hoi dat chat luong, cho admin duyet."
+                : "AI danh gia phan hoi can xem lai, cho admin duyet hoac tu choi.");
+        coinTransactionRepository.save(transaction);
+    }
+
+    @Transactional(readOnly = true)
+    public SurveyQualityAnalyticsDto getQualityAnalyticsForInterviewer(String interviewerEmail) {
+        User interviewer = userRepository.findByEmail(interviewerEmail)
+                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
+
+        List<AiAnalysisResult> results = aiAnalysisResultRepository.findRecentByInterviewerId(interviewer.getId());
+        List<CoinTransaction> transactions = coinTransactionRepository.findByInterviewerId(interviewer.getId());
+        Map<Long, CoinTransaction> transactionByResponseId = transactions.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        transaction -> transaction.getResponse().getId(),
+                        transaction -> transaction,
+                        (first, second) -> first
+                ));
+
+        long superficial = results.stream().filter(result -> Boolean.TRUE.equals(result.getSuperficial())).count();
+        long totalResponses = surveyResponseRepository.countByInterviewerId(interviewer.getId());
+        long rewardEligible = results.stream().filter(result -> Boolean.TRUE.equals(result.getRewardEligible())).count();
+        long pendingCoins = transactions.stream()
+                .filter(transaction -> transaction.getStatus() == CoinTransactionStatus.PENDING)
+                .count();
+        int averageScore = results.isEmpty()
+                ? 0
+                : Math.round((float) results.stream().mapToInt(AiAnalysisResult::getQualityScore).sum() / results.size());
+        int rewardEligibleRate = results.isEmpty()
+                ? 0
+                : Math.round((rewardEligible * 100f) / results.size());
+
+        List<SurveyQualityAnalyticsDto.ResponseQualityItemDto> recent = results.stream()
+                .limit(6)
+                .map(result -> {
+                    SurveyResponse response = result.getResponse();
+                    CoinTransaction transaction = transactionByResponseId.get(response.getId());
+                    String submittedAt = response.getSubmittedAt() != null
+                            ? response.getSubmittedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            : "";
+                    return new SurveyQualityAnalyticsDto.ResponseQualityItemDto(
+                            response.getId(),
+                            response.getSurvey().getId(),
+                            response.getSurvey().getTitle(),
+                            response.getUser() != null ? response.getUser().getEmail() : "Khach",
+                            result.getQualityScore(),
+                            result.getSuperficial(),
+                            result.getRewardEligible(),
+                            result.getRecommendation(),
+                            transaction != null ? transaction.getStatus().name() : "NONE",
+                            submittedAt
+                    );
+                })
+                .collect(java.util.stream.Collectors.toList());
+
+        return new SurveyQualityAnalyticsDto(
+                totalResponses,
+                results.size(),
+                results.size() - superficial,
+                superficial,
+                results.size() - superficial,
+                rewardEligible,
+                rewardEligibleRate,
+                pendingCoins,
+                averageScore,
+                recent
+        );
     }
 
     @Transactional(readOnly = true)
