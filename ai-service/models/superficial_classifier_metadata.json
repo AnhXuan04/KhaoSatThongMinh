@@ -1,0 +1,20 @@
+{
+  "modelName": "sklearn-tfidf-logistic-v1",
+  "trainedAt": "2026-05-22T08:09:50.807697Z",
+  "recordCount": 4,
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1Score": 1.0
+  },
+  "confusionMatrixPath": "D:\\TieuLuan\\New folder\\KhaoSatThongMinh\\ai-service\\models\\confusion_matrix.png",
+  "uses": {
+    "pandas": true,
+    "scikitLearn": true,
+    "nltk": true,
+    "spacy": true,
+    "transformers": false,
+    "matplotlibSeaborn": true
+  }
+}
