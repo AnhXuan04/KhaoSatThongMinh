@@ -1,12 +1,14 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AdminDashboardStatsDto;
+import com.example.demo.dto.AdminQualityReviewDto;
 import com.example.demo.dto.UserListItemDto;
 import com.example.demo.entity.SurveyField;
 import com.example.demo.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +48,24 @@ public class AdminController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<AdminDashboardStatsDto> getDashboardStats() {
         return ResponseEntity.ok(adminService.getDashboardStats());
+    }
+
+    @GetMapping("/coin-reviews")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<List<AdminQualityReviewDto>> getPendingCoinReviews() {
+        return ResponseEntity.ok(adminService.getPendingCoinReviews());
+    }
+
+    @PutMapping("/coin-reviews/{id}/approve")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminQualityReviewDto> approveCoinTransaction(@PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(adminService.approveCoinTransaction(id, auth.getName()));
+    }
+
+    @PutMapping("/coin-reviews/{id}/reject")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminQualityReviewDto> rejectCoinTransaction(@PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(adminService.rejectCoinTransaction(id, auth.getName()));
     }
 
     @PostMapping("/survey-fields")

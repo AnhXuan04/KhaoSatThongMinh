@@ -9,6 +9,7 @@ import DashboardPage from './page/interviewer/DashboardPage';
 import DashboardAdmin from './page/admin/DashboardAdmin';
 import MngUser from './page/admin/MngUser';
 import MngSurveyField from './page/admin/MngSurveyField';
+import MngQualitySurvey from './page/admin/MngQualitySurvey';
 import HomePage from './page/HomePage';
 import CreatorPackagePage from './page/CreatorPackagePage';
 import UpdateProfilePage from './page/interviewer/UpdateProfilePage';
@@ -93,6 +94,7 @@ function App() {
           <Route path="/dashboard-admin" element={<RequireRole role="ADMIN"><DashboardAdmin /></RequireRole>} />
           <Route path="/dashboard-admin/users" element={<RequireRole role="ADMIN"><MngUser /></RequireRole>} />
           <Route path="/dashboard-admin/categories" element={<RequireRole role="ADMIN"><MngSurveyField /></RequireRole>} />
+          <Route path="/dashboard-admin/quality" element={<RequireRole role="ADMIN"><MngQualitySurvey /></RequireRole>} />
           <Route path="/manage-surveys" element={<RequireRole role="INTERVIEWER"><MngSurvey /></RequireRole>} />
           <Route path="/manage-surveys/review" element={<RequireRole role="INTERVIEWER"><MngSurveyReview /></RequireRole>} />
           <Route path="/creator-package" element={<CreatorPackagePage />} />
