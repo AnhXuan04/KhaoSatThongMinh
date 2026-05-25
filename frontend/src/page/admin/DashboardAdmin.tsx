@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import { useEffect, useState } from 'react';
 import {
   FiBarChart2,
@@ -82,25 +83,25 @@ export default function DashboardAdmin() {
 
     const fetchDashboardData = async () => {
       try {
-        const profileResponse = await fetch('http://localhost:8080/api/user/profile', {
+        const profileResponse = await fetch(apiUrl('/api/user/profile'), {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
 
-        const statsResponse = await fetch('http://localhost:8080/api/admin/stats', {
+        const statsResponse = await fetch(apiUrl('/api/admin/stats'), {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
 
-        const surveyFieldsResponse = await fetch('http://localhost:8080/api/admin/survey-fields', {
+        const surveyFieldsResponse = await fetch(apiUrl('/api/admin/survey-fields'), {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
 
-        const coinReviewResponse = await fetch('http://localhost:8080/api/admin/coin-reviews', {
+        const coinReviewResponse = await fetch(apiUrl('/api/admin/coin-reviews'), {
           headers: {
             Authorization: `Bearer ${token}`
           }

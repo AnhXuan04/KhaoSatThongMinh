@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiBookOpen } from 'react-icons/fi';
@@ -24,14 +25,14 @@ export default function SurveyListPage() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const allRes = await fetch('http://localhost:8080/api/surveys/all');
+        const allRes = await fetch(apiUrl('/api/surveys/all'));
         if (!allRes.ok) throw new Error();
         const allData: Survey[] = await allRes.json();
 
         let completedIds = new Set<number>();
         if (token) {
           try {
-            const compRes = await fetch('http://localhost:8080/api/surveys/completed', {
+            const compRes = await fetch(apiUrl('/api/surveys/completed'), {
               headers: { Authorization: `Bearer ${token}` },
             });
             if (compRes.ok) {

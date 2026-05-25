@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import {
   Trash2,
@@ -219,7 +220,7 @@ export default function CreateSurveys() {
 
     const fetchFields = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/surveys/fields/list', {
+        const res = await fetch(apiUrl('/api/surveys/fields/list'), {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) return;
@@ -277,7 +278,7 @@ export default function CreateSurveys() {
 
       if (editId) {
         await axios.put(
-          `http://localhost:8080/api/surveys/${encodeURIComponent(editId)}`,
+          apiUrl(`/api/surveys/${encodeURIComponent(editId)}`),
           surveyData,
           {
             headers: {
@@ -288,7 +289,7 @@ export default function CreateSurveys() {
         );
       } else {
         await axios.post(
-          'http://localhost:8080/api/surveys/create',
+          apiUrl('/api/surveys/create'),
           surveyData,
           {
             headers: {
@@ -340,7 +341,7 @@ export default function CreateSurveys() {
 
       try {
         const resp = await axios.get(
-          `http://localhost:8080/api/surveys/${encodeURIComponent(editId)}`,
+          apiUrl(`/api/surveys/${encodeURIComponent(editId)}`),
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -417,7 +418,7 @@ export default function CreateSurveys() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:8080/api/surveys/upload/media', {
+      const response = await fetch(apiUrl('/api/surveys/upload/media'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

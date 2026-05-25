@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Upload, Star, Eye } from 'lucide-react';
@@ -46,7 +47,7 @@ export default function ViewSurvey() {
 
     const fetchSurvey = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/surveys/view/${encodeURIComponent(id)}`);
+        const res = await fetch(apiUrl(`/api/surveys/view/${encodeURIComponent(id)}`));
         if (!res.ok) { setError('Không thể tải khảo sát'); setLoading(false); return; }
         const data = await res.json();
         setSurvey(data);
@@ -66,7 +67,7 @@ export default function ViewSurvey() {
 
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/surveys/responses/${responseId}`, {
+        const res = await fetch(apiUrl(`/api/surveys/responses/${responseId}`), {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -119,7 +120,7 @@ export default function ViewSurvey() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('http://localhost:8080/api/surveys/upload/file', {
+      const res = await fetch(apiUrl('/api/surveys/upload/file'), {
         method: 'POST',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -229,7 +230,7 @@ export default function ViewSurvey() {
         ...behaviorLogsRef.current.slice(-120),
       ];
 
-      const res = await fetch(`http://localhost:8080/api/surveys/${encodeURIComponent(id)}/responses`, {
+      const res = await fetch(apiUrl(`/api/surveys/${encodeURIComponent(id)}/responses`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import { useEffect, useMemo, useState } from 'react';
 import {
 	FiBarChart2,
@@ -91,8 +92,8 @@ export default function MngUser() {
 		}
 
 		const url = nextLocked
-			? `http://localhost:8080/api/admin/users/${userId}/lock`
-			: `http://localhost:8080/api/admin/users/${userId}/unlock`;
+			? apiUrl(`/api/admin/users/${userId}/lock`)
+			: apiUrl(`/api/admin/users/${userId}/unlock`);
 
 		try {
 			const response = await fetch(url, {
@@ -126,7 +127,7 @@ export default function MngUser() {
 
 		const fetchProfile = async () => {
 			try {
-				const response = await fetch('http://localhost:8080/api/user/profile', {
+				const response = await fetch(apiUrl('/api/user/profile'), {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}
@@ -148,8 +149,8 @@ export default function MngUser() {
 			try {
 				const roleParam = roleApiMap[roleKey];
 				const url = roleParam
-					? `http://localhost:8080/api/admin/users?role=${encodeURIComponent(roleParam)}`
-					: 'http://localhost:8080/api/admin/users';
+					? apiUrl(`/api/admin/users?role=${encodeURIComponent(roleParam)}`)
+					: apiUrl('/api/admin/users');
 				const response = await fetch(url, {
 					headers: {
 						Authorization: `Bearer ${token}`

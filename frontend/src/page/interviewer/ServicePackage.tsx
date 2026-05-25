@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import "./ServicePackage.css";
@@ -147,7 +148,7 @@ const ServicePackage: React.FC = () => {
 				throw new Error("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn.");
 			}
 
-			const res = await axios.get("http://localhost:8080/api/payments/vnpay/history", {
+			const res = await axios.get(apiUrl('/api/payments/vnpay/history'), {
 				headers: { Authorization: `Bearer ${token}` },
 			});
 
@@ -169,7 +170,7 @@ const ServicePackage: React.FC = () => {
 				throw new Error("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn.");
 			}
 
-			const res = await axios.get("http://localhost:8080/api/subscription/current", {
+			const res = await axios.get(apiUrl('/api/subscription/current'), {
 				headers: { Authorization: `Bearer ${token}` },
 			});
 
@@ -193,7 +194,7 @@ const ServicePackage: React.FC = () => {
 			}
 
 			await axios.post(
-				"http://localhost:8080/api/subscription/cancel",
+				apiUrl('/api/subscription/cancel'),
 				{},
 				{
 					headers: { Authorization: `Bearer ${token}` },
@@ -241,7 +242,7 @@ const ServicePackage: React.FC = () => {
 			sessionStorage.removeItem('premiumPaymentSuccess');
 
 			const res = await axios.post(
-				'http://localhost:8080/api/payments/vnpay/create',
+				apiUrl('/api/payments/vnpay/create'),
 				{
 					planId: currentPackage.planId,
 					billingCycle: renewBillingCycle,

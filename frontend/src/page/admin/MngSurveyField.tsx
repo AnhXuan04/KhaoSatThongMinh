@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import { useEffect, useState } from 'react';
 import {
 	FiBarChart2,
@@ -86,7 +87,7 @@ export default function MngSurveyField() {
 		const token = sessionStorage.getItem('token');
 
 		try {
-			const response = await fetch('http://localhost:8080/api/admin/survey-fields', {
+			const response = await fetch(apiUrl('/api/admin/survey-fields'), {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ export default function MngSurveyField() {
 		const token = sessionStorage.getItem('token');
 
 		try {
-			const response = await fetch(`http://localhost:8080/api/admin/survey-fields/${editingField.id}`, {
+			const response = await fetch(apiUrl(`/api/admin/survey-fields/${editingField.id}`), {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ export default function MngSurveyField() {
 	const fetchSurveyFields = async () => {
 		const token = sessionStorage.getItem('token');
 		try {
-			const response = await fetch('http://localhost:8080/api/admin/survey-fields', {
+			const response = await fetch(apiUrl('/api/admin/survey-fields'), {
 				headers: {
 					Authorization: `Bearer ${token}`
 				}
@@ -179,7 +180,7 @@ export default function MngSurveyField() {
 
 		const token = sessionStorage.getItem('token');
 		try {
-			const response = await fetch(`http://localhost:8080/api/admin/survey-fields/${fieldId}`, {
+			const response = await fetch(apiUrl(`/api/admin/survey-fields/${fieldId}`), {
 				method: 'DELETE',
 				headers: {
 					Authorization: `Bearer ${token}`
@@ -228,7 +229,7 @@ export default function MngSurveyField() {
 
 		const fetchProfile = async () => {
 			try {
-				const response = await fetch('http://localhost:8080/api/user/profile', {
+				const response = await fetch(apiUrl('/api/user/profile'), {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}

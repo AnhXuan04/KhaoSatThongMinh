@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { FaQrcode } from 'react-icons/fa';
@@ -45,7 +46,7 @@ export default function MngSurvey() {
 				return;
 			}
 
-			const response = await axios.get('http://localhost:8080/api/surveys/my', {
+			const response = await axios.get(apiUrl('/api/surveys/my'), {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 
@@ -76,7 +77,7 @@ export default function MngSurvey() {
 				return;
 			}
 
-			await axios.delete(`http://localhost:8080/api/surveys/${encodeURIComponent(id)}`, {
+			await axios.delete(apiUrl(`/api/surveys/${encodeURIComponent(id)}`), {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 

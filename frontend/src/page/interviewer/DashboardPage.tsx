@@ -1,3 +1,4 @@
+import { apiUrl } from '../../config/api';
 import { useEffect, useState } from 'react';
 import { FiArrowRight, FiPlus, FiBarChart2, FiUser } from 'react-icons/fi';
 import './Dashboard.css';
@@ -58,7 +59,7 @@ export default function DashboardPage() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/user/profile', {
+        const response = await fetch(apiUrl('/api/user/profile'), {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -85,10 +86,10 @@ export default function DashboardPage() {
 
     const fetchSurveys = async () => {
       try {
-        const surveyRes = await fetch('http://localhost:8080/api/surveys/my', {
+        const surveyRes = await fetch(apiUrl('/api/surveys/my'), {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const analyticsRes = await fetch('http://localhost:8080/api/surveys/analytics/quality', {
+        const analyticsRes = await fetch(apiUrl('/api/surveys/analytics/quality'), {
           headers: { Authorization: `Bearer ${token}` }
         });
 

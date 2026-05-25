@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/api';
 import { useState } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,7 +25,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       event.preventDefault();
       
       try {
-      const response = await fetch('http://localhost:8080/api/auth/signup', {
+      const response = await fetch(apiUrl('/api/auth/signup'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)

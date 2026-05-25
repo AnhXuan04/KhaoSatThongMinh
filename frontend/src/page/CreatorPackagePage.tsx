@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/api';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './CreatorPackagePage.css';
@@ -51,7 +52,7 @@ export default function CreatorPackagePage() {
 
     sessionStorage.setItem('premiumPaymentReturnUrl', '/creator-package');
 
-    const response = await fetch('http://localhost:8080/api/payments/vnpay/create', {
+    const response = await fetch(apiUrl('/api/payments/vnpay/create'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -105,7 +106,7 @@ export default function CreatorPackagePage() {
 
     const fetchCurrentPlan = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/plans/current');
+        const response = await fetch(apiUrl('/api/plans/current'));
         if (!response.ok) {
           throw new Error('Không thể tải thông tin gói.');
         }
@@ -172,7 +173,7 @@ export default function CreatorPackagePage() {
     setPaymentLoading(true);
 
     try {
-      const signUpResponse = await fetch('http://localhost:8080/api/auth/signup/interviewer', {
+      const signUpResponse = await fetch(apiUrl('/api/auth/signup/interviewer'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
