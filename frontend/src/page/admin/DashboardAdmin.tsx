@@ -15,7 +15,7 @@ const sideMenus = [
   { key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: true, path: '/dashboard-admin' },
   { key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: false, path: '/dashboard-admin/users' },
   { key: 'categories', label: 'Quản lý Lĩnh vực', icon: FiFolder, active: false, path: '/dashboard-admin/categories' },
-  { key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin' }
+  { key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin/quality' }
 ];
 
 type DashboardStats = {
@@ -32,6 +32,21 @@ type SurveyField = {
   description?: string;
 };
 
+type CoinReview = {
+  coinTransactionId: number;
+  responseId: number;
+  surveyTitle: string;
+  respondentEmail: string;
+  qualityScore: number;
+  superficial: boolean;
+  rewardEligible: boolean;
+  analysisSummary: string;
+  coinAmount: number;
+  coinStatus: string;
+  reason: string;
+  submittedAt: string;
+};
+
 const defaultStats: DashboardStats = {
   totalUsers: 0,
   totalSurveys: 0,
@@ -45,8 +60,10 @@ const numberFormatter = new Intl.NumberFormat('vi-VN');
 export default function DashboardAdmin() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
   const [stats, setStats] = useState<DashboardStats>(defaultStats);
   const [surveyFields, setSurveyFields] = useState<SurveyField[]>([]);
+  const [coinReviews, setCoinReviews] = useState<CoinReview[]>([]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('token');
@@ -83,11 +100,19 @@ export default function DashboardAdmin() {
           }
         });
 
+        const coinReviewResponse = await fetch('http://localhost:8080/api/admin/coin-reviews', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
           setFullName(profileData.fullName || userEmail);
+          setAdminEmail(profileData.email || userEmail);
         } else {
           setFullName(userEmail);
+          setAdminEmail(userEmail);
         }
 
         if (statsResponse.ok) {
@@ -109,11 +134,20 @@ export default function DashboardAdmin() {
         } else {
           setSurveyFields([]);
         }
+
+        if (coinReviewResponse.ok) {
+          const coinReviewData = await coinReviewResponse.json();
+          setCoinReviews(Array.isArray(coinReviewData) ? coinReviewData.slice(0, 5) : []);
+        } else {
+          setCoinReviews([]);
+        }
       } catch (error) {
         console.error('Không thể tải dữ liệu dashboard admin:', error);
         setFullName(userEmail);
+        setAdminEmail(userEmail);
         setStats(defaultStats);
         setSurveyFields([]);
+        setCoinReviews([]);
       }
     };
 
@@ -163,7 +197,7 @@ export default function DashboardAdmin() {
           </div>
           <div>
             <h4>{fullName || 'Quản trị viên'}</h4>
-            <p>admin@survey.vn</p>
+            <p>{adminEmail || 'admin@survey.vn'}</p>
           </div>
         </div>
 
@@ -268,6 +302,22 @@ export default function DashboardAdmin() {
                 <span>ĐỦ ĐIỀU KIỆN CỘNG COIN</span>
                 <strong>{numberFormatter.format(stats.rewardEligibleResponses)}</strong>
               </div>
+            </div>
+
+            <div className="adminCoinReviews">
+              {coinReviews.length ? (
+                <div className="adminCoinReviewNotice">
+                  <div>
+                    <strong>{numberFormatter.format(coinReviews.length)} phản hồi đang chờ duyệt coin</strong>
+                    <span>Vào trang Phân tích Chất lượng để xem điểm AI và xử lý từng phản hồi.</span>
+                  </div>
+                  <button type="button" onClick={() => navigate('/dashboard-admin/quality')}>
+                    Xem danh sách
+                  </button>
+                </div>
+              ) : (
+                <p className="adminEmptyText">Không có giao dịch coin nào đang chờ duyệt.</p>
+              )}
             </div>
           </article>
         </div>

@@ -11,4 +11,5 @@ import java.util.List;
 public interface SurveyRepository extends JpaRepository<Survey, Long> {
     List<Survey> findByUserAndIsDeletedFalseOrderByCreatedAtDesc(User user);
     List<Survey> findByIsDeletedFalseOrderByCreatedAtDesc();
+    long countByIsDeletedFalse();
 }

@@ -413,6 +413,101 @@
   color: #1f2b3f;
 }
 
+.adminCoinReviews {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.adminCoinReviewItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e5eaf2;
+  border-radius: 8px;
+  padding: 10px;
+  background: #ffffff;
+}
+
+.adminCoinReviewNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid #dbe7ff;
+  border-radius: 10px;
+  padding: 14px;
+  background: #f4f8ff;
+}
+
+.adminCoinReviewNotice strong {
+  display: block;
+  color: #1f2b3f;
+  font-size: 14px;
+}
+
+.adminCoinReviewNotice span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.adminCoinReviewNotice button {
+  border: none;
+  border-radius: 8px;
+  background: #0b5ed7;
+  color: #ffffff;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
+.adminCoinReviewItem strong {
+  display: block;
+  color: #1f2b3f;
+  font-size: 13px;
+}
+
+.adminCoinReviewItem span,
+.adminEmptyText {
+  display: block;
+  color: #7b879a;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.adminCoinReason {
+  color: #4b5870;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 6px 0 0;
+}
+
+.adminCoinActions {
+  display: flex;
+  gap: 8px;
+}
+
+.adminCoinActions button {
+  border: none;
+  border-radius: 6px;
+  background: #0b5ed7;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 10px;
+}
+
+.adminCoinActions button.reject {
+  background: #e5eaf2;
+  color: #4b5870;
+}
+
 @media (max-width: 1200px) {
   .adminPage {
     grid-template-columns: 1fr;
