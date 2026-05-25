@@ -1405,3 +1405,212 @@
   .type-select-menu-label {
     font-size: 14px;
   }
+
+/* ==================== DESKTOP RESPONSIVE FIXES ==================== */
+.create-surveys-container,
+.create-surveys-container * {
+  box-sizing: border-box;
+}
+
+.surveys-wrapper {
+  width: 100%;
+}
+
+.questions-list,
+.question-main,
+.question-top-row,
+.question-title-input,
+.option-input,
+.short-text-input,
+.type-select-trigger-label {
+  min-width: 0;
+}
+
+.question-main,
+.question-top-row,
+.options-section,
+.short-text-preview,
+.question-footer {
+  width: 100%;
+}
+
+.type-select-trigger-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .create-surveys-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .surveys-wrapper {
+    max-width: 960px;
+  }
+
+  .questions-area {
+    gap: 12px;
+  }
+
+  .question-card {
+    padding: 18px 18px 16px;
+  }
+
+  .question-inner-toolbar {
+    flex-basis: 190px;
+  }
+
+  .type-select-menu {
+    width: min(260px, calc(100vw - 48px));
+  }
+}
+
+@media (max-width: 1100px) {
+  .create-surveys-container {
+    padding-bottom: 112px;
+  }
+
+  .step-content,
+  .step-content-questions {
+    width: 100%;
+    padding: 0;
+  }
+
+  .step-header {
+    margin-bottom: 18px;
+  }
+
+  .questions-area {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .floating-toolbar {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    bottom: 16px;
+    z-index: 1000;
+    width: min(calc(100vw - 32px), 560px);
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: center;
+    align-self: stretch;
+    margin: 0;
+    margin-bottom: 0;
+    order: 2;
+    transform: translateX(-50%);
+  }
+
+  .questions-list-wrapper {
+    order: 1;
+    width: 100%;
+  }
+
+  .question-top-row {
+    gap: 12px;
+  }
+
+  .question-inner-toolbar {
+    flex: 0 0 180px;
+  }
+}
+
+@media (max-width: 820px) {
+  .create-surveys-container {
+    padding: 18px 16px 48px;
+  }
+
+  .surveys-wrapper,
+  .surveys-main,
+  .form-card,
+  .questions-area,
+  .questions-list-wrapper,
+  .question-card {
+    width: 100%;
+    max-width: none;
+  }
+
+  .step-header {
+    gap: 12px;
+    align-items: center;
+  }
+
+  .step-number {
+    min-width: 44px;
+    font-size: 34px;
+  }
+
+  .question-top-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .question-inner-toolbar {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .type-select-menu {
+    left: 0;
+    right: auto;
+    width: 100%;
+  }
+
+  .file-upload-settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1100px) and (min-width: 821px) {
+  .question-top-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+    align-items: center;
+  }
+
+  .question-inner-toolbar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .create-surveys-container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .form-card,
+  .question-card {
+    padding: 18px 16px 16px;
+  }
+
+  .floating-toolbar {
+    gap: 8px;
+    padding: 10px;
+  }
+}
+
+/* Toolbar is always available at the bottom while creating questions. */
+.create-surveys-container {
+  padding-bottom: 118px;
+}
+
+.create-surveys-container .floating-toolbar {
+  position: fixed !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  left: 50% !important;
+  z-index: 1000;
+  width: min(520px, calc(100vw - 32px));
+  height: auto;
+  flex: 0 0 auto;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  transform: translateX(-50%) !important;
+}
