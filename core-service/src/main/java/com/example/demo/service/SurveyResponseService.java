@@ -318,6 +318,38 @@ public class SurveyResponseService {
 
         List<AiAnalysisResult> results = aiAnalysisResultRepository.findRecentByInterviewerId(interviewer.getId());
         List<CoinTransaction> transactions = coinTransactionRepository.findByInterviewerId(interviewer.getId());
+        long totalResponses = surveyResponseRepository.countByInterviewerId(interviewer.getId());
+
+        return buildQualityAnalytics(results, transactions, totalResponses);
+    }
+
+    @Transactional(readOnly = true)
+    public SurveyQualityAnalyticsDto getQualityAnalyticsForSurvey(Long surveyId, String interviewerEmail) {
+        User interviewer = userRepository.findByEmail(interviewerEmail)
+                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
+
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Khảo sát không tồn tại"));
+
+        if (!survey.getUser().getId().equals(interviewer.getId())) {
+            throw new RuntimeException("Không có quyền xem phân tích khảo sát này.");
+        }
+
+        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+            throw new RuntimeException("Khảo sát không tồn tại.");
+        }
+
+        List<AiAnalysisResult> results = aiAnalysisResultRepository.findRecentBySurveyId(surveyId);
+        List<CoinTransaction> transactions = coinTransactionRepository.findBySurveyId(surveyId);
+        long totalResponses = surveyResponseRepository.countBySurveyId(surveyId);
+
+        return buildQualityAnalytics(results, transactions, totalResponses);
+    }
+
+    private SurveyQualityAnalyticsDto buildQualityAnalytics(
+            List<AiAnalysisResult> results,
+            List<CoinTransaction> transactions,
+            long totalResponses) {
         Map<Long, CoinTransaction> transactionByResponseId = transactions.stream()
                 .collect(java.util.stream.Collectors.toMap(
                         transaction -> transaction.getResponse().getId(),
@@ -326,7 +358,6 @@ public class SurveyResponseService {
                 ));
 
         long superficial = results.stream().filter(result -> Boolean.TRUE.equals(result.getSuperficial())).count();
-        long totalResponses = surveyResponseRepository.countByInterviewerId(interviewer.getId());
         long rewardEligible = results.stream().filter(result -> Boolean.TRUE.equals(result.getRewardEligible())).count();
         long pendingCoins = transactions.stream()
                 .filter(transaction -> transaction.getStatus() == CoinTransactionStatus.PENDING)

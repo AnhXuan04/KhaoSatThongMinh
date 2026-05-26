@@ -146,6 +146,19 @@ public class SurveyController {
         }
     }
 
+    @GetMapping("/{id}/analytics/quality")
+    @PreAuthorize("hasAuthority('INTERVIEWER')")
+    public ResponseEntity<SurveyQualityAnalyticsDto> getQualityAnalyticsForSurvey(@PathVariable("id") Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        try {
+            return ResponseEntity.ok(surveyResponseService.getQualityAnalyticsForSurvey(id, email));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     @PostMapping("/{id}/responses")
     public ResponseEntity<String> submitResponse(
             @PathVariable("id") Long id,

@@ -22,6 +22,8 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
     @Query("SELECT COUNT(r) FROM SurveyResponse r WHERE r.survey.user.id = :interviewerId")
     long countByInterviewerId(@Param("interviewerId") Long interviewerId);
 
+    long countBySurveyId(Long surveyId);
+
     @Query("SELECT r.survey.id FROM SurveyResponse r WHERE r.user.id = :userId")
     List<Long> findCompletedSurveyIdsByUserId(@Param("userId") Long userId);
 }

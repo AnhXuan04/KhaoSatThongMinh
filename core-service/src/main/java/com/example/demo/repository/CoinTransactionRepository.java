@@ -27,4 +27,14 @@ public interface CoinTransactionRepository extends JpaRepository<CoinTransaction
             ORDER BY c.createdAt DESC
             """)
     List<CoinTransaction> findByInterviewerId(@Param("interviewerId") Long interviewerId);
+
+    @Query("""
+            SELECT c FROM CoinTransaction c
+            JOIN FETCH c.response r
+            JOIN FETCH r.survey s
+            LEFT JOIN FETCH r.user
+            WHERE s.id = :surveyId
+            ORDER BY c.createdAt DESC
+            """)
+    List<CoinTransaction> findBySurveyId(@Param("surveyId") Long surveyId);
 }

@@ -33,6 +33,16 @@ public interface AiAnalysisResultRepository extends JpaRepository<AiAnalysisResu
             SELECT a FROM AiAnalysisResult a
             JOIN FETCH a.response r
             JOIN FETCH r.survey s
+            LEFT JOIN FETCH r.user u
+            WHERE s.id = :surveyId
+            ORDER BY a.analyzedAt DESC
+            """)
+    List<AiAnalysisResult> findRecentBySurveyId(@Param("surveyId") Long surveyId);
+
+    @Query("""
+            SELECT a FROM AiAnalysisResult a
+            JOIN FETCH a.response r
+            JOIN FETCH r.survey s
             JOIN FETCH r.user u
             WHERE NOT EXISTS (
                 SELECT c.id FROM CoinTransaction c

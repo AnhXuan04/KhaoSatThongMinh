@@ -1,0 +1,80 @@
+/* Styles for SurveyResponseAnalytics */
+.sra-root {
+  padding: 4px 20px;
+  max-width: 1100px;
+  margin: 0 auto 36px;
+  font-family: Inter, system-ui, Arial, sans-serif;
+  color: #111827;
+  width: 100%;
+}
+.sra-state {
+  padding: 28px 20px;
+  text-align: center;
+  color: #6b7280;
+  font-family: Inter, system-ui, Arial, sans-serif;
+}
+.sra-state-error {
+  color: #b91c1c;
+}
+.sra-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.sra-updated {
+  color: #6b7280;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+.sra-summary {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.sra-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+  flex: 1 1 0;
+}
+.sra-card-left { display:flex; flex-direction:column; }
+.sra-card-value { font-size: 20px; font-weight:700; }
+.sra-card-title { color: #6b7280; font-size: 12px; margin-top:6px; }
+.sra-card-icon { color: #6b7280; font-size: 20px; }
+
+.sra-analytics { display:flex; gap:18px; margin-top:12px; flex-direction: column; }
+.sra-analytics-left { flex: none; width: 100%; background:#f8fafc; padding:20px; border-radius:10px; }
+.sra-analytics-right { flex: none; width: 100%; margin-top:16px; background:#fff; padding:14px; border-radius:10px; box-shadow: 0 1px 2px rgba(16,24,40,0.04); }
+.sra-analytics-header { font-weight:700; font-size:16px; margin-bottom:6px; }
+.sra-analytics-sub { color:#6b7280; font-size:13px; margin-bottom:12px; }
+.sra-progress-month { font-size:12px; color:#6b7280; display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.sra-progress-badge { background:#e6f0ff; color:#1e40af; padding:6px 8px; border-radius:12px; font-size:12px; }
+.sra-progress-track { background:#e6eef7; height:16px; border-radius:999px; overflow:hidden; }
+.sra-progress-fill { background: linear-gradient(90deg,#1e3a8a,#60a5fa); height:100%; border-radius:999px; }
+.sra-percent-row { display:flex; gap:12px; margin-top:12px; }
+.sra-percent-card { background:#fff; padding:12px; border-radius:8px; flex:1; box-shadow: 0 1px 2px rgba(16,24,40,0.04); }
+.sra-percent-value { font-weight:700; font-size:18px; }
+.sra-percent-label { color:#6b7280; font-size:12px; margin-top:6px; }
+
+.sra-list-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-weight:600; }
+.sra-view-all { color:#2563eb; font-size:13px; text-decoration:none; }
+.sra-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+.sra-list-item { width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; background:#f8fafc; padding:10px 12px; border-radius:8px; border:0; cursor:pointer; text-align:left; color:inherit; font:inherit; }
+.sra-list-item:hover { background:#eef6ff; }
+.sra-list-left { display:flex; gap:12px; align-items:center; }
+.sra-list-icon { background:#eef2ff; color:#1e3a8a; padding:8px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.sra-list-title { font-weight:600; }
+.sra-list-meta { color:#6b7280; font-size:12px; margin-top:4px; }
+.sra-list-score { background:#fff; padding:6px 10px; border-radius:12px; color:#065f46; font-weight:700; border:1px solid #e6f4ea; }
+.sra-list-score.is-bad { color:#b45309; border-color:#fde68a; background:#fffbeb; }
+.sra-list-score.is-good { color:#065f46; border-color:#bbf7d0; background:#f0fdf4; }
+.sra-empty { color:#6b7280; font-size:13px; padding:14px 4px; }
+
+@media (max-width: 900px) {
+  .sra-analytics { flex-direction:column; }
+  .sra-summary { flex-direction:column; }
+}

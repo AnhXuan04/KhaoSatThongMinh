@@ -1,6 +1,7 @@
 import { apiUrl } from '../../config/api';
 import { FiStar } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
+import SurveyResponseAnalytics from './SurveyResponseAnalytics';
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import SurveyResponseQuestion from './SurveyResponseQuestion';
@@ -72,7 +73,7 @@ export default function MngSurveyReview() {
   const surveyId = searchParams.get('surveyId');
   const requestedTab = searchParams.get('tab');
   const initialTab = requestedTab === 'questions' || requestedTab === 'personal' ? requestedTab : 'summary';
-  const [activeTab, setActiveTab] = useState<'summary' | 'questions' | 'personal'>(initialTab);
+  const [activeTab, setActiveTab] = useState< 'analytics'| 'summary' | 'questions' | 'personal'>(initialTab);
 
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [questionStats, setQuestionStats] = useState<ApiQuestionStatistic[]>([]);
@@ -123,7 +124,6 @@ export default function MngSurveyReview() {
         setFeedbackItems(items);
         setQuestionStats(stats);
 
-        // Fetch details to collect uploaded files per question
         try {
           const promises = (responses || []).map(async (r: ApiResponseItem) => {
             try {
@@ -203,6 +203,7 @@ export default function MngSurveyReview() {
     <div className="mngSurveyReviewPage">
       <main className="mngSurveyReviewMain">
         <section className="mngSurveyReviewTabs" aria-label="Survey review tabs">
+          <button type="button" className={activeTab === 'analytics' ? 'isActive' : ''} onClick={() => setActiveTab('analytics')}>Phân tích</button>
           <button type="button" className={activeTab === 'summary' ? 'isActive' : ''} onClick={() => setActiveTab('summary')}>Tóm tắt</button>
           <button type="button" className={activeTab === 'questions' ? 'isActive' : ''} onClick={() => setActiveTab('questions')}>Câu hỏi</button>
           <button type="button" className={activeTab === 'personal' ? 'isActive' : ''} onClick={() => setActiveTab('personal')}>Cá nhân</button>
@@ -212,6 +213,8 @@ export default function MngSurveyReview() {
           <SurveyResponseQuestion />
         ) : activeTab === 'personal' ? (
           <SurveyResponsePersonal />
+        ) : activeTab === 'analytics' ? (
+          <SurveyResponseAnalytics />
         ) : (
           <>
             <section className="mngSurveyReviewHero">

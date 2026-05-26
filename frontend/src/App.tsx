@@ -19,6 +19,7 @@ import UserProfilePage from './page/interviewee/UserProfilePage';
 import ResetPasswordPage from './page/ResetPasswordPage';
 import MngSurvey from './page/interviewer/MngSurvey';
 import MngSurveyReview from './page/interviewer/MngSurveyReview';
+import SurveyResponseAnalytics from './page/interviewer/SurveyResponseAnalytics';
 import PaymentResultPage from './page/interviewer/PaymentResultPage';
 import ServicePackage from './page/interviewer/ServicePackage';
 import CreateSurveys from './page/interviewer/CreateSurveys';
@@ -97,6 +98,7 @@ function App() {
           <Route path="/dashboard-admin/quality" element={<RequireRole role="ADMIN"><MngQualitySurvey /></RequireRole>} />
           <Route path="/manage-surveys" element={<RequireRole role="INTERVIEWER"><MngSurvey /></RequireRole>} />
           <Route path="/manage-surveys/review" element={<RequireRole role="INTERVIEWER"><MngSurveyReview /></RequireRole>} />
+          <Route path="/survey-analytics" element={<RequireRole role="INTERVIEWER"><SurveyResponseAnalytics /></RequireRole>} />
           <Route path="/creator-package" element={<CreatorPackagePage />} />
           <Route path="/update-profile" element={<RequireAuth><UpdateProfilePage /></RequireAuth>} />
           <Route path="/surveys" element={<RequireAuth><SurveyListPage /></RequireAuth>} />
