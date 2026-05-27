@@ -58,7 +58,7 @@ public class SurveyResponseService {
     public List<SurveyHistoryItemDto> getHistory(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return surveyResponseRepository.findByUserId(user.getId())
+        return surveyResponseRepository.findByUserIdOrderBySubmittedAtDesc(user.getId())
                 .stream()
                 .map(SurveyHistoryItemDto::fromResponse)
                 .collect(java.util.stream.Collectors.toList());

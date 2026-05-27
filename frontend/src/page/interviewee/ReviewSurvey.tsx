@@ -1,7 +1,7 @@
 import { apiUrl } from '../../config/api';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {Eye } from 'lucide-react';
+import { Eye, Star } from 'lucide-react';
 
 import './ViewSurvey.css';
 
@@ -103,6 +103,39 @@ export default function ReviewSurvey() {
                   {ans.fileSize && (
                     <p className="file-size" style={{ margin: '8px 0 0 0' }}>({(ans.fileSize / 1024).toFixed(2)} KB)</p>
                   )}
+                </div>
+              ) : ans.questionKind === 'linear_scale' ? (
+                <div className="linear-scale-container">
+                  <div className="scale-options">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={`scale-button ${Number(ans.values[0]) === value ? 'selected' : ''}`}
+                        disabled
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : ans.questionKind === 'rating' ? (
+                <div className="rating-container">
+                  <div className="rating-stars">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={`star-button ${Number(ans.values[0]) >= value ? 'filled' : ''}`}
+                        disabled
+                      >
+                        <Star
+                          size={34}
+                          className={`star-icon ${Number(ans.values[0]) >= value ? 'filled' : ''}`}
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : ans.questionType === 'short_text' ? (
                 <input

@@ -75,16 +75,16 @@
 
 .surveyResponseQuestionSelect {
 	width: 100%;
-	padding: 12px 16px;
+	min-height: 46px;
+	padding: 0 18px 0 14px;
 	font-size: 15px;
 	font-weight: 500;
 	border: 1px solid #ddd;
 	border-radius: 8px;
 	background: #f9f9f9;
-	appearance: none;
+	appearance: auto;
 	cursor: pointer;
 	color: #1a1a1a;
-	padding-right: 40px;
 }
 
 .surveyResponseQuestionSelect:hover {
@@ -92,13 +92,10 @@
 	background: #fafafa;
 }
 
-.surveyResponseQuestionSelectIcon {
-	position: absolute;
-	right: 12px;
-	top: 50%;
-	transform: translateY(-50%);
-	pointer-events: none;
-	color: #666;
+.surveyResponseQuestionSelect:focus {
+	outline: none;
+	border-color: #0052cc;
+	box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.12);
 }
 
 .surveyResponseQuestionDetail {
@@ -183,6 +180,104 @@
 	font-size: 12px;
 	color: #999;
 	font-weight: 500;
+}
+
+.surveyResponseQuestionScale,
+.surveyResponseQuestionRating {
+	display: grid;
+	gap: 20px;
+}
+
+.surveyResponseQuestionScalePreview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	width: 100%;
+	padding: 16px;
+	border-radius: 8px;
+	background: #f8f9fb;
+}
+
+.surveyResponseQuestionScalePreviewItem {
+	min-width: 42px;
+	height: 42px;
+	border-radius: 999px;
+	border: 2px solid #cfd5e1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: #ffffff;
+	color: #4b5563;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.surveyResponseQuestionScaleBars {
+	display: grid;
+	gap: 16px;
+}
+
+.surveyResponseQuestionScaleItem {
+	display: grid;
+	gap: 8px;
+}
+
+.surveyResponseQuestionRatingSummary {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: 10px;
+	color: #64748b;
+}
+
+.surveyResponseQuestionRatingSummary strong {
+	color: #111827;
+	font-size: 16px;
+}
+
+.surveyResponseQuestionRatingSummary span {
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.surveyResponseQuestionRatingStars {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	min-height: 72px;
+	width: 100%;
+	padding: 16px;
+	border-radius: 8px;
+	background: #f8f9fb;
+}
+
+.surveyResponseQuestionRatingStar {
+	color: #ddd;
+	stroke-width: 1.8;
+	transition: color 0.2s ease;
+}
+
+.surveyResponseQuestionRatingStar.filled {
+	color: #ffc107;
+	fill: #ffc107;
+}
+
+.surveyResponseQuestionTextAnswers {
+	display: grid;
+	gap: 12px;
+}
+
+.surveyResponseQuestionTextAnswer {
+	padding: 14px 16px;
+	border-left: 4px solid #0052cc;
+	border-radius: 6px;
+	background: #f0f4ff;
+	color: #374151;
+	font-size: 14px;
+	line-height: 1.6;
 }
 
 .surveyResponseQuestionFeedback {

@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -161,6 +164,11 @@ public class SurveyService {
         }
         survey.setSurveyField(surveyField);
 
+        if (surveyResponseRepository.countBySurveyId(surveyId) > 0) {
+            updateExistingQuestionsOnly(survey, request);
+            return surveyRepository.save(survey);
+        }
+
         List<Question> questionList = new ArrayList<>();
         int qOrder = 1;
 
@@ -286,6 +294,7 @@ public class SurveyService {
         if (survey.getQuestions() != null) {
             for (Question q : survey.getQuestions()) {
                 QuestionRequest qr = new QuestionRequest();
+                qr.setId(q.getId());
                 qr.setTitle(q.getTitle());
                 qr.setType(q.getType());
                 qr.setKind(q.getKind());
@@ -310,6 +319,118 @@ public class SurveyService {
 
         dto.setQuestions(qList);
         return dto;
+    }
+
+    private void updateExistingQuestionsOnly(Survey survey, SurveyRequest request) {
+        if (survey.getQuestions() == null) {
+            survey.setQuestions(new ArrayList<>());
+        }
+
+        List<Question> existingQuestions = survey.getQuestions();
+        List<QuestionRequest> requestedQuestions = request.getQuestions() != null ? request.getQuestions() : Collections.emptyList();
+
+        if (requestedQuestions.size() < existingQuestions.size()) {
+            throw new RuntimeException("Khảo sát đã có phản hồi, không thể xóa câu hỏi. Bạn vẫn có thể thêm câu hỏi mới.");
+        }
+
+        Set<Long> requestedIds = new HashSet<>();
+        for (QuestionRequest qReq : requestedQuestions) {
+            if (qReq.getId() != null) {
+                requestedIds.add(qReq.getId());
+            }
+        }
+
+        for (Question existing : existingQuestions) {
+            if (!requestedIds.contains(existing.getId())) {
+                throw new RuntimeException("Khảo sát đã có phản hồi, không thể xóa câu hỏi cũ.");
+            }
+        }
+
+        for (int index = 0; index < requestedQuestions.size(); index++) {
+            QuestionRequest qReq = requestedQuestions.get(index);
+            int questionOrder = index + 1;
+
+            if (qReq.getId() == null) {
+                Question newQuestion = buildQuestionFromRequest(qReq, survey, questionOrder);
+                survey.getQuestions().add(newQuestion);
+                continue;
+            }
+
+            Question question = existingQuestions.stream()
+                    .filter(q -> q.getId().equals(qReq.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Câu hỏi không thuộc khảo sát này."));
+
+            if (!equalsNullable(question.getType(), qReq.getType()) || !equalsNullable(question.getKind(), qReq.getKind())) {
+                throw new RuntimeException("Khảo sát đã có phản hồi, không thể đổi loại câu hỏi.");
+            }
+
+            assertOptionsUnchanged(question, qReq);
+
+            question.setTitle(qReq.getTitle());
+            question.setRequired(qReq.getRequired());
+            question.setMaxFileSizeMb(qReq.getMaxFileSizeMb());
+            question.setMaxFileCount(qReq.getMaxFileCount());
+            question.setMediaUrl(qReq.getMediaUrl());
+            question.setQuestionOrder(questionOrder);
+        }
+    }
+
+    private Question buildQuestionFromRequest(QuestionRequest qReq, Survey survey, int questionOrder) {
+        Question question = new Question();
+        question.setTitle(qReq.getTitle());
+        question.setType(qReq.getType());
+        question.setKind(qReq.getKind());
+        question.setRequired(qReq.getRequired());
+        question.setMaxFileSizeMb(qReq.getMaxFileSizeMb());
+        question.setMaxFileCount(qReq.getMaxFileCount());
+        question.setMediaUrl(qReq.getMediaUrl());
+        question.setQuestionOrder(questionOrder);
+        question.setSurvey(survey);
+
+        if (qReq.getType() != null && !qReq.getType().equals("short_text")) {
+            List<Option> options = new ArrayList<>();
+            List<OptionRequest> requestedOptions = qReq.getOptions() != null ? qReq.getOptions() : Collections.emptyList();
+            int oOrder = 1;
+            for (OptionRequest oReq : requestedOptions) {
+                Option option = new Option();
+                option.setText(oReq.getText());
+                option.setOptionOrder(oOrder++);
+                option.setQuestion(question);
+                options.add(option);
+            }
+            question.setOptions(options);
+        }
+
+        return question;
+    }
+
+    private void assertOptionsUnchanged(Question question, QuestionRequest qReq) {
+        List<Option> existingOptions = question.getOptions() != null
+                ? question.getOptions().stream()
+                        .sorted(Comparator.comparing(Option::getOptionOrder, Comparator.nullsLast(Integer::compareTo)))
+                        .collect(Collectors.toList())
+                : Collections.emptyList();
+        List<OptionRequest> requestedOptions = qReq.getOptions() != null ? qReq.getOptions() : Collections.emptyList();
+
+        if (existingOptions.size() != requestedOptions.size()) {
+            throw new RuntimeException("Khảo sát đã có phản hồi, không thể thêm hoặc xóa đáp án.");
+        }
+
+        for (int i = 0; i < existingOptions.size(); i++) {
+            String oldText = existingOptions.get(i).getText();
+            String newText = requestedOptions.get(i).getText();
+            if (!equalsNullable(oldText, newText)) {
+                throw new RuntimeException("Khảo sát đã có phản hồi, không thể chỉnh sửa nội dung đáp án.");
+            }
+        }
+    }
+
+    private boolean equalsNullable(String first, String second) {
+        if (first == null) {
+            return second == null;
+        }
+        return first.equals(second);
     }
 }
 

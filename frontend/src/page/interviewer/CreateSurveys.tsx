@@ -71,6 +71,7 @@ interface Survey {
 }
 
 interface SurveyApiQuestion {
+  id?: number | string;
   type?: QuestionBackendType;
   kind?: QuestionKind;
   title?: string;
@@ -192,6 +193,7 @@ export default function CreateSurveys() {
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const editId = params.get('editId');
+  const notificationRef = useRef<HTMLDivElement>(null);
   const questionsEndRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -204,6 +206,7 @@ export default function CreateSurveys() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [surveyFields, setSurveyFields] = useState<SurveyField[]>([]);
   const [openQuestionMenuId, setOpenQuestionMenuId] = useState<string | null>(null);
   const [uploadingMediaType, setUploadingMediaType] = useState<'image' | 'video' | null>(null);
@@ -262,6 +265,7 @@ export default function CreateSurveys() {
         description: survey.description,
         surveyFieldId: survey.surveyFieldId,
         questions: survey.questions.map((q) => ({
+          id: /^\d+$/.test(q.id) ? Number(q.id) : undefined,
           title: q.title,
           type: q.type,
           kind: q.kind,
@@ -300,10 +304,10 @@ export default function CreateSurveys() {
         );
       }
 
+      setSuccessMessage(editId ? 'Khảo sát đã được cập nhật thành công!' : 'Khảo sát đã được tạo thành công!');
       setSuccess(true);
       setLoading(false);
 
-      // Reset form after successful save
       setTimeout(() => {
         setSurvey({
           title: '',
@@ -312,10 +316,11 @@ export default function CreateSurveys() {
           questions: [],
         });
         setSuccess(false);
+        setSuccessMessage('');
         if (editId) {
           navigate('/manage-surveys');
         }
-      }, 2000);
+      }, 4000);
     } catch (err: unknown) {
       setLoading(false);
       if (axios.isAxiosError(err)) {
@@ -351,7 +356,7 @@ export default function CreateSurveys() {
           description: data.description || '',
           surveyFieldId: data.surveyFieldId,
           questions: (data.questions || []).map((q, idx) => ({
-            id: `q-${idx}-${Date.now()}`,
+            id: q.id ? String(q.id) : `q-${idx}-${Date.now()}`,
             kind: (q.kind as QuestionKind) || getKindFromBackendType(q.type || 'short_text'),
             type: q.type || 'short_text',
             title: q.title || '',
@@ -379,6 +384,14 @@ export default function CreateSurveys() {
       }, 100);
     }
   }, [survey.questions.length]);
+
+  useEffect(() => {
+    if (!success) return;
+
+    window.requestAnimationFrame(() => {
+      notificationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [success]);
 
   // ==================== Step 1: Survey Info ====================
   const handleTitleChange = (value: string) => {
@@ -566,8 +579,14 @@ export default function CreateSurveys() {
 
   return (
     <div className="create-surveys-container">
+      {success && (
+        <div className="survey-save-toast" role="status" aria-live="polite">
+          ✓ {successMessage || 'Thao tác thành công!'}
+        </div>
+      )}
       <div className="surveys-wrapper">
         <div className="surveys-main">
+          <div ref={notificationRef} />
           {error && (
             <div
               style={{
@@ -584,17 +603,8 @@ export default function CreateSurveys() {
           )}
 
           {success && (
-            <div
-              style={{
-                padding: '12px 16px',
-                marginBottom: '16px',
-                backgroundColor: '#efe',
-                color: '#3c3',
-                borderRadius: '4px',
-                border: '1px solid #cfc',
-              }}
-            >
-              ✓ Khảo sát đã được tạo thành công!
+            <div className="survey-save-inline-notice" role="status" aria-live="polite">
+              ✓ {successMessage || 'Thao tác thành công!'}
             </div>
           )}
 
@@ -880,7 +890,7 @@ export default function CreateSurveys() {
                             <div className="short-text-preview">
                               <div className="rating-preview">
                                 {[1, 2, 3, 4, 5].map((value) => (
-                                  <Star key={value} size={18} className="rating-preview-star" />
+                                  <Star key={value} size={34} className="rating-preview-star" />
                                 ))}
                               </div>
                             </div>

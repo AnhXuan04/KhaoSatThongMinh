@@ -328,7 +328,12 @@ export default function ViewSurvey() {
                 </label>
               ))}
 
-              {q.type === 'short_text' && q.kind !== 'file_upload' && q.kind !== 'image' && q.kind !== 'video' && (
+              {q.type === 'short_text'
+                && q.kind !== 'file_upload'
+                && q.kind !== 'image'
+                && q.kind !== 'video'
+                && q.kind !== 'linear_scale'
+                && q.kind !== 'rating' && (
                 <input
                   className="short-text-input"
                   type="text"

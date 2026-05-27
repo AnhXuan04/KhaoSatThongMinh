@@ -22,7 +22,7 @@ public class SurveyHistoryItemDto {
                 : "Khác";
 
         String date = response.getSubmittedAt() != null
-                ? response.getSubmittedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                ? response.getSubmittedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                 : "";
 
         return new SurveyHistoryItemDto(

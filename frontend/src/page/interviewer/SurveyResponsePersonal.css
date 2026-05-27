@@ -336,51 +336,54 @@
 .surveyResponsePersonalAnswerScale {
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	width: 100%;
 	padding: 16px;
-	background: #e3f2fd;
-	border-left: 4px solid #1976d2;
-	border-radius: 4px;
+	background: #f8f9fb;
+	border-radius: 8px;
 }
 
-.surveyResponsePersonalScaleValue {
-	color: #1565c0;
-	font-size: 14px;
+.surveyResponsePersonalScaleButton {
+	min-width: 42px;
+	height: 42px;
+	border: 2px solid #ddd;
+	border-radius: 999px;
+	background: #ffffff;
+	color: #111827;
 	font-weight: 600;
+	font-size: 16px;
+	cursor: default;
 }
 
-.surveyResponsePersonalScaleValue strong {
-	color: #0d47a1;
-	font-size: 18px;
-	margin-left: 8px;
+.surveyResponsePersonalScaleButton.selected {
+	background: #0b79f7;
+	color: #ffffff;
+	border-color: #0b79f7;
 }
 
 /* RATING ANSWER */
 .surveyResponsePersonalAnswerRating {
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	min-height: 72px;
+	width: 100%;
 	padding: 16px;
-	background: #fff3e0;
-	border-left: 4px solid #ff9800;
-	border-radius: 4px;
-}
-
-.surveyResponsePersonalRatingValue {
-	color: #e65100;
-	font-size: 14px;
-	font-weight: 600;
-	display: flex;
-	align-items: center;
-	gap: 8px;
+	background: #f8f9fb;
+	border-radius: 8px;
 }
 
 .surveyResponsePersonalRatingStar {
-	color: #ccc;
-	font-size: 18px;
+	color: #ddd;
 	transition: color 0.2s ease;
+	stroke-width: 1.8;
 }
 
 .surveyResponsePersonalRatingStar.filled {
 	color: #ffc107;
+	fill: #ffc107;
 }
 
 /* RESPONDENT */

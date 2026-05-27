@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { Eye } from 'lucide-react';
+import { FiStar } from 'react-icons/fi';
 import './SurveyResponseQuestion.css';
 
 type Option = {
@@ -23,6 +24,7 @@ type Question = {
 type Feedback = {
 	name: string;
 	text: string;
+	questionId?: number;
 	responderId: number;
 };
 
@@ -36,12 +38,14 @@ type ApiQuestionStatistic = {
 	questionId: number;
 	title: string;
 	type: string;
+	kind?: string;
 	questionKind?: string;
 	totalResponses: number;
 	options: ApiOptionStatistic[];
 };
 
 type FileUploadItem = {
+	questionId: number;
 	responseId: number;
 	name: string;
 	url: string;
@@ -60,6 +64,23 @@ type ApiResponse = {
 	submittedAt: string;
 };
 
+type AnswerDetail = {
+	questionId: number;
+	questionTitle: string;
+	questionType: string;
+	questionKind?: string;
+	values: string[];
+	secureUrl?: string;
+	originalFileName?: string;
+	fileSize?: number;
+	fileType?: string;
+};
+
+type ResponseDetail = {
+	responseId: number;
+	answers: AnswerDetail[];
+};
+
 export default function SurveyResponseQuestion() {
 	const [searchParams] = useSearchParams();
 	const surveyId = searchParams.get('surveyId');
@@ -67,6 +88,7 @@ export default function SurveyResponseQuestion() {
 	const [survey, setSurvey] = useState<{ title: string; questions: Question[] } | null>(null);
 	const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
 	const [fileUploads, setFileUploads] = useState<FileUploadItem[]>([]);
+	const [responseDetails, setResponseDetails] = useState<ResponseDetail[]>([]);
 	const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -115,7 +137,7 @@ export default function SurveyResponseQuestion() {
 					id: stat.questionId,
 					title: stat.title,
 					type: stat.type,
-					questionKind: stat.questionKind,
+					questionKind: stat.questionKind || stat.kind,
 					options: (stat.options || []).map((opt) => ({
 						text: opt.text,
 						count: opt.count,
@@ -129,17 +151,6 @@ export default function SurveyResponseQuestion() {
 					questions,
 				});
 
-				// Extract text feedbacks from responses list
-				const textFeedbacks: Feedback[] = responsesList
-					.filter((r) => r.comment && r.comment.trim())
-					.map((r) => ({
-						name: r.userName || 'Anonymous',
-						text: r.comment,
-						responderId: r.responseId,
-					}));
-				setFeedbacks(textFeedbacks);
-
-				// Fetch detailed responses so file upload questions can show actual files.
 				const detailResults = await Promise.all(
 					responsesList.map(async (response) => {
 						try {
@@ -153,13 +164,16 @@ export default function SurveyResponseQuestion() {
 						}
 					})
 				);
+				setResponseDetails(detailResults.filter(Boolean) as ResponseDetail[]);
 
 				const uploads: FileUploadItem[] = [];
+				const textFeedbacks: Feedback[] = [];
 				for (const detail of detailResults) {
 					if (!detail?.answers) continue;
 					for (const answer of detail.answers) {
 						if ((answer.questionKind === 'file_upload' || answer.questionType === 'file_upload') && answer.secureUrl) {
 							uploads.push({
+								questionId: answer.questionId,
 								responseId: detail.responseId,
 								name: answer.originalFileName || `Tệp từ phản hồi #${detail.responseId}`,
 								url: answer.secureUrl,
@@ -168,9 +182,28 @@ export default function SurveyResponseQuestion() {
 								originalFileName: answer.originalFileName,
 							});
 						}
+						if (
+							(answer.questionKind === 'short_answer' || answer.questionKind === 'paragraph' || answer.questionType === 'short_text')
+							&& answer.questionKind !== 'linear_scale'
+							&& answer.questionKind !== 'rating'
+							&& answer.questionKind !== 'file_upload'
+						) {
+							for (const value of answer.values || []) {
+								if (value && value.trim()) {
+									const responseMeta = responsesList.find((response) => response.responseId === detail.responseId);
+									textFeedbacks.push({
+										name: responseMeta?.userName || 'Anonymous',
+										text: value.trim(),
+										questionId: answer.questionId,
+										responderId: detail.responseId,
+									});
+								}
+							}
+						}
 					}
 				}
 				setFileUploads(uploads);
+				setFeedbacks(textFeedbacks);
 
 				// Set first question as selected
 				if (questions.length > 0) {
@@ -192,6 +225,50 @@ export default function SurveyResponseQuestion() {
 	const selectedQuestion = useMemo(() => {
 		return survey?.questions.find((q) => q.id === selectedQuestionId);
 	}, [survey, selectedQuestionId]);
+
+	const selectedAnswers = useMemo(() => {
+		if (!selectedQuestionId) return [];
+		return responseDetails.flatMap((detail) =>
+			(detail.answers || []).filter((answer) => Number(answer.questionId) === selectedQuestionId)
+		);
+	}, [responseDetails, selectedQuestionId]);
+
+	const selectedFileUploads = useMemo(() => {
+		if (!selectedQuestionId) return [];
+		return fileUploads.filter((file) => file.questionId === selectedQuestionId);
+	}, [fileUploads, selectedQuestionId]);
+
+	const numericAnswers = useMemo(() => {
+		return selectedAnswers
+			.flatMap((answer) => answer.values || [])
+			.map((value) => Number.parseInt(value, 10))
+			.filter((value) => !Number.isNaN(value) && value >= 1 && value <= 5);
+	}, [selectedAnswers]);
+
+	const numericDistribution = useMemo(() => {
+		const total = numericAnswers.length;
+		return [1, 2, 3, 4, 5].map((value) => {
+			const count = numericAnswers.filter((answer) => answer === value).length;
+			return {
+				value,
+				count,
+				percentage: total > 0 ? Math.round((count * 100) / total) : 0,
+			};
+		});
+	}, [numericAnswers]);
+
+	const selectedTextFeedbacks = useMemo(() => {
+		if (!selectedQuestionId) return [];
+		return feedbacks.filter((feedback) => feedback.questionId === selectedQuestionId);
+	}, [feedbacks, selectedQuestionId]);
+
+	const shouldShowTextFeedbacks = selectedQuestion
+		&& (selectedQuestion.questionKind === 'short_answer'
+			|| selectedQuestion.questionKind === 'paragraph'
+			|| selectedQuestion.type === 'short_text')
+		&& selectedQuestion.questionKind !== 'linear_scale'
+		&& selectedQuestion.questionKind !== 'rating'
+		&& selectedQuestion.questionKind !== 'file_upload';
 
 	if (loading) {
 		return <div className="surveyResponseQuestionState">Đang tải dữ liệu...</div>;
@@ -232,7 +309,6 @@ export default function SurveyResponseQuestion() {
 								</option>
 							))}
 						</select>
-						<span className="surveyResponseQuestionSelectIcon">⌄</span>
 					</div>
 				</section>
 
@@ -244,6 +320,10 @@ export default function SurveyResponseQuestion() {
 							<span className="surveyResponseQuestionType">
 								{selectedQuestion.questionKind === 'file_upload' || selectedQuestion.type === 'file_upload'
 									? 'TẢI TỆP LÊN'
+									: selectedQuestion.questionKind === 'linear_scale'
+										? 'PHẠM VI TUYẾN TÍNH'
+										: selectedQuestion.questionKind === 'rating'
+											? 'XẾP HẠNG'
 									: selectedQuestion.type === 'multiple_choice'
 									? 'TRẮC NGHIỆM'
 									: selectedQuestion.type === 'checkbox'
@@ -258,9 +338,9 @@ export default function SurveyResponseQuestion() {
 						{(selectedQuestion.questionKind === 'file_upload' || selectedQuestion.type === 'file_upload') ? (
 							<div className="surveyResponseQuestionFeedback">
 								<h3 className="surveyResponseQuestionFeedbackTitle">Danh sách tệp đã tải lên</h3>
-								{fileUploads.length > 0 ? (
+								{selectedFileUploads.length > 0 ? (
 									<div className="surveyResponseQuestionFeedbackList">
-										{fileUploads.map((file, index) => (
+										{selectedFileUploads.map((file, index) => (
 											<article key={`${file.responseId}-${index}`} className="surveyResponseQuestionFeedbackCard">
 												<p className="surveyResponseQuestionFeedbackText">
 													<button
@@ -287,6 +367,84 @@ export default function SurveyResponseQuestion() {
 									<div className="surveyResponseQuestionFeedbackCard">Chưa có tệp nào được tải lên.</div>
 								)}
 							</div>
+						) : selectedQuestion.questionKind === 'rating' ? (
+							<div className="surveyResponseQuestionRating">
+								<div className="surveyResponseQuestionRatingSummary">
+									<strong>
+										Điểm trung bình {numericAnswers.length > 0
+											? (numericAnswers.reduce((sum, value) => sum + value, 0) / numericAnswers.length).toFixed(2)
+											: '0.00'}
+									</strong>
+									<span>{numericAnswers.length} phản hồi</span>
+								</div>
+								<div className="surveyResponseQuestionRatingStars">
+									{Array.from({ length: 5 }).map((_, index) => {
+										const average = numericAnswers.length > 0
+											? numericAnswers.reduce((sum, value) => sum + value, 0) / numericAnswers.length
+											: 0;
+										const filled = index < Math.round(average);
+										return (
+											<FiStar
+												key={index}
+												size={34}
+												className={`surveyResponseQuestionRatingStar ${filled ? 'filled' : ''}`}
+											/>
+										);
+									})}
+								</div>
+								<div className="surveyResponseQuestionScaleBars">
+									{numericDistribution.map((item) => (
+										<div key={item.value} className="surveyResponseQuestionScaleItem">
+											<div className="surveyResponseQuestionOptionHeader">
+												<span className="surveyResponseQuestionOptionName">{item.value} sao</span>
+												<span className="surveyResponseQuestionOptionPercentage">{item.percentage}%</span>
+											</div>
+											<div className="surveyResponseQuestionOptionBar">
+												<div className="surveyResponseQuestionOptionBarFill" style={{ width: `${item.percentage}%` }} />
+											</div>
+											<span className="surveyResponseQuestionOptionCount">
+												{item.count} người tham gia đã chọn
+											</span>
+										</div>
+									))}
+								</div>
+							</div>
+						) : selectedQuestion.questionKind === 'linear_scale' ? (
+							<div className="surveyResponseQuestionScale">
+								<div className="surveyResponseQuestionScalePreview">
+									{[1, 2, 3, 4, 5].map((value) => (
+										<span key={value} className="surveyResponseQuestionScalePreviewItem">{value}</span>
+									))}
+								</div>
+								<div className="surveyResponseQuestionScaleBars">
+									{numericDistribution.map((item) => (
+										<div key={item.value} className="surveyResponseQuestionScaleItem">
+											<div className="surveyResponseQuestionOptionHeader">
+												<span className="surveyResponseQuestionOptionName">Mức {item.value}</span>
+												<span className="surveyResponseQuestionOptionPercentage">{item.percentage}%</span>
+											</div>
+											<div className="surveyResponseQuestionOptionBar">
+												<div className="surveyResponseQuestionOptionBarFill" style={{ width: `${item.percentage}%` }} />
+											</div>
+											<span className="surveyResponseQuestionOptionCount">
+												{item.count} người tham gia đã chọn
+											</span>
+										</div>
+									))}
+								</div>
+							</div>
+						) : shouldShowTextFeedbacks ? (
+							<div className="surveyResponseQuestionTextAnswers">
+								{selectedTextFeedbacks.length > 0 ? (
+									selectedTextFeedbacks.map((feedback, index) => (
+										<div key={index} className="surveyResponseQuestionTextAnswer">
+											{feedback.text}
+										</div>
+									))
+								) : (
+									<div className="surveyResponseQuestionFeedbackCard">Chưa có câu trả lời văn bản.</div>
+								)}
+							</div>
 						) : (
 							<div className="surveyResponseQuestionOptions">
 								{selectedQuestion.options.length > 0 ? (
@@ -309,7 +467,7 @@ export default function SurveyResponseQuestion() {
 									))
 								) : (
 									<div className="surveyResponseQuestionFeedbackCard">
-										Câu hỏi này không có thống kê lựa chọn, chỉ hiển thị danh sách tệp đã tải lên.
+										Câu hỏi này chưa có dữ liệu thống kê.
 									</div>
 								)}
 							</div>
@@ -317,22 +475,6 @@ export default function SurveyResponseQuestion() {
 					</section>
 				)}
 
-				{/* QUALITATIVE ADD-ONS */}
-				{feedbacks.length > 0 && (
-					<section className="surveyResponseQuestionFeedback">
-						<h3 className="surveyResponseQuestionFeedbackTitle">Ý kiến Bổ sung</h3>
-						<div className="surveyResponseQuestionFeedbackList">
-							{feedbacks.slice(0, 5).map((feedback, index) => (
-								<article key={index} className="surveyResponseQuestionFeedbackCard">
-									<p className="surveyResponseQuestionFeedbackText">"{feedback.text}"</p>
-									<span className="surveyResponseQuestionFeedbackAuthor">
-										— {feedback.name.toUpperCase()} (ID: {feedback.responderId})
-									</span>
-								</article>
-							))}
-						</div>
-					</section>
-				)}
 			</main>
 
 			{previewFile && (

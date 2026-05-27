@@ -2,7 +2,7 @@ import { apiUrl } from '../../config/api';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { FiPrinter, FiTrash2, FiChevronLeft, FiChevronRight, FiEye, FiUser } from 'react-icons/fi';
+import { FiPrinter, FiTrash2, FiChevronLeft, FiChevronRight, FiEye, FiUser, FiStar } from 'react-icons/fi';
 import './SurveyResponsePersonal.css';
 
 type AnswerDetail = {
@@ -254,7 +254,10 @@ export default function SurveyResponsePersonal() {
 											</div>
 										)}
 
-										{answer.questionType === 'short_text' && (
+										{answer.questionType === 'short_text'
+											&& answer.questionKind !== 'linear_scale'
+											&& answer.questionKind !== 'rating'
+											&& answer.questionKind !== 'file_upload' && (
 											<div className="surveyResponsePersonalAnswerText">
 												{answer.values.map((val, i) => (
 													<p key={i} className="surveyResponsePersonalTextContent">"{val}"</p>
@@ -284,22 +287,28 @@ export default function SurveyResponsePersonal() {
 
 										{answer.questionKind === 'linear_scale' && answer.values.length > 0 && (
 											<div className="surveyResponsePersonalAnswerScale">
-												<span className="surveyResponsePersonalScaleValue">
-													Mức độ: <strong>{answer.values[0]}/5</strong>
-												</span>
+												{[1, 2, 3, 4, 5].map((value) => (
+													<button
+														key={value}
+														type="button"
+														className={`surveyResponsePersonalScaleButton ${Number(answer.values[0]) === value ? 'selected' : ''}`}
+														disabled
+													>
+														{value}
+													</button>
+												))}
 											</div>
 										)}
 
 										{answer.questionKind === 'rating' && answer.values.length > 0 && (
 											<div className="surveyResponsePersonalAnswerRating">
-												<span className="surveyResponsePersonalRatingValue">
-													Đánh giá: 
-													{Array.from({ length: 5 }).map((_, i) => (
-														<span key={i} className={`surveyResponsePersonalRatingStar ${i < parseInt(answer.values[0]) ? 'filled' : ''}`}>
-															★
-														</span>
-													))}
-												</span>
+												{Array.from({ length: 5 }).map((_, i) => (
+													<FiStar
+														key={i}
+														size={34}
+														className={`surveyResponsePersonalRatingStar ${i < Number(answer.values[0]) ? 'filled' : ''}`}
+													/>
+												))}
 											</div>
 										)}
 									</div>

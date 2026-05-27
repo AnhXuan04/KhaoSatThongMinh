@@ -217,19 +217,24 @@
 /* Linear Scale Styles */
 .linear-scale-container {
   margin-top: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f8f9fb;
 }
 
 .scale-options {
   display: flex;
-  gap: 8px;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+  width: 100%;
 }
 
 .scale-button {
-  width: 48px;
-  height: 48px;
+  min-width: 42px;
+  height: 42px;
   border: 2px solid #ddd;
-  border-radius: 6px;
+  border-radius: 999px;
   background: #fff;
   cursor: pointer;
   font-weight: 600;
@@ -239,7 +244,7 @@
 
 .scale-button:hover:not(:disabled) {
   border-color: #0b79f7;
-  background: #f0f7ff;
+  /* background: #f0f7ff; */
 }
 
 .scale-button.selected {
@@ -256,12 +261,17 @@
 /* Rating Styles */
 .rating-container {
   margin-top: 12px;
+  padding: 16px;
+  border-radius: 8px;
 }
 
 .rating-stars {
   display: flex;
-  gap: 8px;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+  min-height: 72px;
+  width: 100%;
 }
 
 .star-button {
@@ -286,10 +296,23 @@
 .star-icon {
   color: #ddd;
   transition: color 0.2s ease;
+  stroke-width: 1.8;
 }
 
 .star-icon.filled {
   color: #ffc107;
   fill: #ffc107;
+}
+
+@media (max-width: 520px) {
+  .scale-options,
+  .rating-stars {
+    gap: 8px;
+  }
+
+  .scale-button {
+    min-width: 36px;
+    height: 36px;
+  }
 }
 

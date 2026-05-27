@@ -1134,12 +1134,17 @@
 .rating-preview {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 34px;
+  min-height: 72px;
+  width: 100%;
   color: #f59e0b;
 }
 
 .rating-preview-star {
   color: #f59e0b;
+  fill: #fef3c7;
+  stroke-width: 1.8;
 }
 
 .grid-preview {
@@ -1598,19 +1603,73 @@
   padding-bottom: 118px;
 }
 
+.survey-save-toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 2000;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #047857;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.survey-save-inline-notice {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.create-surveys-container .questions-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+}
+
+.create-surveys-container .questions-list-wrapper {
+  width: 100%;
+}
+
 .create-surveys-container .floating-toolbar {
-  position: fixed !important;
+  position: static !important;
   top: auto !important;
   right: auto !important;
-  bottom: max(16px, env(safe-area-inset-bottom)) !important;
-  left: 50% !important;
-  z-index: 1000;
-  width: min(520px, calc(100vw - 32px));
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 10;
+  width: auto;
   height: auto;
   flex: 0 0 auto;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 0;
-  transform: translateX(-50%) !important;
+  align-self: end;
+  margin: 0 0 16px;
+  transform: none !important;
+}
+
+@media (max-width: 820px) {
+  .create-surveys-container .questions-area {
+    grid-template-columns: 1fr;
+  }
+
+  .create-surveys-container .floating-toolbar {
+    width: auto;
+    flex-direction: row;
+    justify-self: center;
+    margin: 0;
+  }
 }
