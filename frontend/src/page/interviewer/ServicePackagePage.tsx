@@ -43,7 +43,7 @@ const convertStatus = (status: string) => {
 		case "ACTIVE":
 			return "ĐANG HOẠT ĐỘNG";
 		case "CANCELED":
-			return "ĐÃ HỦY";
+			return "ĐÃ HỦY GIA HẠN GÓI";
 		case "EXPIRED":
 			return "HẾT HẠN";
 		default:
@@ -201,7 +201,7 @@ const ServicePackage: React.FC = () => {
 				}
 			);
 
-			alert("Đã huỷ gói!");
+			alert("Đã hủy gia hạn gói. Bạn vẫn có thể sử dụng đến ngày hết hạn.");
 			void loadSubscription();
 		} catch (err) {
 			console.error(err);

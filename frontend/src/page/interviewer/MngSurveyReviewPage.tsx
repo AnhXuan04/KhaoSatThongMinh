@@ -1,11 +1,11 @@
 import { apiUrl } from '../../config/api';
 import { FiStar } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
-import SurveyResponseAnalytics from './SurveyResponseAnalytics';
+import SurveyResponseAnalytics from './SurveyResponseAnalyticsPage';
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import SurveyResponseQuestion from './SurveyResponseQuestion';
-import SurveyResponsePersonal from './SurveyResponsePersonal';
+import SurveyResponseQuestion from './SurveyResponseQuestionPage';
+import SurveyResponsePersonal from './SurveyResponsePersonalPage';
 import './MngSurveyReview.css';
 
 type FeedbackItem = {

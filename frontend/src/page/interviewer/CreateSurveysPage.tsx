@@ -249,6 +249,11 @@ export default function CreateSurveys() {
       return;
     }
 
+    if (!survey.surveyFieldId) {
+      setError('Vui lòng chọn lĩnh vực khảo sát');
+      return;
+    }
+
     const token = getAuthToken();
     if (!token) {
       setError('Bạn cần đăng nhập để tạo khảo sát');
