@@ -160,12 +160,13 @@ public class SurveyController {
     }
 
     @PostMapping("/{id}/responses")
+    @PreAuthorize("hasAuthority('INTERVIEWEE')")
     public ResponseEntity<String> submitResponse(
             @PathVariable("id") Long id,
             @RequestBody SubmitSurveyRequest request,
             Authentication auth) {
         try {
-            String email = (auth != null) ? auth.getName() : null;
+            String email = auth.getName();
             surveyResponseService.submitResponse(id, request, email);
             return ResponseEntity.ok("Gửi phản hồi thành công.");
         } catch (RuntimeException e) {

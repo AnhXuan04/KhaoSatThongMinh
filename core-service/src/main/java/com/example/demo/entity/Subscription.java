@@ -63,10 +63,9 @@ public class Subscription {
 
     @Transient
     public boolean isActive() {
-        return status == SubscriptionStatus.ACTIVE
+        return (status == SubscriptionStatus.ACTIVE || status == SubscriptionStatus.CANCELED)
                 && expiresAt != null
-                && expiresAt.isAfter(LocalDateTime.now())
-                && canceledAt == null;
+                && expiresAt.isAfter(LocalDateTime.now());
     }
 }
 

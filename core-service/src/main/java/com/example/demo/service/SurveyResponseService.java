@@ -134,21 +134,16 @@ public class SurveyResponseService {
             throw new RuntimeException("Khảo sát không còn tồn tại.");
         }
 
-        // Nếu user đã đăng nhập, kiểm tra đã làm chưa
-        User resolvedUser = null;
-        if (email != null && !email.isBlank()) {
-            resolvedUser = userRepository.findByEmail(email).orElse(null);
-        }
-        if (resolvedUser != null && surveyResponseRepository.existsBySurveyIdAndUserId(surveyId, resolvedUser.getId())) {
+        User resolvedUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (surveyResponseRepository.existsBySurveyIdAndUserId(surveyId, resolvedUser.getId())) {
             throw new RuntimeException("Bạn đã thực hiện khảo sát này rồi.");
         }
 
         SurveyResponse response = new SurveyResponse();
         response.setSurvey(survey);
-
-        if (resolvedUser != null) {
-            response.setUser(resolvedUser);
-        }
+        response.setUser(resolvedUser);
 
         List<SurveyAnswer> answerList = new ArrayList<>();
 
@@ -249,7 +244,7 @@ public class SurveyResponseService {
             result.setResponse(response);
             result.setQualityScore(dto.getQualityScore() != null ? dto.getQualityScore() : 0);
             result.setSuperficial(dto.resolvedSuperficial());
-            result.setRewardEligible(Boolean.TRUE.equals(dto.getRewardEligible()) && response.getUser() != null);
+            result.setRewardEligible(Boolean.TRUE.equals(dto.getRewardEligible()));
             result.setModelName(dto.getModelName() != null ? dto.getModelName() : "fastapi-ai-service");
             result.setAnalysisSummary(dto.getAnalysisSummary());
             result.setRecommendation(dto.getRecommendation());
@@ -291,10 +286,6 @@ public class SurveyResponseService {
     }
 
     private void createPendingCoinTransactionForAnalysis(SurveyResponse response, AiAnalysisResult analysisResult) {
-        if (response.getUser() == null) {
-            return;
-        }
-
         if (coinTransactionRepository.findByResponseId(response.getId()).isPresent()) {
             return;
         }
