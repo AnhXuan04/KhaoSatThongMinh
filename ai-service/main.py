@@ -66,6 +66,11 @@ MODEL_DIR = BASE_DIR / "models"
 MODEL_PATH = MODEL_DIR / "superficial_classifier.joblib"
 METADATA_PATH = MODEL_DIR / "superficial_classifier_metadata.json"
 CONFUSION_MATRIX_PATH = MODEL_DIR / "confusion_matrix.png"
+FAST_ANSWER_MS_PER_QUESTION = 5000
+LONGEST_SAME_ANSWER_MIN_SCALE_QUESTIONS = 5
+LONGEST_SAME_ANSWER_RATE_THRESHOLD = 0.7
+SAME_ANSWER_RATE_MIN_SCALE_QUESTIONS = 10
+SAME_ANSWER_RATE_THRESHOLD = 0.8
 
 
 class TrainingRecord(BaseModel):
@@ -74,6 +79,10 @@ class TrainingRecord(BaseModel):
     answerChangeCount: int = 0
     avgAnswerLength: float = 0
     questionCount: int = 0
+    longestSameAnswerRate: float = 0
+    sameAnswerRate: float = 0
+    avgDurationPerQuestionMs: float = 0
+    scaleQuestionCount: int = 0
     label: int = Field(ge=0, le=1)
 
 
@@ -138,49 +147,101 @@ def preprocess_text(text: str) -> str:
     return normalized
 
 
-def build_features(request: AnalyzeRequest) -> dict:
-    answer_texts = [answer.answerText.strip() for answer in request.answers if answer.answerText.strip()]
-    answer_text = " ".join(answer_texts)
-    total_duration_ms = sum(log.durationMs or 0 for log in request.behaviorLogs)
-    answer_change_count = sum(1 for log in request.behaviorLogs if log.eventType == "answer_change")
-    avg_answer_length = sum(len(value) for value in answer_texts) / len(answer_texts) if answer_texts else 0
-
-    return {
-        "answer_text": preprocess_text(answer_text),
-        "total_duration_ms": total_duration_ms,
-        "answer_change_count": answer_change_count,
-        "avg_answer_length": avg_answer_length,
-        "question_count": len(request.answers),
-    }
-
-
-def detect_repeated_scale_pattern(request: AnalyzeRequest) -> Optional[dict]:
+def calculate_scale_answer_stats(request: AnalyzeRequest) -> dict:
     scale_values = [
         answer.answerText.strip()
         for answer in request.answers
         if (answer.questionKind or "").lower() in {"linear_scale", "rating"}
         and answer.answerText.strip()
     ]
+    total = len(scale_values)
 
-    if len(scale_values) < 3:
-        return None
-
-    counts = {}
-    for value in scale_values:
-        counts[value] = counts.get(value, 0) + 1
-
-    repeated_value, repeated_count = max(counts.items(), key=lambda item: item[1])
-    repeated_rate = repeated_count / len(scale_values)
-
-    if repeated_rate >= 0.8:
+    if total == 0:
         return {
-            "value": repeated_value,
-            "count": repeated_count,
-            "total": len(scale_values),
-            "rate": repeated_rate,
+            "longestValue": None,
+            "longestCount": 0,
+            "longestRate": 0,
+            "sameAnswerValue": None,
+            "sameAnswerCount": 0,
+            "sameAnswerRate": 0,
+            "total": 0,
+            "longestTriggered": False,
+            "sameAnswerTriggered": False,
         }
 
-    return None
+    longest_value = scale_values[0]
+    longest_count = 1
+    current_value = scale_values[0]
+    current_count = 1
+    counts = {scale_values[0]: 1}
+
+    for value in scale_values[1:]:
+        counts[value] = counts.get(value, 0) + 1
+
+        if value == current_value:
+            current_count += 1
+        else:
+            current_value = value
+            current_count = 1
+
+        if current_count > longest_count:
+            longest_value = current_value
+            longest_count = current_count
+
+    most_common_value, most_common_count = max(counts.items(), key=lambda item: item[1])
+    longest_rate = longest_count / total
+    same_answer_rate = most_common_count / total
+    longest_triggered = (
+        total >= LONGEST_SAME_ANSWER_MIN_SCALE_QUESTIONS
+        and longest_rate >= LONGEST_SAME_ANSWER_RATE_THRESHOLD
+    )
+    same_answer_triggered = (
+        total >= SAME_ANSWER_RATE_MIN_SCALE_QUESTIONS
+        and same_answer_rate >= SAME_ANSWER_RATE_THRESHOLD
+    )
+
+    return {
+        "longestValue": longest_value,
+        "longestCount": longest_count,
+        "longestRate": longest_rate,
+        "sameAnswerValue": most_common_value,
+        "sameAnswerCount": most_common_count,
+        "sameAnswerRate": same_answer_rate,
+        "total": total,
+        "longestTriggered": longest_triggered,
+        "sameAnswerTriggered": same_answer_triggered,
+    }
+
+
+def build_features(request: AnalyzeRequest) -> dict:
+    answer_texts = [answer.answerText.strip() for answer in request.answers if answer.answerText.strip()]
+    answer_text = " ".join(answer_texts)
+    total_duration_ms = sum(log.durationMs or 0 for log in request.behaviorLogs)
+    answer_change_count = sum(1 for log in request.behaviorLogs if log.eventType == "answer_change")
+    avg_answer_length = sum(len(value) for value in answer_texts) / len(answer_texts) if answer_texts else 0
+    question_count = len(request.answers)
+    scale_stats = calculate_scale_answer_stats(request)
+    avg_duration_per_question_ms = total_duration_ms / question_count if question_count else 0
+
+    return {
+        "answer_text": preprocess_text(answer_text),
+        "total_duration_ms": total_duration_ms,
+        "answer_change_count": answer_change_count,
+        "avg_answer_length": avg_answer_length,
+        "question_count": question_count,
+        "longest_same_answer_rate": scale_stats["longestRate"],
+        "same_answer_rate": scale_stats["sameAnswerRate"],
+        "avg_duration_per_question_ms": avg_duration_per_question_ms,
+        "scale_question_count": scale_stats["total"],
+        "scale_stats": scale_stats,
+    }
+
+
+def is_fast_response(total_duration_ms: int, question_count: int) -> bool:
+    if question_count <= 0:
+        return False
+
+    return (total_duration_ms / question_count) < FAST_ANSWER_MS_PER_QUESTION
 
 
 def optional_transformer_summary(text: str) -> Optional[str]:
@@ -208,8 +269,8 @@ def save_confusion_matrix(y_true, y_pred) -> Optional[str]:
         annot=True,
         fmt="d",
         cmap="Blues",
-        xticklabels=["Hoi hot", "Nghiem tuc"],
-        yticklabels=["Hoi hot", "Nghiem tuc"],
+        xticklabels=["Hời hợt", "Nghiêm túc"],
+        yticklabels=["Hời hợt", "Nghiêm túc"],
     )
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
@@ -250,7 +311,23 @@ def train_superficial_model(request: TrainRequest):
         raise HTTPException(status_code=400, detail="Dataset must contain both superficial and quality labels.")
 
     df["answer_text"] = df["answerText"].fillna("").map(preprocess_text)
-    feature_columns = ["answer_text", "totalDurationMs", "answerChangeCount", "avgAnswerLength", "questionCount"]
+    df["avgDurationPerQuestionMs"] = df.apply(
+        lambda row: row["avgDurationPerQuestionMs"] or (
+            row["totalDurationMs"] / row["questionCount"] if row["questionCount"] else 0
+        ),
+        axis=1,
+    )
+    feature_columns = [
+        "answer_text",
+        "totalDurationMs",
+        "answerChangeCount",
+        "avgAnswerLength",
+        "questionCount",
+        "longestSameAnswerRate",
+        "sameAnswerRate",
+        "avgDurationPerQuestionMs",
+        "scaleQuestionCount",
+    ]
     x = df[feature_columns]
     y = df["label"]
 
@@ -271,7 +348,20 @@ def train_superficial_model(request: TrainRequest):
     preprocessor = ColumnTransformer(
         transformers=[
             ("text", TfidfVectorizer(max_features=3000, ngram_range=(1, 2)), "answer_text"),
-            ("numeric", StandardScaler(), ["totalDurationMs", "answerChangeCount", "avgAnswerLength", "questionCount"]),
+            (
+                "numeric",
+                StandardScaler(),
+                [
+                    "totalDurationMs",
+                    "answerChangeCount",
+                    "avgAnswerLength",
+                    "questionCount",
+                    "longestSameAnswerRate",
+                    "sameAnswerRate",
+                    "avgDurationPerQuestionMs",
+                    "scaleQuestionCount",
+                ],
+            ),
         ]
     )
     model = Pipeline(
@@ -333,6 +423,10 @@ def analyze_response(request: AnalyzeRequest):
         "answerChangeCount": features["answer_change_count"],
         "avgAnswerLength": features["avg_answer_length"],
         "questionCount": features["question_count"],
+        "longestSameAnswerRate": features["longest_same_answer_rate"],
+        "sameAnswerRate": features["same_answer_rate"],
+        "avgDurationPerQuestionMs": features["avg_duration_per_question_ms"],
+        "scaleQuestionCount": features["scale_question_count"],
     }])
 
     probabilities = model.predict_proba(df)[0]
@@ -340,23 +434,35 @@ def analyze_response(request: AnalyzeRequest):
     quality_score = round(quality_probability * 100)
     is_superficial = quality_score < 60
     reward_eligible = (not is_superficial) and quality_score >= 70
-    repeated_scale_pattern = detect_repeated_scale_pattern(request)
-
-    if repeated_scale_pattern:
-        quality_score = min(quality_score, 55)
-        is_superficial = True
-        reward_eligible = False
+    repeated_scale_pattern = features["scale_stats"]
+    fast_response = is_fast_response(features["total_duration_ms"], features["question_count"])
 
     transformer_summary = optional_transformer_summary(features["answer_text"])
     summary = (
-        "Model AI danh gia phan hoi co noi dung va hanh vi du tin cay."
+        "Model AI đánh giá phản hồi có nội dung và hành vi đủ tin cậy."
         if reward_eligible
-        else "Model AI phat hien dau hieu phan hoi ngan, nhanh hoac thieu tin hieu nghiem tuc."
+        else "Model AI phát hiện dấu hiệu phản hồi ngắn, nhanh hoặc thiếu tín hiệu nghiêm túc."
     )
-    if repeated_scale_pattern:
+    if repeated_scale_pattern["longestTriggered"] or repeated_scale_pattern["sameAnswerTriggered"]:
+        repeated_reasons = []
+        if repeated_scale_pattern["longestTriggered"]:
+            repeated_reasons.append(
+                f"chuỗi liên tiếp {repeated_scale_pattern['longestCount']}/{repeated_scale_pattern['total']} "
+                f"câu cùng chọn mức {repeated_scale_pattern['longestValue']}"
+            )
+        if repeated_scale_pattern["sameAnswerTriggered"]:
+            repeated_reasons.append(
+                f"tỷ lệ cùng một đáp án {repeated_scale_pattern['sameAnswerCount']}/{repeated_scale_pattern['total']} "
+                f"câu cùng chọn mức {repeated_scale_pattern['sameAnswerValue']}"
+            )
+        repeated_summary = (
+            "kèm thời gian trả lời nhanh nên đánh dấu hời hợt."
+            if fast_response
+            else "nhưng thời gian trả lời không quá nhanh nên chỉ xem là dấu hiệu nghi ngờ."
+        )
         summary = (
-            f"{summary} Phat hien {repeated_scale_pattern['count']}/{repeated_scale_pattern['total']} "
-            f"cau dang thang do/xep hang cung chon muc {repeated_scale_pattern['value']}."
+            f"{summary} Phát hiện {'; '.join(repeated_reasons)}, "
+            f"{repeated_summary}"
         )
     if transformer_summary:
         summary = f"{summary} {transformer_summary}"
@@ -373,6 +479,6 @@ def analyze_response(request: AnalyzeRequest):
         isSuperficial=is_superficial,
         rewardEligible=reward_eligible,
         analysisSummary=summary,
-        recommendation="Du dieu kien cho admin duyet coin." if reward_eligible else "Chua du dieu kien thuong coin.",
+        recommendation="Đủ điều kiện cho admin duyệt coin." if reward_eligible else "Chưa đủ điều kiện thưởng coin.",
         modelName=model_name,
     )
