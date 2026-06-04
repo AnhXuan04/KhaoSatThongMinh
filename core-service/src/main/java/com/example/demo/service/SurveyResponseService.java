@@ -6,10 +6,15 @@ import com.example.demo.dto.SurveyHistoryItemDto;
 import com.example.demo.dto.SurveyQualityAnalyticsDto;
 import com.example.demo.dto.SurveyResponseDetailDto;
 import com.example.demo.dto.SurveyResponseListItemDto;
+import com.example.demo.dto.SurveyContentReportDto;
 import com.example.demo.dto.QuestionStatisticsDto;
 import com.example.demo.dto.OptionStatisticDto;
 import com.example.demo.dto.AiAnalyzeRequestDto;
 import com.example.demo.dto.AiAnalyzeResponseDto;
+import com.example.demo.dto.AiSurveyReportRequestDto;
+import com.example.demo.dto.AiSurveyReportResponseDto;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import org.slf4j.Logger;
@@ -54,6 +59,12 @@ public class SurveyResponseService {
 
     @Autowired
     private AiAnalysisClient aiAnalysisClient;
+
+    @Autowired
+    private SurveyContentReportRepository surveyContentReportRepository;
+
+    @Autowired
+    private ObjectMapper reportObjectMapper;
 
     public List<SurveyHistoryItemDto> getHistory(String email) {
         User user = userRepository.findByEmail(email)
@@ -466,6 +477,315 @@ public class SurveyResponseService {
                     submittedAt
             );
         }).collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public SurveyContentReportDto getContentReportForSurvey(Long surveyId, String interviewerEmail) {
+        User interviewer = userRepository.findByEmail(interviewerEmail)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Khảo sát không tồn tại"));
+
+        if (!survey.getUser().getId().equals(interviewer.getId())) {
+            throw new RuntimeException("Không có quyền xem báo cáo khảo sát này");
+        }
+
+        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+            throw new RuntimeException("Khảo sát không tồn tại.");
+        }
+
+        return surveyContentReportRepository.findBySurveyId(surveyId)
+                .map(report -> toContentReportDto(survey, report))
+                .orElse(null);
+    }
+
+    @Transactional
+    public SurveyContentReportDto refreshContentReportForSurvey(Long surveyId, String interviewerEmail) {
+        User interviewer = userRepository.findByEmail(interviewerEmail)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Khảo sát không tồn tại"));
+
+        if (!survey.getUser().getId().equals(interviewer.getId())) {
+            throw new RuntimeException("Không có quyền xem báo cáo khảo sát này");
+        }
+
+        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+            throw new RuntimeException("Khảo sát không tồn tại.");
+        }
+
+        List<SurveyResponse> responses = surveyResponseRepository.findBySurveyId(surveyId);
+        int totalResponses = responses.size();
+        Map<Long, List<SurveyAnswer>> answersByQuestion = new HashMap<>();
+        for (SurveyResponse response : responses) {
+            if (response.getAnswers() == null) {
+                continue;
+            }
+            for (SurveyAnswer answer : response.getAnswers()) {
+                if (answer.getQuestion() == null || answer.getQuestion().getId() == null) {
+                    continue;
+                }
+                answersByQuestion.computeIfAbsent(answer.getQuestion().getId(), key -> new ArrayList<>()).add(answer);
+            }
+        }
+
+        List<SurveyContentReportDto.QuestionReportDto> questionReports = new ArrayList<>();
+
+        List<Question> questions = survey.getQuestions() != null ? new ArrayList<>(survey.getQuestions()) : List.of();
+        questions.sort(java.util.Comparator.comparing(Question::getQuestionOrder, java.util.Comparator.nullsLast(Integer::compareTo)));
+
+        for (Question question : questions) {
+            List<SurveyAnswer> questionAnswers = answersByQuestion.getOrDefault(question.getId(), List.of());
+            SurveyContentReportDto.QuestionReportDto report = buildQuestionContentReport(question, questionAnswers, totalResponses);
+            questionReports.add(report);
+        }
+
+        AiSurveyReportResponseDto aiReport = aiAnalysisClient.generateSurveyReport(
+                buildAiSurveyReportRequest(survey, totalResponses, questionReports)
+        ).orElseThrow(() -> new RuntimeException("AI service chưa tạo được báo cáo khảo sát."));
+
+        List<String> highlights = aiReport.getHighlights() != null ? aiReport.getHighlights() : List.of();
+        String plainText = aiReport.getPlainText();
+        if (plainText == null) plainText = "";
+
+        SurveyContentReportDto dto = new SurveyContentReportDto(
+                survey.getId(),
+                survey.getTitle(),
+                totalResponses,
+                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                aiReport.getExecutiveSummary(),
+                aiReport.getRespondentSummary(),
+                aiReport.getAnswerSummary(),
+                aiReport.getRecommendation(),
+                highlights,
+                questionReports,
+                plainText
+        );
+
+        return saveContentReport(survey, interviewer, dto);
+    }
+
+    private SurveyContentReportDto saveContentReport(Survey survey, User generatedBy, SurveyContentReportDto dto) {
+        SurveyContentReport report = surveyContentReportRepository.findBySurveyId(survey.getId())
+                .orElseGet(SurveyContentReport::new);
+
+        report.setSurvey(survey);
+        report.setGeneratedByUser(generatedBy);
+        report.setTotalResponses(dto.getTotalResponses());
+        report.setExecutiveSummary(dto.getExecutiveSummary());
+        report.setRespondentSummary(dto.getRespondentSummary());
+        report.setAnswerSummary(dto.getAnswerSummary());
+        report.setRecommendation(dto.getRecommendation());
+        report.setHighlightsJson(writeJson(dto.getHighlights()));
+        report.setQuestionReportsJson(writeJson(dto.getQuestionReports()));
+        report.setPlainText(dto.getPlainText());
+
+        SurveyContentReport saved = surveyContentReportRepository.save(report);
+        return toContentReportDto(survey, saved);
+    }
+
+    private SurveyContentReportDto toContentReportDto(Survey survey, SurveyContentReport report) {
+        List<String> highlights = readStringList(report.getHighlightsJson());
+        List<SurveyContentReportDto.QuestionReportDto> questionReports = readQuestionReports(report.getQuestionReportsJson());
+        String generatedAt = report.getGeneratedAt() != null
+                ? report.getGeneratedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                : "";
+
+        return new SurveyContentReportDto(
+                survey.getId(),
+                survey.getTitle(),
+                report.getTotalResponses() != null ? report.getTotalResponses() : 0,
+                generatedAt,
+                report.getExecutiveSummary(),
+                report.getRespondentSummary(),
+                report.getAnswerSummary(),
+                report.getRecommendation(),
+                highlights,
+                questionReports,
+                report.getPlainText()
+        );
+    }
+
+    private String writeJson(Object value) {
+        try {
+            return reportObjectMapper.writeValueAsString(value);
+        } catch (Exception ex) {
+            throw new RuntimeException("Không thể lưu dữ liệu báo cáo dạng JSON.", ex);
+        }
+    }
+
+    private List<SurveyContentReportDto.QuestionReportDto> readQuestionReports(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return reportObjectMapper.readValue(json, new TypeReference<List<SurveyContentReportDto.QuestionReportDto>>() {});
+        } catch (Exception ex) {
+            log.warn("Cannot parse survey content report questionReportsJson: {}", ex.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<String> readStringList(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return reportObjectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception ex) {
+            log.warn("Cannot parse survey content report string list JSON: {}", ex.getMessage());
+            return List.of();
+        }
+    }
+
+    private AiSurveyReportRequestDto buildAiSurveyReportRequest(
+            Survey survey,
+            int totalResponses,
+            List<SurveyContentReportDto.QuestionReportDto> questionReports) {
+        String fieldName = survey.getSurveyField() != null ? survey.getSurveyField().getName() : "";
+        return new AiSurveyReportRequestDto(
+                new AiSurveyReportRequestDto.SurveyInfoDto(
+                        survey.getId(),
+                        survey.getTitle(),
+                        survey.getDescription(),
+                        fieldName
+                ),
+                totalResponses,
+                questionReports
+        );
+    }
+
+    private SurveyContentReportDto.QuestionReportDto buildQuestionContentReport(
+            Question question,
+            List<SurveyAnswer> answers,
+            int totalResponses) {
+        String type = question.getType() != null ? question.getType() : "";
+        String kind = question.getKind() != null ? question.getKind() : "";
+        String normalizedKind = !kind.isBlank() ? kind : type;
+
+        if ("rating".equals(normalizedKind) || "linear_scale".equals(normalizedKind)) {
+            return buildNumericQuestionReport(question, answers, normalizedKind);
+        }
+
+        if ("file_upload".equals(normalizedKind) || "file_upload".equals(type)) {
+            int fileCount = (int) answers.stream()
+                    .filter(answer -> answer.getSecureUrl() != null && !answer.getSecureUrl().isBlank())
+                    .count();
+            return new SurveyContentReportDto.QuestionReportDto(
+                    question.getId(), question.getTitle(), type, kind, fileCount, "",
+                    "",
+                    List.of(), null, List.of(), List.of()
+            );
+        }
+
+        if (isTextQuestion(type, normalizedKind)) {
+            return buildTextQuestionReport(question, answers, type, kind);
+        }
+
+        return buildChoiceQuestionReport(question, answers, totalResponses, type, kind, normalizedKind);
+    }
+
+    private SurveyContentReportDto.QuestionReportDto buildChoiceQuestionReport(
+            Question question,
+            List<SurveyAnswer> answers,
+            int totalResponses,
+            String type,
+            String kind,
+            String normalizedKind) {
+        Map<String, Integer> counts = new HashMap<>();
+        List<Option> options = question.getOptions() != null ? question.getOptions() : List.of();
+        for (Option option : options) {
+            counts.put(option.getText(), 0);
+        }
+        for (SurveyAnswer answer : answers) {
+            String value = answer.getAnswerText();
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+            counts.put(value, counts.getOrDefault(value, 0) + 1);
+        }
+
+        boolean checkbox = "checkbox".equals(type) || "checkbox".equals(normalizedKind);
+        int denominator = checkbox ? totalResponses : Math.max(1, answers.size());
+        List<SurveyContentReportDto.OptionInsightDto> optionInsights = counts.entrySet().stream()
+                .map(entry -> new SurveyContentReportDto.OptionInsightDto(
+                        entry.getKey(),
+                        entry.getValue(),
+                        denominator > 0 ? Math.round((entry.getValue() * 100f) / denominator) : 0
+                ))
+                .sorted(java.util.Comparator.comparing(SurveyContentReportDto.OptionInsightDto::getCount).reversed())
+                .collect(java.util.stream.Collectors.toList());
+
+        return new SurveyContentReportDto.QuestionReportDto(
+                question.getId(), question.getTitle(), type, kind, answers.size(), "", "",
+                optionInsights, null, List.of(), List.of()
+        );
+    }
+
+    private SurveyContentReportDto.QuestionReportDto buildNumericQuestionReport(
+            Question question,
+            List<SurveyAnswer> answers,
+            String normalizedKind) {
+        List<Integer> values = answers.stream()
+                .map(SurveyAnswer::getAnswerText)
+                .filter(value -> value != null && !value.isBlank())
+                .map(value -> {
+                    try {
+                        return Integer.parseInt(value.trim());
+                    } catch (NumberFormatException ex) {
+                        return null;
+                    }
+                })
+                .filter(value -> value != null)
+                .collect(java.util.stream.Collectors.toList());
+
+        int total = values.size();
+        Map<String, Integer> counts = new HashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            counts.put(String.valueOf(i), 0);
+        }
+        for (Integer value : values) {
+            counts.put(String.valueOf(value), counts.getOrDefault(String.valueOf(value), 0) + 1);
+        }
+        List<SurveyContentReportDto.OptionInsightDto> optionInsights = counts.entrySet().stream()
+                .map(entry -> new SurveyContentReportDto.OptionInsightDto(
+                        entry.getKey(), entry.getValue(), total > 0 ? Math.round((entry.getValue() * 100f) / total) : 0))
+                .sorted(java.util.Comparator.comparing(SurveyContentReportDto.OptionInsightDto::getLabel))
+                .collect(java.util.stream.Collectors.toList());
+
+        Double average = total > 0
+                ? values.stream().mapToInt(Integer::intValue).average().orElse(0)
+                : null;
+        return new SurveyContentReportDto.QuestionReportDto(
+                question.getId(), question.getTitle(), question.getType(), question.getKind(), total,
+                "", "", optionInsights, average, List.of(), List.of()
+        );
+    }
+
+    private SurveyContentReportDto.QuestionReportDto buildTextQuestionReport(
+            Question question,
+            List<SurveyAnswer> answers,
+            String type,
+            String kind) {
+        List<String> texts = answers.stream()
+                .map(SurveyAnswer::getAnswerText)
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .collect(java.util.stream.Collectors.toList());
+        List<String> notableAnswers = texts.stream().limit(5).collect(java.util.stream.Collectors.toList());
+
+        return new SurveyContentReportDto.QuestionReportDto(
+                question.getId(), question.getTitle(), type, kind, texts.size(), "", "",
+                List.of(), null, notableAnswers, List.of()
+        );
+    }
+
+    private boolean isTextQuestion(String type, String kind) {
+        return "short_text".equals(type)
+                || "short_answer".equals(kind)
+                || "paragraph".equals(kind);
     }
 
     @Transactional(readOnly = true)

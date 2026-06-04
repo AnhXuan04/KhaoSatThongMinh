@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
+import urllib.error
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
@@ -71,6 +74,11 @@ LONGEST_SAME_ANSWER_MIN_SCALE_QUESTIONS = 5
 LONGEST_SAME_ANSWER_RATE_THRESHOLD = 0.7
 SAME_ANSWER_RATE_MIN_SCALE_QUESTIONS = 10
 SAME_ANSWER_RATE_THRESHOLD = 0.8
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_BASE_URL = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
 
 
 class TrainingRecord(BaseModel):
@@ -120,6 +128,48 @@ class AnalyzeResponse(BaseModel):
     recommendation: str
     modelName: str
 
+#BÁO CÁO
+class ReportOptionInsight(BaseModel):
+    label: str = ""
+    count: int = 0
+    percentage: int = 0
+
+
+class ReportQuestion(BaseModel):
+    questionId: Optional[int] = None
+    title: str = ""
+    type: str = ""
+    kind: str = ""
+    totalAnswers: int = 0
+    options: List[ReportOptionInsight] = []
+    averageValue: Optional[float] = None
+    sampleAnswers: List[str] = []
+    notableAnswers: List[str] = []
+    keywords: List[str] = []
+
+
+class ReportSurveyInfo(BaseModel):
+    id: Optional[int] = None
+    title: str = ""
+    description: str = ""
+    field: str = ""
+
+
+class SurveyReportRequest(BaseModel):
+    survey: ReportSurveyInfo
+    totalResponses: int = 0
+    questionReports: List[ReportQuestion] = []
+
+
+class SurveyReportResponse(BaseModel):
+    executiveSummary: str
+    respondentSummary: str = ""
+    answerSummary: str
+    recommendation: str
+    highlights: List[str] = []
+    plainText: str
+    modelName: str = "ai-service-report-writer-v1"
+
 
 def preprocess_text(text: str) -> str:
     normalized = re.sub(r"\s+", " ", text.lower()).strip()
@@ -146,7 +196,150 @@ def preprocess_text(text: str) -> str:
 
     return normalized
 
+def pydantic_to_dict(model: BaseModel) -> dict:
+    if hasattr(model, "model_dump"):
+        return model.model_dump()
+    return model.dict()
 
+
+def secret_fingerprint(value: str) -> str:
+    if not value.strip():
+        return ""
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:10]
+
+
+def build_survey_report_prompt(request: SurveyReportRequest) -> str:
+    survey_data = pydantic_to_dict(request)
+    for question in survey_data.get("questionReports", []):
+        if not question.get("sampleAnswers"):
+            question["sampleAnswers"] = question.get("notableAnswers", [])
+
+    payload = json.dumps(survey_data, ensure_ascii=False, indent=2)
+    return f"""
+Bạn là chuyên gia phân tích dữ liệu khảo sát và viết báo cáo tiếng Việt.
+
+Dữ liệu dưới đây đã được Spring Boot tính sẵn thống kê như count, percentage, averageValue và sampleAnswers.
+Nhiệm vụ của bạn là viết báo cáo phân tích dựa trên dữ liệu này.
+
+Nguyên tắc bắt buộc:
+- Không bịa số liệu, không tự tạo phản hồi, không suy đoán ngoài dữ liệu.
+- Không tính lại count, percentage hoặc average nếu dữ liệu đã có.
+- Nếu dữ liệu ít hoặc chưa đủ rõ, hãy nêu hạn chế trong báo cáo.
+- Khuyến nghị phải bám vào lĩnh vực, tiêu đề khảo sát, câu hỏi, tỷ lệ, điểm trung bình và câu trả lời mẫu.
+- Giọng văn chuyên nghiệp, dễ hiểu, phù hợp báo cáo đồ án.
+- Chỉ trả về JSON hợp lệ, không thêm markdown, không thêm giải thích ngoài JSON.
+
+Cấu trúc JSON bắt buộc:
+{{
+  "executiveSummary": "Tóm tắt điều hành 2-4 câu.",
+  "respondentSummary": "Nhận xét ngắn về quy mô phản hồi và độ tin cậy dữ liệu.",
+  "answerSummary": "Tổng hợp xu hướng nội dung trả lời.",
+  "recommendation": "Khuyến nghị cụ thể theo dữ liệu khảo sát.",
+  "highlights": ["3-5 điểm nổi bật, mỗi điểm là một câu ngắn"],
+  "plainText": "Báo cáo đầy đủ có tiêu đề và các mục: Tóm tắt chung, Tổng quan câu trả lời, Xu hướng nổi bật, Phân tích theo từng câu hỏi, Khuyến nghị."
+}}
+
+Dữ liệu khảo sát:
+{payload}
+""".strip()
+
+
+def extract_json_object(text: str) -> dict:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start == -1 or end == -1 or end <= start:
+            raise
+        return json.loads(cleaned[start:end + 1])
+
+
+def call_gemini_report_writer(prompt: str) -> tuple[dict, str]:
+    if not GEMINI_API_KEY.strip():
+        raise ValueError("GEMINI_API_KEY is not configured.")
+
+    url = f"{GEMINI_BASE_URL.rstrip('/')}/v1beta/models/{GEMINI_MODEL}:generateContent"
+    body = json.dumps({
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": prompt}],
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.4,
+            "responseMimeType": "application/json",
+        },
+    }).encode("utf-8")
+    http_request = urllib.request.Request(
+        url,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY,
+        },
+        method="POST",
+    )
+
+    with urllib.request.urlopen(http_request, timeout=LLM_TIMEOUT_SECONDS) as response:
+        response_body = response.read().decode("utf-8")
+
+    result = json.loads(response_body)
+    candidates = result.get("candidates", [])
+    if not candidates:
+        raise ValueError("Gemini returned no candidates.")
+
+    parts = candidates[0].get("content", {}).get("parts", [])
+    raw_report = "".join(part.get("text", "") for part in parts)
+    if not raw_report.strip():
+        raise ValueError("Gemini returned an empty report.")
+    return extract_json_object(raw_report), GEMINI_MODEL
+
+
+def normalize_llm_report(data: dict, model_name: str) -> SurveyReportResponse:
+    required_fields = ["executiveSummary", "answerSummary", "recommendation", "plainText"]
+    missing = [field for field in required_fields if not str(data.get(field, "")).strip()]
+    if missing:
+        raise ValueError(f"LLM report is missing required fields: {', '.join(missing)}")
+
+    highlights = data.get("highlights", [])
+    if not isinstance(highlights, list):
+        highlights = []
+
+    return SurveyReportResponse(
+        executiveSummary=str(data["executiveSummary"]).strip(),
+        respondentSummary=str(data.get("respondentSummary", "")).strip(),
+        answerSummary=str(data["answerSummary"]).strip(),
+        recommendation=str(data["recommendation"]).strip(),
+        highlights=[str(item).strip() for item in highlights if str(item).strip()],
+        plainText=str(data["plainText"]).strip(),
+        modelName=model_name,
+    )
+
+
+def build_ai_survey_report(request: SurveyReportRequest) -> SurveyReportResponse:
+    if LLM_PROVIDER != "gemini":
+        raise HTTPException(status_code=503, detail=f"Unsupported LLM_PROVIDER: {LLM_PROVIDER}")
+
+    prompt = build_survey_report_prompt(request)
+    try:
+        report_data, model_name = call_gemini_report_writer(prompt)
+        return normalize_llm_report(report_data, model_name)
+    except urllib.error.HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")
+        raise HTTPException(status_code=502, detail=f"Gemini API error {exc.code}: {error_body}") from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise HTTPException(status_code=503, detail=f"LLM service is not available: {exc}") from exc
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail=f"LLM returned an invalid report: {exc}") from exc
+
+#--------------------------------------------------------------------
 def calculate_scale_answer_stats(request: AnalyzeRequest) -> dict:
     scale_values = [
         answer.answerText.strip()
@@ -295,6 +488,11 @@ def health():
         "transformersReady": TRANSFORMERS_READY,
         "visualizationReady": VISUALIZATION_READY,
         "modelExists": MODEL_PATH.exists(),
+        "llmProvider": LLM_PROVIDER,
+        "geminiModel": GEMINI_MODEL if LLM_PROVIDER == "gemini" else None,
+        "geminiBaseUrl": GEMINI_BASE_URL if LLM_PROVIDER == "gemini" else None,
+        "geminiApiKeyConfigured": bool(GEMINI_API_KEY.strip()),
+        "geminiApiKeyFingerprint": secret_fingerprint(GEMINI_API_KEY),
     }
 
 
@@ -482,3 +680,8 @@ def analyze_response(request: AnalyzeRequest):
         recommendation="Đủ điều kiện cho admin duyệt coin." if reward_eligible else "Chưa đủ điều kiện thưởng coin.",
         modelName=model_name,
     )
+
+
+@app.post("/api/generate-survey-content-report", response_model=SurveyReportResponse)
+def generate_survey_content_report(request: SurveyReportRequest):
+    return build_ai_survey_report(request)

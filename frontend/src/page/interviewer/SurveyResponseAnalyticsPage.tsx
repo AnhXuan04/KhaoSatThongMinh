@@ -31,6 +31,19 @@ type QualityAnalytics = {
 	recentResults: QualityResult[];
 };
 
+type ContentReport = {
+	surveyId: number;
+	surveyTitle: string;
+	totalResponses: number;
+	generatedAt: string;
+	executiveSummary: string;
+	respondentSummary?: string;
+	answerSummary?: string;
+	recommendation: string;
+	highlights: string[];
+	plainText: string;
+};
+
 const defaultAnalytics: QualityAnalytics = {
 	totalResponses: 0,
 	totalAnalyzedResponses: 0,
@@ -49,7 +62,9 @@ export default function SurveyResponseAnalytics() {
 	const [searchParams] = useSearchParams();
 	const surveyId = searchParams.get('surveyId');
 	const [analytics, setAnalytics] = useState<QualityAnalytics>(defaultAnalytics);
+	const [contentReport, setContentReport] = useState<ContentReport | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [refreshingReport, setRefreshingReport] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
@@ -80,6 +95,19 @@ export default function SurveyResponseAnalytics() {
 					...data,
 					recentResults: Array.isArray(data.recentResults) ? data.recentResults : [],
 				});
+				if (surveyId) {
+					try {
+						const reportResponse = await axios.get(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/content-report`), {
+							headers: { Authorization: `Bearer ${token}` },
+						});
+						setContentReport(reportResponse.data || null);
+					} catch (reportErr) {
+						console.error('Lỗi khi tải báo cáo nội dung khảo sát:', reportErr);
+						setContentReport(null);
+					}
+				} else {
+					setContentReport(null);
+				}
 				setUpdatedAt(new Date());
 				setError(null);
 			} catch (err) {
@@ -108,6 +136,41 @@ export default function SurveyResponseAnalytics() {
 		{ title: 'Hời hợt', value: analytics.superficialResponses, icon: <FiAlertTriangle /> },
 		{ title: 'Đủ điều kiện cộng Coin', value: `${analytics.rewardEligibleRate}%`, icon: <FiClock /> },
 	], [analytics, seriousResponses]);
+
+	const downloadContentReport = () => {
+		if (!contentReport?.plainText) return;
+		const blob = new Blob([contentReport.plainText], { type: 'text/plain;charset=utf-8' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `bao-cao-khao-sat-${contentReport.surveyId}.txt`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	};
+
+	const refreshContentReport = async () => {
+		const token = getAuthToken();
+		if (!surveyId || !token) return;
+
+		setRefreshingReport(true);
+		try {
+			const response = await axios.post(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/content-report/refresh`), null, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			setContentReport(response.data || null);
+			setUpdatedAt(new Date());
+		} catch (err) {
+			console.error('Lỗi khi cập nhật báo cáo nội dung khảo sát:', err);
+			const message = axios.isAxiosError(err)
+				? (err.response?.data?.message || err.response?.data?.detail || err.message)
+				: 'Lỗi khi cập nhật báo cáo khảo sát';
+			setError(`Lỗi khi cập nhật báo cáo khảo sát: ${message}`);
+		} finally {
+			setRefreshingReport(false);
+		}
+	};
 
 	if (loading) {
 		return <div className="sra-state">Đang tải dữ liệu phân tích AI...</div>;
@@ -154,6 +217,48 @@ export default function SurveyResponseAnalytics() {
 							<div className="sra-percent-label">Hời hợt</div>
 						</div>
 					</div>
+				</div>
+
+				<div className="sra-report-card">
+					<div className="sra-report-header">
+						<div>
+							<div className="sra-report-title">Báo cáo Đánh giá Chi tiết</div>
+							<div className="sra-report-meta">
+								{contentReport
+									? `${contentReport.totalResponses} phản hồi • ${contentReport.generatedAt}`
+									: 'Bấm cập nhật để tạo báo cáo từ số liệu phản hồi hiện tại'}
+							</div>
+						</div>
+						<div className="sra-report-actions">
+							{surveyId && (
+								<button type="button" className="sra-report-download" onClick={refreshContentReport} disabled={refreshingReport}>
+									{refreshingReport ? 'Đang cập nhật...' : 'Cập nhật báo cáo'}
+								</button>
+							)}
+							{contentReport?.plainText && (
+							<button type="button" className="sra-report-download" onClick={downloadContentReport}>
+								Tải TXT
+							</button>
+							)}
+						</div>
+					</div>
+					{contentReport ? (
+						<div className="sra-report-body">
+							<p>{contentReport.executiveSummary}</p>
+							{contentReport.respondentSummary && <p>{contentReport.respondentSummary}</p>}
+							{contentReport.answerSummary && <p>{contentReport.answerSummary}</p>}
+							{contentReport.highlights?.length > 0 && (
+								<ul className="sra-report-highlights">
+									{contentReport.highlights.slice(0, 5).map((item, index) => (
+										<li key={index}>{item}</li>
+									))}
+								</ul>
+							)}
+							<p className="sra-report-recommendation">{contentReport.recommendation}</p>
+						</div>
+					) : (
+						<div className="sra-empty">Chưa có báo cáo nội dung đã lưu cho khảo sát này.</div>
+					)}
 				</div>
 
 				<div className="sra-analytics-right">

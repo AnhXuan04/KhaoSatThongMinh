@@ -306,4 +306,31 @@ public class SurveyController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
+
+    @GetMapping("/{id}/content-report")
+    @PreAuthorize("hasAuthority('INTERVIEWER')")
+    public ResponseEntity<SurveyContentReportDto> getSurveyContentReport(@PathVariable("id") Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        try {
+            return ResponseEntity.ok(surveyResponseService.getContentReportForSurvey(id, email));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/{id}/content-report/refresh")
+    @PreAuthorize("hasAuthority('INTERVIEWER')")
+    public ResponseEntity<?> refreshSurveyContentReport(@PathVariable("id") Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        try {
+            return ResponseEntity.ok(surveyResponseService.refreshContentReportForSurvey(id, email));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
 }
