@@ -4,9 +4,10 @@
 		radial-gradient(circle at top left, rgba(37, 99, 235, 0.09), transparent 30%),
 		linear-gradient(180deg, #fcfbff 0%, #eef2f7 100%);
 	color: #111827;
-	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	font-family: var(--app-font-family);
 	font-size: 16px;
 	line-height: 1.45;
+	overflow-x: hidden;
 }
 
 .mngSurveyReviewMain {
@@ -33,6 +34,7 @@
 	padding: 12px 6px 10px;
 	cursor: pointer;
 	position: relative;
+	white-space: nowrap;
 }
 
 .mngSurveyReviewTabs button.isActive {
@@ -60,6 +62,7 @@
 
 .mngSurveyReviewHeroLeft {
 	min-width: 230px;
+	max-width: 100%;
 }
 
 .mngSurveyReviewEyebrow,
@@ -85,6 +88,7 @@
 	margin: 0;
 	font-size: 15px;
 	color: #6b7280;
+	overflow-wrap: anywhere;
 }
 
 .mngSurveyReviewHeroRight {
@@ -99,6 +103,7 @@
 	border-radius: 14px;
 	padding: 16px 18px;
 	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+	min-width: 0;
 }
 
 .mngSurveyReviewStatusBlock {
@@ -193,6 +198,7 @@
 	line-height: 1.3;
 	color: #111827;
 	font-weight: 700;
+	overflow-wrap: anywhere;
 }
 
 .mngSurveyReviewPanelIndex {
@@ -246,6 +252,7 @@
 	flex-direction: column;
 	gap: 12px;
 	min-width: 220px;
+	max-width: 100%;
 }
 
 .mngSurveyReviewLegendItem {
@@ -656,11 +663,21 @@
 	}
 
 	.mngSurveyReviewHeroNumber {
-		font-size: 52px;
+		font-size: 28px;
 	}
 
 	.mngSurveyReviewPanel {
 		padding: 16px;
+	}
+
+	.mngSurveyReviewHeroRight {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.mngSurveyReviewExportBtn {
+		justify-content: center;
+		width: 100%;
 	}
 
 	.mngSurveyReviewQuestionChart {
@@ -674,5 +691,24 @@
 
 	.mngSurveyReviewAverage strong {
 		font-size: 28px;
+	}
+
+	.mngSurveyReviewBarRow {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	.mngRatingStarsRow,
+	.mngRatingDistribution {
+		gap: 8px;
+		overflow-x: auto;
+		justify-content: flex-start;
+		padding-bottom: 6px;
+	}
+
+	.mngSurveyReviewLinearBars {
+		gap: 12px;
+		padding: 0 12px;
+		overflow-x: auto;
 	}
 }

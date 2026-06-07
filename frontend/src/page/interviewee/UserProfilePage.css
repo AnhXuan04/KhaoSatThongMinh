@@ -2,6 +2,7 @@
   background-color: #ffffff;
   min-height: 100vh;
   padding-bottom: 80px;
+  overflow-x: hidden;
 }
 
 .profileMainContent {
@@ -67,6 +68,7 @@
 
 .sectionBody {
   flex-grow: 1;
+  min-width: 0;
 }
 
 /* 01. Ảnh đại diện */
@@ -130,12 +132,14 @@
   margin: 0 0 4px 0;
   font-size: 18px;
   color: #111827;
+  overflow-wrap: anywhere;
 }
 
 .avatarInfo p {
   margin: 0 0 12px 0;
   font-size: 13px;
   color: #6b7280;
+  overflow-wrap: anywhere;
 }
 
 .changePhotoText {
@@ -232,4 +236,60 @@
 .saveProfileBtn:hover {
   background-color: #0043d1;
   transform: translateY(-2px); 
+}
+
+@media (max-width: 720px) {
+  .profileMainContent {
+    margin: 32px auto;
+    padding: 0 14px;
+  }
+
+  .pageHeader {
+    margin-bottom: 32px;
+  }
+
+  .pageTitle {
+    font-size: 26px;
+    line-height: 1.2;
+  }
+
+  .contentSection {
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+  }
+
+  .sectionLabel {
+    width: auto;
+    padding-top: 0;
+  }
+
+  .avatarGroup {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .avatarWrapper {
+    width: 86px;
+    height: 86px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tagBtn {
+    padding: 9px 14px;
+  }
+
+  .profileActionContainer {
+    justify-content: stretch;
+  }
+
+  .saveProfileBtn {
+    width: 100%;
+  }
 }

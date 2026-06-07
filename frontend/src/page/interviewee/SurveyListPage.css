@@ -4,6 +4,7 @@
   min-height: 100vh;
   padding-bottom: 80px;
   position: relative;
+  overflow-x: hidden;
 }
 
 /* Nội dung chính */
@@ -104,6 +105,7 @@
   margin: 0 0 12px 0;
   font-size: 18px;
   color: #1e293b;
+  overflow-wrap: anywhere;
 }
 
 .surveyActionCard p {
@@ -112,6 +114,7 @@
   color: #64748b;
   line-height: 1.5;
   flex-grow: 1;
+  overflow-wrap: anywhere;
 }
 
 .cardBottomRow {
@@ -165,6 +168,7 @@
   margin: 0 0 6px 0;
   font-size: 15px;
   color: #1e293b;
+  overflow-wrap: anywhere;
 }
 
 .historyInfo p {
@@ -245,4 +249,70 @@
   background: #0052ff;
   color: #fff;
   border-color: #0052ff;
+}
+
+@media (max-width: 768px) {
+  .surveyContent {
+    padding: 28px 14px;
+    gap: 36px;
+  }
+
+  .sectionTitleGroup {
+    align-items: flex-start;
+  }
+
+  .sectionNumber {
+    font-size: 26px;
+  }
+
+  .sectionTitle {
+    font-size: 21px;
+    line-height: 1.25;
+  }
+
+  .sectionSubtitle,
+  .surveyGrid,
+  .historyList,
+  .fieldChips {
+    margin-left: 0;
+  }
+
+  .surveyGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .surveyActionCard {
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .cardBottomRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .joinBtn {
+    width: 100%;
+  }
+
+  .historyItem {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .historyReward {
+    align-items: flex-start;
+  }
+
+  .fabBtn {
+    right: 18px;
+    bottom: 18px;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+  }
 }

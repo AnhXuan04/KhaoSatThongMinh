@@ -8,6 +8,7 @@
   position: sticky;
     top: 0;
     z-index: 100;
+  gap: 16px;
 }
 
 .userInfo {
@@ -15,6 +16,7 @@
   align-items: center;
   gap: 12px;
   text-decoration: none;
+  min-width: 0;
 }
 
 .userAvatarBox {
@@ -39,6 +41,7 @@
 .userNameText {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .welcomeText {
@@ -53,6 +56,9 @@
   font-size: 16px;
   font-weight: 700;
   color: #0052ff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .userNavLinks {
@@ -62,12 +68,14 @@
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  min-width: 0;
 }
 
 .userNavLinks a {
   color: #6b7280;
   text-decoration: none;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 .userNavLinks a.active {
@@ -86,6 +94,8 @@
   font-size: 14px;
   color: #111827;
   box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .coinIcon {
@@ -109,4 +119,60 @@
   color: #ff4d4f; 
   background-color: rgba(255, 77, 79, 0.1);
   transform: scale(1.1);
+}
+
+@media (max-width: 900px) {
+  .userHeader {
+    flex-wrap: wrap;
+    padding: 16px 20px;
+  }
+
+  .userInfo {
+    flex: 1 1 auto;
+  }
+
+  .userNavLinks {
+    order: 4;
+    width: 100%;
+    gap: 18px;
+    overflow-x: auto;
+    padding: 2px 0 6px;
+    scrollbar-width: thin;
+  }
+}
+
+@media (max-width: 600px) {
+  .userHeader {
+    padding: 12px 14px;
+    gap: 10px 12px;
+  }
+
+  .userAvatarBox {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+
+  .welcomeText {
+    font-size: 9px;
+  }
+
+  .nameText {
+    max-width: 150px;
+    font-size: 14px;
+  }
+
+  .userNavLinks {
+    gap: 14px;
+    font-size: 12px;
+  }
+
+  .coinBalance {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .logoutButton {
+    padding: 7px;
+  }
 }

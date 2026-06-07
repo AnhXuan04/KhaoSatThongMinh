@@ -1,6 +1,7 @@
 .profilePageContainer {
   background-color: #fafbfe;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .profileContent {
@@ -69,6 +70,7 @@
   margin: 0 0 16px 0;
   font-size: 13px;
   color: #6b7280;
+  overflow-wrap: anywhere;
 }
 
 .changePicBtn {
@@ -125,6 +127,7 @@
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 
 .formGroup input:focus, .formGroup select:focus {
@@ -155,4 +158,62 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .profileContent {
+    margin: 24px auto;
+    padding: 0 12px;
+  }
+
+  .profileHeader h1 {
+    font-size: 22px;
+  }
+
+  .profileHeader p {
+    margin-bottom: 20px;
+  }
+
+  .editCard {
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .avatarSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+  }
+
+  .avatarPreview {
+    width: 84px;
+    height: 84px;
+  }
+
+  .changePicBtn,
+  .removePicBtn {
+    margin: 0 8px 8px 0;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .formGroup.fullWidth {
+    grid-column: auto;
+  }
+
+  .actionButtons {
+    flex-direction: column-reverse;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    width: 100%;
+  }
 }

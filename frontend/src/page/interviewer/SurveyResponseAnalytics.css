@@ -3,15 +3,16 @@
   padding: 4px 20px;
   max-width: 1100px;
   margin: 0 auto 36px;
-  font-family: Inter, system-ui, Arial, sans-serif;
+  font-family: var(--app-font-family);
   color: #111827;
   width: 100%;
+  overflow-x: hidden;
 }
 .sra-state {
   padding: 28px 20px;
   text-align: center;
   color: #6b7280;
-  font-family: Inter, system-ui, Arial, sans-serif;
+  font-family: var(--app-font-family);
 }
 .sra-state-error {
   color: #b91c1c;
@@ -41,7 +42,7 @@
   box-shadow: 0 1px 2px rgba(16,24,40,0.04);
   flex: 1 1 0;
 }
-.sra-card-left { display:flex; flex-direction:column; }
+.sra-card-left { display:flex; flex-direction:column; min-width: 0; }
 .sra-card-value { font-size: 20px; font-weight:700; }
 .sra-card-title { color: #6b7280; font-size: 12px; margin-top:6px; }
 .sra-card-icon { color: #6b7280; font-size: 20px; }
@@ -79,6 +80,7 @@
   font-weight: 700;
   font-size: 16px;
   color: #111827;
+  overflow-wrap: anywhere;
 }
 .sra-report-meta {
   color: #6b7280;
@@ -135,10 +137,10 @@
 .sra-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
 .sra-list-item { width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; background:#f8fafc; padding:10px 12px; border-radius:8px; border:0; cursor:pointer; text-align:left; color:inherit; font:inherit; }
 .sra-list-item:hover { background:#eef6ff; }
-.sra-list-left { display:flex; gap:12px; align-items:center; }
+.sra-list-left { display:flex; gap:12px; align-items:center; min-width:0; }
 .sra-list-icon { background:#eef2ff; color:#1e3a8a; padding:8px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
-.sra-list-title { font-weight:600; }
-.sra-list-meta { color:#6b7280; font-size:12px; margin-top:4px; }
+.sra-list-title { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sra-list-meta { color:#6b7280; font-size:12px; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .sra-list-score { background:#fff; padding:6px 10px; border-radius:12px; color:#065f46; font-weight:700; border:1px solid #e6f4ea; }
 .sra-list-score.is-bad { color:#b45309; border-color:#fde68a; background:#fffbeb; }
 .sra-list-score.is-good { color:#065f46; border-color:#bbf7d0; background:#f0fdf4; }
@@ -148,4 +150,42 @@
   .sra-analytics { flex-direction:column; }
   .sra-summary { flex-direction:column; }
   .sra-report-header { flex-direction: column; }
+}
+
+@media (max-width: 520px) {
+  .sra-root {
+    padding: 4px 12px;
+  }
+
+  .sra-title {
+    font-size: 18px;
+  }
+
+  .sra-card,
+  .sra-report-card,
+  .sra-analytics-left,
+  .sra-analytics-right {
+    padding: 12px;
+  }
+
+  .sra-percent-row {
+    flex-direction: column;
+  }
+
+  .sra-report-actions,
+  .sra-report-download {
+    width: 100%;
+  }
+
+  .sra-report-download {
+    text-align: center;
+  }
+
+  .sra-list-item {
+    align-items: flex-start;
+  }
+
+  .sra-list-score {
+    flex-shrink: 0;
+  }
 }

@@ -2,8 +2,9 @@
 .dashboardContainer {
   background-color: #fafbfe; /* Màu nền xám xanh nhạt */
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--app-font-family);
   padding-bottom: 50px;
+  overflow-x: hidden;
 }
 
 /* Container chính chứa nội dung */
@@ -35,6 +36,7 @@
 
 .sectionContent {
   flex-grow: 1;
+  min-width: 0;
 }
 
 /* Card chung */
@@ -56,6 +58,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  min-width: 0;
 }
 
 .profileAvatar {
@@ -92,6 +95,7 @@
   margin: 0 0 4px 0;
   font-size: 22px;
   color: #111827;
+  overflow-wrap: anywhere;
 }
 
 .profileText p {
@@ -109,6 +113,7 @@
   color: #374151;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .updateBtn:hover {
@@ -174,6 +179,7 @@
   font-size: 13px;
   color: #6b7280;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .legend {
@@ -347,6 +353,7 @@
   margin: 0 0 8px 0;
   font-size: 16px;
   color: #111827;
+  overflow-wrap: anywhere;
 }
 
 .surveyCard p {
@@ -354,6 +361,7 @@
   font-size: 13px;
   color: #6b7280;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .addBtn {
@@ -419,10 +427,15 @@
 .qualityList {
   display: grid;
   gap: 10px;
+  max-height: calc((68px * 4) + (10px * 3));
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
 }
 
 .qualityItem {
   width: 100%;
+  min-height: 68px;
   border: 1px solid #edf0f5;
   border-radius: 8px;
   background: #ffffff;
@@ -432,6 +445,11 @@
   align-items: center;
   text-align: left;
   cursor: pointer;
+  gap: 12px;
+}
+
+.qualityItem > div:first-child {
+  min-width: 0;
 }
 
 .qualityItem strong {
@@ -439,12 +457,22 @@
   color: #111827;
   font-size: 14px;
   margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .qualityItem span,
 .emptyQuality {
   color: #6b7280;
   font-size: 12px;
+}
+
+.qualityItem span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .qualityBadge {
@@ -479,5 +507,135 @@
   .chartCard {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboardContainer {
+    padding-bottom: 28px;
+  }
+
+  .mainContent {
+    padding: 24px 12px;
+    gap: 24px;
+  }
+
+  .sectionWrapper {
+    display: block;
+  }
+
+  .card {
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .profileCard {
+    gap: 16px;
+  }
+
+  .profileInfo {
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .profileAvatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+  }
+
+  .profileAvatar img {
+    border-radius: 10px;
+  }
+
+  .profileText h2 {
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .profileText p {
+    font-size: 13px;
+  }
+
+  .updateBtn {
+    width: 100%;
+  }
+
+  .profileCard a {
+    width: 100%;
+  }
+
+  .insightsGrid,
+  .qualityGrid,
+  .recentGrid {
+    gap: 16px;
+  }
+
+  .chartCard {
+    gap: 18px;
+  }
+
+  .chartCircle {
+    width: 104px;
+    height: 104px;
+  }
+
+  .chartInner {
+    width: 82px;
+    height: 82px;
+  }
+
+  .chartInner h3 {
+    font-size: 21px;
+  }
+
+  .legend {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+
+  .dashboardContainer .actionCard {
+    min-height: 156px;
+  }
+
+  .dashboardContainer .actionCard p {
+    max-width: none;
+  }
+
+  .recentHeader {
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .recentHeader h3 {
+    font-size: 16px;
+  }
+
+  .qualityStats div {
+    gap: 12px;
+  }
+
+  .qualityStats span {
+    min-width: 0;
+  }
+
+  .qualityStats strong {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .qualityItem {
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .qualityBadge {
+    min-width: 48px;
+    height: 30px;
+  }
+
+  .addBtn {
+    right: 8px;
+    bottom: 8px;
   }
 }

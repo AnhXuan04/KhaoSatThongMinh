@@ -13,6 +13,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
 .publicHeaderLogo {
@@ -23,6 +24,7 @@
   font-size: 18px;
   color: #0047ab;
   text-decoration: none;
+  min-width: 0;
 }
 
 .publicHeaderIcon {
@@ -42,6 +44,7 @@
   font-weight: 500;
   font-size: 14px;
   transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .publicHeaderLink:hover {
@@ -51,6 +54,7 @@
 .publicHeaderActions {
   display: flex;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .publicBtnLogin,
@@ -103,5 +107,34 @@
 
   .publicHeaderText {
     font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 520px) {
+  .publicHeaderContent {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .publicHeaderLogo {
+    font-size: 15px;
+  }
+
+  .publicHeaderIcon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .publicHeaderActions {
+    gap: 8px;
+  }
+
+  .publicBtnLogin,
+  .publicBtnSignup {
+    padding: 8px 10px;
+    font-size: 12px;
   }
 }

@@ -4,7 +4,7 @@
   display: grid;
   grid-template-columns: 280px 1fr;
   color: #1f2937;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--app-font-family);
 }
 
 .adminSidebar {

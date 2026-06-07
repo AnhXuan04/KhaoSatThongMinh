@@ -1,7 +1,7 @@
 .homePageContainer {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f9 100%);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--app-font-family);
   display: flex;
   flex-direction: column;
 }

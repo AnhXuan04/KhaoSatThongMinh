@@ -8,6 +8,7 @@
   position: sticky;
     top: 0;
     z-index: 100;
+  gap: 16px;
 }
 
 .navLeft {
@@ -18,6 +19,7 @@
   font-size: 18px;
   color: #111827;
   text-decoration: none;
+  min-width: 0;
 }
 
 .navCenter {
@@ -25,11 +27,13 @@
   gap: 32px;
   font-weight: 500;
   color: #6b7280;
+  min-width: 0;
 }
 
 .navCenter a {
   text-decoration: none;
   color: #6b7280;
+  white-space: nowrap;
 }
 
 .navCenter a.active {
@@ -47,4 +51,25 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 12px 14px;
+  }
+
+  .navLeft {
+    flex: 1 1 auto;
+    font-size: 16px;
+  }
+
+  .navCenter {
+    order: 3;
+    width: 100%;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
 }

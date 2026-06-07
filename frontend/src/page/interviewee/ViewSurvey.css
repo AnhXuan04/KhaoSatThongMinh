@@ -2,6 +2,7 @@
   padding: 24px;
   max-width: 900px;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 .survey-header {
   margin-bottom: 18px;
@@ -9,6 +10,7 @@
 .survey-header h1 {
   margin: 8px 0;
   font-size: 28px;
+  overflow-wrap: anywhere;
 }
 .survey-desc {
   color: #555;
@@ -35,6 +37,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 8px;
+  min-width: 0;
 }
 .question-number {
   font-weight: 700;
@@ -42,6 +45,8 @@
 }
 .question-text {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .required {
   color: #d9534f;
@@ -53,6 +58,7 @@
   align-items: center;
   gap: 8px;
   margin: 6px 0;
+  min-width: 0;
 }
 .short-text-input {
   width: 100%;
@@ -149,6 +155,7 @@
   border-radius: 8px;
   background: #f8f9fa;
   transition: all 0.2s ease;
+  min-width: 0;
 }
 
 .file-upload-label:hover .upload-box {
@@ -228,6 +235,7 @@
   justify-content: center;
   gap: 34px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .scale-button {
@@ -272,6 +280,7 @@
   gap: 34px;
   min-height: 72px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .star-button {
@@ -305,6 +314,45 @@
 }
 
 @media (max-width: 520px) {
+  .view-survey-container {
+    padding: 16px 12px;
+  }
+
+  .survey-header h1 {
+    font-size: 23px;
+  }
+
+  .question-block {
+    padding: 12px;
+  }
+
+  .question-title {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .option-row {
+    align-items: flex-start;
+  }
+
+  .upload-box {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .survey-actions {
+    flex-direction: column-reverse;
+  }
+
+  .survey-actions .btn {
+    width: 100%;
+  }
+
+  .linear-scale-container,
+  .rating-container {
+    padding: 12px;
+  }
+
   .scale-options,
   .rating-stars {
     gap: 8px;

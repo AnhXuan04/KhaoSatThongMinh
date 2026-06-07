@@ -2,6 +2,8 @@
 	max-width: 900px;
 	margin: 0 auto;
 	font-family: inherit;
+	padding: 0 16px;
+	overflow-x: hidden;
 }
 
 .title {
@@ -55,11 +57,13 @@
 	display: flex;
 	gap: 32px;
 	margin-bottom: 16px;
+	flex-wrap: wrap;
 }
 
 .btn-group {
 	display: flex;
 	gap: 12px;
+	flex-wrap: wrap;
 }
 
 .btn-primary {
@@ -296,8 +300,46 @@
 }
 
 @media (max-width: 720px) {
+	.container {
+		padding: 0 12px;
+	}
+
+	.title {
+		font-size: 22px;
+	}
+
 	.flex {
 		flex-direction: column;
+		gap: 16px;
+		margin-bottom: 24px;
+	}
+
+	.card {
+		padding: 16px;
+	}
+
+	.card-side {
+		min-width: 0;
+	}
+
+	.row {
+		gap: 12px;
+	}
+
+	.btn-group {
+		flex-direction: column;
+	}
+
+	.btn-primary,
+	.btn-danger,
+	.btn-secondary {
+		width: 100%;
+	}
+
+	.table {
+		display: block;
+		overflow-x: auto;
+		white-space: nowrap;
 	}
 
 	.renew-plan-grid {
@@ -306,6 +348,17 @@
 
 	.renew-modal {
 		padding: 18px;
+		border-radius: 14px;
+		max-height: calc(100vh - 32px);
+		overflow-y: auto;
+	}
+
+	.renew-modal-header {
+		gap: 10px;
+	}
+
+	.renew-modal-header h3 {
+		font-size: 20px;
 	}
 
 	.renew-modal-footer {
