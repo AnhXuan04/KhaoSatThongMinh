@@ -422,15 +422,18 @@ def enrich_behavior_features(df):
     scale_density = df["scaleQuestionCount"].fillna(0) / question_count
     answers_per_minute = question_count / (df["totalDurationMs"].replace(0, 1) / 60000)
     has_text_signal = (df["avgAnswerLength"].fillna(0) > 0).astype(int)
+    has_behavior_signal = (df["totalDurationMs"].fillna(0) > 0).astype(int)
 
     df["answerChangeRate"] = change_rate
     df["scaleQuestionRate"] = scale_density
     df["answersPerMinute"] = answers_per_minute
     df["repetitionRate"] = repetition_rate
     df["hasTextSignal"] = has_text_signal
+    df["hasBehaviorSignal"] = has_behavior_signal
     df["speedRepetitionInteraction"] = answers_per_minute * repetition_rate
     df["speedLowEngagementInteraction"] = answers_per_minute * (1 - change_rate.clip(upper=1))
     df["speedNoTextInteraction"] = answers_per_minute * (1 - has_text_signal)
+    df["missingBehaviorInteraction"] = answers_per_minute * (1 - has_behavior_signal)
     return df
 
 
@@ -473,6 +476,7 @@ def build_features(request: AnalyzeRequest) -> dict:
         "answers_per_minute": question_count / (total_duration_ms / 60000) if total_duration_ms else 0,
         "repetition_rate": max(scale_stats["longestRate"], scale_stats["sameAnswerRate"]),
         "has_text_signal": 1 if avg_answer_length > 0 else 0,
+        "has_behavior_signal": 1 if total_duration_ms > 0 else 0,
         "scale_stats": scale_stats,
     }
 
@@ -578,9 +582,11 @@ def train_superficial_model(request: TrainRequest):
         "answersPerMinute",
         "repetitionRate",
         "hasTextSignal",
+        "hasBehaviorSignal",
         "speedRepetitionInteraction",
         "speedLowEngagementInteraction",
         "speedNoTextInteraction",
+        "missingBehaviorInteraction",
     ]
     x = df[feature_columns]
     y = df["label"]
@@ -619,9 +625,11 @@ def train_superficial_model(request: TrainRequest):
                     "answersPerMinute",
                     "repetitionRate",
                     "hasTextSignal",
+                    "hasBehaviorSignal",
                     "speedRepetitionInteraction",
                     "speedLowEngagementInteraction",
                     "speedNoTextInteraction",
+                    "missingBehaviorInteraction",
                 ],
             ),
         ]
@@ -694,10 +702,12 @@ def analyze_response(request: AnalyzeRequest):
         "answersPerMinute": features["answers_per_minute"],
         "repetitionRate": features["repetition_rate"],
         "hasTextSignal": features["has_text_signal"],
+        "hasBehaviorSignal": features["has_behavior_signal"],
     }])
     df["speedRepetitionInteraction"] = df["answersPerMinute"] * df["repetitionRate"]
     df["speedLowEngagementInteraction"] = df["answersPerMinute"] * (1 - df["answerChangeRate"].clip(upper=1))
     df["speedNoTextInteraction"] = df["answersPerMinute"] * (1 - df["hasTextSignal"])
+    df["missingBehaviorInteraction"] = df["answersPerMinute"] * (1 - df["hasBehaviorSignal"])
 
     probabilities = model.predict_proba(df)[0]
     quality_probability = float(probabilities[1])
