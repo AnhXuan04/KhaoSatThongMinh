@@ -12,6 +12,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (isLoading) return;
     setMessage('');
     setErrorMessage('');
     setIsLoading(true);
@@ -31,15 +32,15 @@ export default function ForgotPasswordPage() {
         setTimeout(() => {
            navigate('/reset-password', { state: { email: email } }); 
         }, 2000);
+        return;
       } else {
         setErrorMessage(result);
       }
     } catch (error) {
       console.error("Lỗi:", error);
       setErrorMessage("Không thể kết nối đến máy chủ.");
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   return (

@@ -29,6 +29,7 @@ export default function ViewSurvey() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [submitting, setSubmitting] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [previewFile, setPreviewFile] = useState<{ name: string; url: string } | null>(null);
   const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -184,6 +185,7 @@ export default function ViewSurvey() {
   };
 
   const handleSubmit = async () => {
+    if (submitting) return;
     if (!survey || !id) return;
 
     const answerableQuestions = survey.questions.filter((q) => q.kind !== 'image' && q.kind !== 'video');
@@ -218,6 +220,8 @@ export default function ViewSurvey() {
         return answer;
       });
 
+    setSubmitting(true);
+
     try {
       const totalDurationMs = Date.now() - surveyStartedAtRef.current;
       const behaviorLogs = [
@@ -248,6 +252,8 @@ export default function ViewSurvey() {
     } catch (e) {
       console.error(e);
       alert('Lỗi khi gửi phản hồi');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -483,7 +489,9 @@ export default function ViewSurvey() {
           {isReadonly ? 'Quay lại' : 'Hủy'}
         </button>
         {!isReadonly && (
-          <button className="btn btn-primary" onClick={handleSubmit}>Gửi phản hồi</button>
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? 'Đang gửi...' : 'Gửi phản hồi'}
+          </button>
         )}
       </div>
     </div>

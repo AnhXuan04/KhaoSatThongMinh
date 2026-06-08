@@ -48,6 +48,56 @@ const sideMenus = [
 
 const numberFormatter = new Intl.NumberFormat('vi-VN');
 
+const normalizeText = (value?: string) => (value || '').toLowerCase();
+
+const getQualitySignals = (item: CoinReview) => {
+  const summary = normalizeText(item.analysisSummary);
+  const reason = normalizeText(item.reason);
+  const text = `${summary} ${reason}`;
+  const needsReview = item.qualityScore < 70 || item.superficial;
+  const signals: { type: 'ok' | 'bad'; label: string }[] = [
+    { type: 'ok', label: 'Đủ dữ liệu câu hỏi' }
+  ];
+
+  if (!needsReview) {
+    signals.push({ type: 'ok', label: 'Hành vi phản hồi ổn' });
+    signals.push({ type: 'ok', label: 'Đáp án đủ tin cậy' });
+    return signals;
+  }
+
+  if (text.includes('nhanh') || text.includes('thời gian')) {
+    signals.push({ type: 'bad', label: 'Tốc độ cần xem lại' });
+  }
+
+  if (
+    text.includes('chuỗi liên tiếp') ||
+    text.includes('cùng một đáp án') ||
+    text.includes('cùng chọn') ||
+    text.includes('lặp')
+  ) {
+    signals.push({ type: 'bad', label: 'Mẫu chọn có dấu hiệu lặp' });
+  }
+
+  if (
+    text.includes('ngắn') ||
+    text.includes('thiếu tín hiệu') ||
+    text.includes('thiếu') ||
+    text.includes('nội dung')
+  ) {
+    signals.push({ type: 'bad', label: 'Thiếu tín hiệu nội dung' });
+  }
+
+  if (!item.rewardEligible) {
+    signals.push({ type: 'bad', label: 'Chưa đủ điều kiện thưởng' });
+  }
+
+  if (item.qualityScore < 60 && !signals.some((signal) => signal.label === 'Điểm chất lượng thấp')) {
+    signals.push({ type: 'bad', label: 'Điểm chất lượng thấp' });
+  }
+
+  return signals.slice(0, 5);
+};
+
 export default function MngQualitySurvey() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
@@ -303,6 +353,7 @@ export default function MngQualitySurvey() {
             <div className="qualityReviewList">
               {filteredReviews.map((item) => {
                 const needsReview = item.qualityScore < 70 || item.superficial;
+                const qualitySignals = getQualitySignals(item);
                 return (
                   <article className="qualityReviewCard" key={item.coinTransactionId}>
                     <div className="qualityReviewer">
@@ -332,11 +383,17 @@ export default function MngQualitySurvey() {
                     </div>
 
                     <div className="qualityTags">
-                      <span className="ok"><FiCheckCircle /> Đủ dữ liệu câu hỏi</span>
-                      {!needsReview && <span className="ok"><FiCheckCircle /> Thời gian hợp lệ</span>}
-                      {!needsReview && <span className="ok"><FiCheckCircle /> Logic nhất quán</span>}
-                      {needsReview && <span className="bad"><FiXCircle /> Thời gian quá nhanh</span>}
+                      {qualitySignals.map((signal) => (
+                        <span className={signal.type} key={signal.label}>
+                          {signal.type === 'ok' ? <FiCheckCircle /> : <FiXCircle />}
+                          {signal.label}
+                        </span>
+                      ))}
                     </div>
+
+                    {item.analysisSummary && (
+                      <p className="qualityReason">{item.analysisSummary}</p>
+                    )}
 
                     <div className="qualityActions">
                       <button type="button" onClick={() => reviewCoin(item.coinTransactionId, 'approve')}>Duyệt</button>

@@ -25,6 +25,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (isLoading) return;
     setMessage('');
     setErrorMessage('');
     setIsLoading(true);
@@ -48,15 +49,15 @@ export default function ResetPasswordPage() {
         setTimeout(() => {
            navigate('/login'); 
         }, 2000);
+        return;
       } else {
         setErrorMessage(result); 
       }
     } catch (error) {
       console.error("Lỗi:", error);
       setErrorMessage("Không thể kết nối đến máy chủ.");
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   return (

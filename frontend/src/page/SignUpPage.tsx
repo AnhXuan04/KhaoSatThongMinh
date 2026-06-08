@@ -8,6 +8,7 @@ export default function SignUpPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
   fullName: '',
@@ -22,6 +23,9 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
       event.preventDefault();
+      if (isSubmitting) return;
+      setIsSubmitting(true);
+      setErrorMessage('');
       
       try {
       const response = await fetch(('/api/auth/signup'), {
@@ -36,9 +40,12 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       navigate('/verify-otp', { state: { email: formData.email } });
     } else {
       setErrorMessage(result);
+      setIsSubmitting(false);
     }
   } catch (error) {
     console.error("Lỗi gọi API:", error);
+    setErrorMessage('Không thể kết nối đến máy chủ.');
+    setIsSubmitting(false);
   }
   };
 
@@ -115,8 +122,8 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             </div>
           )}
 
-          <button className="logInButton" type="submit">
-            Đăng Ký
+          <button className="logInButton" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang gửi...' : 'Đăng Ký'}
           </button>
         </form>
 

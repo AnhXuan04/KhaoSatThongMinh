@@ -74,6 +74,7 @@ LONGEST_SAME_ANSWER_MIN_SCALE_QUESTIONS = 5
 LONGEST_SAME_ANSWER_RATE_THRESHOLD = 0.7
 SAME_ANSWER_RATE_MIN_SCALE_QUESTIONS = 10
 SAME_ANSWER_RATE_THRESHOLD = 0.8
+TEXT_ANSWER_TYPES = {"short_text", "short_answer", "paragraph", "long_text", "text", "textarea", "open_text"}
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_BASE_URL = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com")
@@ -344,7 +345,8 @@ def calculate_scale_answer_stats(request: AnalyzeRequest) -> dict:
     scale_values = [
         answer.answerText.strip()
         for answer in request.answers
-        if (answer.questionKind or "").lower() in {"linear_scale", "rating"}
+        if ((answer.questionKind or "").lower() in {"linear_scale", "rating"}
+            or (answer.questionType or "").lower() in {"linear_scale", "rating"})
         and answer.answerText.strip()
     ]
     total = len(scale_values)
@@ -406,12 +408,52 @@ def calculate_scale_answer_stats(request: AnalyzeRequest) -> dict:
     }
 
 
+def is_text_answer_question(answer: AnswerPayload) -> bool:
+    question_type = (answer.questionType or "").lower()
+    question_kind = (answer.questionKind or "").lower()
+    return question_type in TEXT_ANSWER_TYPES or question_kind in TEXT_ANSWER_TYPES
+
+
+def enrich_behavior_features(df):
+    question_count = df["questionCount"].replace(0, 1)
+    avg_duration = df["avgDurationPerQuestionMs"].fillna(0)
+    repetition_rate = df[["longestSameAnswerRate", "sameAnswerRate"]].max(axis=1)
+    change_rate = df["answerChangeCount"].fillna(0) / question_count
+    scale_density = df["scaleQuestionCount"].fillna(0) / question_count
+    answers_per_minute = question_count / (df["totalDurationMs"].replace(0, 1) / 60000)
+    has_text_signal = (df["avgAnswerLength"].fillna(0) > 0).astype(int)
+
+    df["answerChangeRate"] = change_rate
+    df["scaleQuestionRate"] = scale_density
+    df["answersPerMinute"] = answers_per_minute
+    df["repetitionRate"] = repetition_rate
+    df["hasTextSignal"] = has_text_signal
+    df["speedRepetitionInteraction"] = answers_per_minute * repetition_rate
+    df["speedLowEngagementInteraction"] = answers_per_minute * (1 - change_rate.clip(upper=1))
+    df["speedNoTextInteraction"] = answers_per_minute * (1 - has_text_signal)
+    return df
+
+
 def build_features(request: AnalyzeRequest) -> dict:
     answer_texts = [answer.answerText.strip() for answer in request.answers if answer.answerText.strip()]
-    answer_text = " ".join(answer_texts)
-    total_duration_ms = sum(log.durationMs or 0 for log in request.behaviorLogs)
+    semantic_answer_texts = [
+        answer.answerText.strip()
+        for answer in request.answers
+        if is_text_answer_question(answer) and answer.answerText.strip()
+    ]
+    answer_text = " ".join(semantic_answer_texts)
+    submit_durations = [
+        log.durationMs or 0
+        for log in request.behaviorLogs
+        if log.eventType == "survey_submit" and (log.durationMs or 0) > 0
+    ]
+    total_duration_ms = submit_durations[0] if submit_durations else sum(log.durationMs or 0 for log in request.behaviorLogs)
     answer_change_count = sum(1 for log in request.behaviorLogs if log.eventType == "answer_change")
-    avg_answer_length = sum(len(value) for value in answer_texts) / len(answer_texts) if answer_texts else 0
+    avg_answer_length = (
+        sum(len(value) for value in semantic_answer_texts) / len(semantic_answer_texts)
+        if semantic_answer_texts
+        else 0
+    )
     question_count = len(request.answers)
     scale_stats = calculate_scale_answer_stats(request)
     avg_duration_per_question_ms = total_duration_ms / question_count if question_count else 0
@@ -426,6 +468,11 @@ def build_features(request: AnalyzeRequest) -> dict:
         "same_answer_rate": scale_stats["sameAnswerRate"],
         "avg_duration_per_question_ms": avg_duration_per_question_ms,
         "scale_question_count": scale_stats["total"],
+        "answer_change_rate": answer_change_count / question_count if question_count else 0,
+        "scale_question_rate": scale_stats["total"] / question_count if question_count else 0,
+        "answers_per_minute": question_count / (total_duration_ms / 60000) if total_duration_ms else 0,
+        "repetition_rate": max(scale_stats["longestRate"], scale_stats["sameAnswerRate"]),
+        "has_text_signal": 1 if avg_answer_length > 0 else 0,
         "scale_stats": scale_stats,
     }
 
@@ -515,6 +562,7 @@ def train_superficial_model(request: TrainRequest):
         ),
         axis=1,
     )
+    df = enrich_behavior_features(df)
     feature_columns = [
         "answer_text",
         "totalDurationMs",
@@ -525,6 +573,14 @@ def train_superficial_model(request: TrainRequest):
         "sameAnswerRate",
         "avgDurationPerQuestionMs",
         "scaleQuestionCount",
+        "answerChangeRate",
+        "scaleQuestionRate",
+        "answersPerMinute",
+        "repetitionRate",
+        "hasTextSignal",
+        "speedRepetitionInteraction",
+        "speedLowEngagementInteraction",
+        "speedNoTextInteraction",
     ]
     x = df[feature_columns]
     y = df["label"]
@@ -558,6 +614,14 @@ def train_superficial_model(request: TrainRequest):
                     "sameAnswerRate",
                     "avgDurationPerQuestionMs",
                     "scaleQuestionCount",
+                    "answerChangeRate",
+                    "scaleQuestionRate",
+                    "answersPerMinute",
+                    "repetitionRate",
+                    "hasTextSignal",
+                    "speedRepetitionInteraction",
+                    "speedLowEngagementInteraction",
+                    "speedNoTextInteraction",
                 ],
             ),
         ]
@@ -625,7 +689,15 @@ def analyze_response(request: AnalyzeRequest):
         "sameAnswerRate": features["same_answer_rate"],
         "avgDurationPerQuestionMs": features["avg_duration_per_question_ms"],
         "scaleQuestionCount": features["scale_question_count"],
+        "answerChangeRate": features["answer_change_rate"],
+        "scaleQuestionRate": features["scale_question_rate"],
+        "answersPerMinute": features["answers_per_minute"],
+        "repetitionRate": features["repetition_rate"],
+        "hasTextSignal": features["has_text_signal"],
     }])
+    df["speedRepetitionInteraction"] = df["answersPerMinute"] * df["repetitionRate"]
+    df["speedLowEngagementInteraction"] = df["answersPerMinute"] * (1 - df["answerChangeRate"].clip(upper=1))
+    df["speedNoTextInteraction"] = df["answersPerMinute"] * (1 - df["hasTextSignal"])
 
     probabilities = model.predict_proba(df)[0]
     quality_probability = float(probabilities[1])

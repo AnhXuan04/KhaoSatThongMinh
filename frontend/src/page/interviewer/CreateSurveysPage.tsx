@@ -238,6 +238,8 @@ export default function CreateSurveys() {
 
   // Save survey to backend
   const handleSaveSurvey = async () => {
+    if (loading || success) return;
+
     if (!survey.title.trim()) {
       setError('Vui lòng nhập tiêu đề khảo sát');
       return;
@@ -992,13 +994,13 @@ export default function CreateSurveys() {
             </div>
 
             <div className="form-actions form-actions-end">
-              <button
-                className="btn btn-primary"
-                onClick={handleSaveSurvey}
-                disabled={loading}
-              >
-                {loading ? 'Đang lưu...' : 'Lưu Khảo Sát'}
-              </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSaveSurvey}
+                  disabled={loading || success}
+                >
+                {loading ? 'Đang lưu...' : success ? 'Đã lưu' : 'Lưu Khảo Sát'}
+                </button>
             </div>
           </div>
         </div>
