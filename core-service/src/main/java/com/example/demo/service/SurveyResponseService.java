@@ -20,6 +20,7 @@ import com.example.demo.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -208,7 +209,12 @@ public class SurveyResponseService {
         }
 
         response.setAnswers(answerList);
-        SurveyResponse savedResponse = surveyResponseRepository.save(response);
+        SurveyResponse savedResponse;
+        try {
+            savedResponse = surveyResponseRepository.saveAndFlush(response);
+        } catch (DataIntegrityViolationException ex) {
+            throw new RuntimeException("Bạn đã thực hiện khảo sát này rồi.");
+        }
         saveBehaviorLogs(savedResponse, survey, resolvedUser, request);
         java.util.Optional<AiAnalysisResult> analysisResult = analyzeResponseQuality(savedResponse);
         if (analysisResult.isPresent()) {

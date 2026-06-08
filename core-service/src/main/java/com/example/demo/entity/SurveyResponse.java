@@ -8,7 +8,12 @@ import java.util.List;
 
 @Entity
 @Data
-@Table(name = "survey_responses")
+@Table(
+        name = "survey_responses",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_survey_responses_survey_user", columnNames = {"survey_id", "user_id"})
+        }
+)
 public class SurveyResponse {
 
     @Id

@@ -1,12 +1,12 @@
 {
-  "modelName": "sklearn-tfidf-logistic-v4-combined-behavior-features",
-  "trainedAt": "2026-06-08T14:08:50.041173Z",
-  "recordCount": 94,
+  "modelName": "sklearn-tfidf-logistic-v5-combined-behavior-features",
+  "trainedAt": "2026-06-08T14:55:38.100101Z",
+  "recordCount": 98,
   "metrics": {
-    "accuracy": 0.9583333333333334,
-    "precision": 0.9285714285714286,
-    "recall": 1.0,
-    "f1Score": 0.9629629629629629
+    "accuracy": 0.92,
+    "precision": 0.9230769230769231,
+    "recall": 0.9230769230769231,
+    "f1Score": 0.9230769230769231
   },
   "confusionMatrixPath": "D:\\TieuLuan\\New folder\\KhaoSatThongMinh\\ai-service\\models\\confusion_matrix.png",
   "uses": {
