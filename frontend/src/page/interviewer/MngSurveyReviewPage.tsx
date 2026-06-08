@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { FiStar } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
 import SurveyResponseAnalytics from './SurveyResponseAnalyticsPage';
@@ -103,8 +102,8 @@ export default function MngSurveyReview() {
 
       try {
         const [responsesRes, statsRes] = await Promise.all([
-          axios.get(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/responses`), { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/statistics`), { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get((`/api/surveys/${encodeURIComponent(surveyId)}/responses`), { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get((`/api/surveys/${encodeURIComponent(surveyId)}/statistics`), { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         const responses = responsesRes.data || [];
@@ -127,7 +126,7 @@ export default function MngSurveyReview() {
         try {
           const promises = (responses || []).map(async (r: ApiResponseItem) => {
             try {
-              const det = await axios.get(apiUrl(`/api/surveys/responses/${r.responseId}`), { headers: { Authorization: `Bearer ${token}` } });
+              const det = await axios.get((`/api/surveys/responses/${r.responseId}`), { headers: { Authorization: `Bearer ${token}` } });
               return det.data;
             } catch {
               return null;

@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiCalendar, FiChevronRight } from 'react-icons/fi';
@@ -23,7 +22,7 @@ export default function HistorySurvey() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch(apiUrl('/api/surveys/history'), {
+        const res = await fetch(('/api/surveys/history'), {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {

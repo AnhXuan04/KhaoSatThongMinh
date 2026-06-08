@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { FiClock, FiCheckCircle, FiAlertTriangle, FiFileText } from 'react-icons/fi';
-import { apiUrl } from '../../config/api';
 import './SurveyResponseAnalytics.css';
 
 type QualityResult = {
@@ -85,7 +84,7 @@ export default function SurveyResponseAnalytics() {
 				const analyticsPath = surveyId
 					? `/api/surveys/${encodeURIComponent(surveyId)}/analytics/quality`
 					: '/api/surveys/analytics/quality';
-				const response = await axios.get(apiUrl(analyticsPath), {
+				const response = await axios.get((analyticsPath), {
 					headers: { Authorization: `Bearer ${token}` },
 				});
 
@@ -97,7 +96,7 @@ export default function SurveyResponseAnalytics() {
 				});
 				if (surveyId) {
 					try {
-						const reportResponse = await axios.get(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/content-report`), {
+						const reportResponse = await axios.get((`/api/surveys/${encodeURIComponent(surveyId)}/content-report`), {
 							headers: { Authorization: `Bearer ${token}` },
 						});
 						setContentReport(reportResponse.data || null);
@@ -156,7 +155,7 @@ export default function SurveyResponseAnalytics() {
 
 		setRefreshingReport(true);
 		try {
-			const response = await axios.post(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/content-report/refresh`), null, {
+			const response = await axios.post((`/api/surveys/${encodeURIComponent(surveyId)}/content-report/refresh`), null, {
 				headers: { Authorization: `Bearer ${token}` },
 			});
 			setContentReport(response.data || null);

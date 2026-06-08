@@ -1,4 +1,3 @@
-import { apiUrl } from '../config/api';
 import React, { useState } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
@@ -42,7 +41,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage('');
     
     try {
-    const response = await fetch(apiUrl('/api/auth/signin'), {
+    const response = await fetch('/api/auth/signin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)

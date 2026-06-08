@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaCoins, FaSignOutAlt } from 'react-icons/fa';
@@ -72,7 +71,7 @@ export default function UserHeader({ showCoin = true }: UserHeaderProps) {
         setUserRole(getRoleFromToken(token));
 
         try {
-          const response = await fetch(apiUrl(`/api/user/profile`), {
+          const response = await fetch((`/api/user/profile`), {
             headers: {
               'Authorization': `Bearer ${token}`
             }

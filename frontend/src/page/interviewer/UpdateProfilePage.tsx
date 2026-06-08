@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUser } from 'react-icons/fi';
@@ -31,7 +30,7 @@ export default function UpdateProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch(apiUrl('/api/user/profile'), {
+        const response = await fetch(('/api/user/profile'), {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -82,7 +81,7 @@ export default function UpdateProfilePage() {
     setErrorMessage('');
 
     try {
-      const response = await fetch(apiUrl('/api/user/avatar'), {
+      const response = await fetch(('/api/user/avatar'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
@@ -122,7 +121,7 @@ export default function UpdateProfilePage() {
     setErrorMessage('');
 
     try {
-      const response = await fetch(apiUrl('/api/user/profile'), {
+      const response = await fetch(('/api/user/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -149,7 +148,7 @@ export default function UpdateProfilePage() {
           return;
         }
 
-        const passwordResponse = await fetch(apiUrl('/api/user/change-password'), {
+        const passwordResponse = await fetch(('/api/user/change-password'), {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

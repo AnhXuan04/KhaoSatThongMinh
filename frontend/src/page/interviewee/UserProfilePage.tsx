@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { FiEdit2, FiUser } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -48,7 +47,7 @@ export default function UserProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch(apiUrl(`/api/user/profile`), {
+        const response = await fetch((`/api/user/profile`), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -115,7 +114,7 @@ export default function UserProfilePage() {
     setErrorMessage('');
 
     try {
-      const response = await fetch(apiUrl('/api/user/avatar'), {
+      const response = await fetch(('/api/user/avatar'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
@@ -147,7 +146,7 @@ export default function UserProfilePage() {
     setErrorMessage('');
 
     try {
-      const response = await fetch(apiUrl(`/api/user/profile`), {
+      const response = await fetch((`/api/user/profile`), {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -179,7 +178,7 @@ export default function UserProfilePage() {
           return;
         }
 
-        const passwordResponse = await fetch(apiUrl('/api/user/change-password'), {
+        const passwordResponse = await fetch(('/api/user/change-password'), {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

@@ -1,4 +1,3 @@
-import { apiUrl } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Auth.css';
@@ -28,7 +27,7 @@ export default function VerifyOtpPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(apiUrl('/api/auth/verify-register-otp'), {
+      const response = await fetch(('/api/auth/verify-register-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

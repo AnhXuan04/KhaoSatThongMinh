@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -121,10 +120,10 @@ export default function SurveyResponseQuestion() {
 			try {
 				// Fetch survey statistics and responses list in parallel
 				const [statsRes, responsesListRes] = await Promise.all([
-					axios.get(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/statistics`), {
+					axios.get((`/api/surveys/${encodeURIComponent(surveyId)}/statistics`), {
 						headers: { Authorization: `Bearer ${token}` },
 					}),
-					axios.get(apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/responses`), {
+					axios.get((`/api/surveys/${encodeURIComponent(surveyId)}/responses`), {
 						headers: { Authorization: `Bearer ${token}` },
 					}),
 				]);
@@ -155,7 +154,7 @@ export default function SurveyResponseQuestion() {
 					responsesList.map(async (response) => {
 						try {
 							const detailRes = await axios.get(
-								apiUrl(`/api/surveys/responses/${response.responseId}`),
+								(`/api/surveys/responses/${response.responseId}`),
 								{ headers: { Authorization: `Bearer ${token}` } }
 							);
 							return detailRes.data;

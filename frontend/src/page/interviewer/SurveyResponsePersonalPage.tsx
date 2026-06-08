@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -78,7 +77,7 @@ export default function SurveyResponsePersonal() {
 			try {
 				// Fetch responses list to get all response IDs
 				const responsesListRes = await axios.get(
-					apiUrl(`/api/surveys/${encodeURIComponent(surveyId)}/responses`),
+					(`/api/surveys/${encodeURIComponent(surveyId)}/responses`),
 					{
 						headers: { Authorization: `Bearer ${token}` },
 					}
@@ -91,7 +90,7 @@ export default function SurveyResponsePersonal() {
 				for (const resp of responsesList) {
 					try {
 						const detailRes = await axios.get(
-							apiUrl(`/api/surveys/responses/${resp.responseId}`),
+							(`/api/surveys/responses/${resp.responseId}`),
 							{
 								headers: { Authorization: `Bearer ${token}` },
 							}

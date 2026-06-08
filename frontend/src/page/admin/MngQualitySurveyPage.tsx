@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { useEffect, useMemo, useState } from 'react';
 import {
   FiBarChart2,
@@ -81,13 +80,13 @@ export default function MngQualitySurvey() {
     const loadData = async () => {
       try {
         const [profileResponse, statsResponse, reviewsResponse] = await Promise.all([
-          fetch(apiUrl('/api/user/profile'), {
+          fetch(('/api/user/profile'), {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(apiUrl('/api/admin/stats'), {
+          fetch(('/api/admin/stats'), {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(apiUrl('/api/admin/coin-reviews'), {
+          fetch(('/api/admin/coin-reviews'), {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
@@ -149,7 +148,7 @@ export default function MngQualitySurvey() {
     const token = sessionStorage.getItem('token');
     if (!token) return;
 
-    const response = await fetch(apiUrl(`/api/admin/coin-reviews/${transactionId}/${action}`), {
+    const response = await fetch((`/api/admin/coin-reviews/${transactionId}/${action}`), {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` }
     });

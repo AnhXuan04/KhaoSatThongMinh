@@ -1,4 +1,3 @@
-import { apiUrl } from '../../config/api';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Eye, Star } from 'lucide-react';
@@ -45,7 +44,7 @@ export default function ReviewSurvey() {
     if (!responseId) return;
     const fetch_ = async () => {
       try {
-        const res = await fetch(apiUrl(`/api/surveys/responses/${responseId}`), {
+        const res = await fetch((`/api/surveys/responses/${responseId}`), {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
