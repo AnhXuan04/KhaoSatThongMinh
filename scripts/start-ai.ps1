@@ -37,7 +37,7 @@ if (-not $env:LLM_PROVIDER) {
 }
 
 if (-not $env:GEMINI_MODEL) {
-    $env:GEMINI_MODEL = "gemini-2.5-flash"
+    $env:GEMINI_MODEL = "gemini-2.5-flash-lite"
 }
 
 Write-Host "AI Service: http://127.0.0.1:5000" -ForegroundColor Cyan

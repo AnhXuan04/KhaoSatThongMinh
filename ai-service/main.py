@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 import os
 import re
 import urllib.error
@@ -62,6 +63,9 @@ except Exception:
     TRANSFORMERS_READY = False
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("survey-ai-service")
+
 app = FastAPI(title="Survey Quality AI Service")
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -78,7 +82,7 @@ TEXT_ANSWER_TYPES = {"short_text", "short_answer", "paragraph", "long_text", "te
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_BASE_URL = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
 
 
@@ -254,11 +258,19 @@ def extract_json_object(text: str) -> dict:
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
+        try:
+            return json.loads(cleaned, strict=False)
+        except json.JSONDecodeError:
+            pass
         start = cleaned.find("{")
         end = cleaned.rfind("}")
         if start == -1 or end == -1 or end <= start:
             raise
-        return json.loads(cleaned[start:end + 1])
+        json_slice = cleaned[start:end + 1]
+        try:
+            return json.loads(json_slice)
+        except json.JSONDecodeError:
+            return json.loads(json_slice, strict=False)
 
 
 def call_gemini_report_writer(prompt: str) -> tuple[dict, str]:
@@ -329,15 +341,31 @@ def build_ai_survey_report(request: SurveyReportRequest) -> SurveyReportResponse
         raise HTTPException(status_code=503, detail=f"Unsupported LLM_PROVIDER: {LLM_PROVIDER}")
 
     prompt = build_survey_report_prompt(request)
+    logger.info(
+        "Generating survey report. surveyId=%s totalResponses=%s questionCount=%s promptChars=%s model=%s",
+        request.survey.id,
+        request.totalResponses,
+        len(request.questionReports),
+        len(prompt),
+        GEMINI_MODEL,
+    )
     try:
         report_data, model_name = call_gemini_report_writer(prompt)
         return normalize_llm_report(report_data, model_name)
     except urllib.error.HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="replace")
+        logger.warning(
+            "Gemini survey report HTTP error. surveyId=%s status=%s body=%s",
+            request.survey.id,
+            exc.code,
+            error_body[:2000],
+        )
         raise HTTPException(status_code=502, detail=f"Gemini API error {exc.code}: {error_body}") from exc
     except (urllib.error.URLError, TimeoutError) as exc:
+        logger.warning("Gemini survey report unavailable. surveyId=%s error=%s", request.survey.id, exc)
         raise HTTPException(status_code=503, detail=f"LLM service is not available: {exc}") from exc
     except (json.JSONDecodeError, ValueError) as exc:
+        logger.warning("Gemini returned invalid survey report. surveyId=%s error=%s", request.survey.id, exc)
         raise HTTPException(status_code=502, detail=f"LLM returned an invalid report: {exc}") from exc
 
 #--------------------------------------------------------------------
