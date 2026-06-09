@@ -220,13 +220,23 @@
 }
 
 .mngUserTableWrap {
-	overflow-x: auto;
+	max-height: calc(100vh - 250px);
+	overflow: auto;
+	border: 1px solid #edf1f7;
+	border-radius: 12px;
 }
 
 .mngUserTable {
 	width: 100%;
 	min-width: 980px;
 	border-collapse: collapse;
+}
+
+.mngUserTable thead {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: #ffffff;
 }
 
 .mngUserTable thead th {
@@ -249,6 +259,12 @@
 
 .mngUserTable tbody tr:hover {
 	background: #fbfcfe;
+}
+
+.mngUserEmpty {
+	text-align: center;
+	color: #7b879a;
+	font-weight: 600;
 }
 
 .mngUserId {
@@ -377,47 +393,6 @@
 	color: #657286;
 }
 
-.mngUserPagination {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-
-.mngUserPagination button,
-.mngUserPagination span {
-	height: 34px;
-	min-width: 34px;
-	border-radius: 8px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 12px;
-	font-weight: 700;
-}
-
-.mngUserPagination button {
-	border: 1px solid #e4e9f2;
-	background: #ffffff;
-	color: #526074;
-	cursor: pointer;
-}
-
-.mngUserPagination button.active {
-	background: #0b5ed7;
-	color: #ffffff;
-	border-color: #0b5ed7;
-}
-
-.mngUserPagination button:disabled {
-	opacity: 0.45;
-	cursor: not-allowed;
-}
-
-.mngUserPagination span {
-	color: #7c8699;
-}
-
 @media (max-width: 1200px) {
 	.mngUserPage {
 		grid-template-columns: 1fr;
@@ -448,12 +423,7 @@
 		flex-direction: column;
 	}
 
-	.mngUserTopActions,
-	.mngUserPagination {
+	.mngUserTopActions {
 		width: 100%;
-	}
-
-	.mngUserPagination {
-		justify-content: center;
 	}
 }

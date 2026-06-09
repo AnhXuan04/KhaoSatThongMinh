@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
 	FiBarChart2,
-	FiChevronLeft,
-	FiChevronRight,
 	FiFolder,
 	FiGrid,
 	FiLock,
@@ -363,26 +361,19 @@ export default function MngUser() {
 										</td>
 									</tr>
 								))}
+								{!filteredUsers.length && (
+									<tr>
+										<td colSpan={7} className="mngUserEmpty">
+											Không tìm thấy người dùng phù hợp.
+										</td>
+									</tr>
+								)}
 								</tbody>
 							</table>
 						</div>
 
 						<div className="mngUserFooter">
-							<div className="mngUserPagination" aria-label="Phân trang người dùng">
-								<button type="button" disabled>
-									<FiChevronLeft />
-								</button>
-								<button type="button" className="active">
-									1
-								</button>
-								<button type="button">2</button>
-								<button type="button">3</button>
-								<span>...</span>
-								<button type="button">...</button>
-								<button type="button">
-									<FiChevronRight />
-								</button>
-							</div>
+							<p>{filteredUsers.length} người dùng</p>
 						</div>
 					</article>
 				</div>

@@ -8,11 +8,15 @@
 }
 
 .adminSidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
   background: #ffffff;
   border-right: 1px solid #e5eaf2;
   padding: 28px 20px 18px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .adminBrand {
@@ -514,6 +518,8 @@
   }
 
   .adminSidebar {
+    position: static;
+    height: auto;
     border-right: none;
     border-bottom: 1px solid #e5eaf2;
   }
