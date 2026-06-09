@@ -113,6 +113,22 @@
   font-size: 13px;
   line-height: 1.8;
 }
+.sra-report-quality {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sra-report-quality span {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #6b7280;
+  padding: 8px 10px;
+}
+.sra-report-quality strong {
+  color: #111827;
+}
 .sra-report-body p {
   margin: 0 0 10px;
 }
@@ -170,6 +186,10 @@
 
   .sra-percent-row {
     flex-direction: column;
+  }
+
+  .sra-report-quality {
+    grid-template-columns: 1fr;
   }
 
   .sra-report-actions,

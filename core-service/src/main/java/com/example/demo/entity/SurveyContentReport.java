@@ -26,6 +26,10 @@ public class SurveyContentReport {
 
     private Integer totalResponses;
 
+    private Integer eligibleResponses;
+
+    private Integer excludedResponses;
+
     @Column(columnDefinition = "TEXT")
     private String executiveSummary;
 

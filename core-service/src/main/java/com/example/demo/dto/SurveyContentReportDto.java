@@ -13,6 +13,8 @@ public class SurveyContentReportDto {
     private Long surveyId;
     private String surveyTitle;
     private int totalResponses;
+    private int eligibleResponses;
+    private int excludedResponses;
     private String generatedAt;
     private String executiveSummary;
     private String respondentSummary;

@@ -34,6 +34,8 @@ type ContentReport = {
 	surveyId: number;
 	surveyTitle: string;
 	totalResponses: number;
+	eligibleResponses: number;
+	excludedResponses: number;
 	generatedAt: string;
 	executiveSummary: string;
 	respondentSummary?: string;
@@ -149,6 +151,9 @@ export default function SurveyResponseAnalytics() {
 		URL.revokeObjectURL(url);
 	};
 
+	const reportEligibleResponses = contentReport?.eligibleResponses ?? contentReport?.totalResponses ?? 0;
+	const reportExcludedResponses = contentReport?.excludedResponses ?? 0;
+
 	const refreshContentReport = async () => {
 		const token = getAuthToken();
 		if (!surveyId || !token) return;
@@ -224,7 +229,7 @@ export default function SurveyResponseAnalytics() {
 							<div className="sra-report-title">Báo cáo Đánh giá Chi tiết</div>
 							<div className="sra-report-meta">
 								{contentReport
-									? `${contentReport.totalResponses} phản hồi • ${contentReport.generatedAt}`
+									? `${reportEligibleResponses}/${contentReport.totalResponses} phản hồi đủ điều kiện • ${contentReport.generatedAt}`
 									: 'Bấm cập nhật để tạo báo cáo từ số liệu phản hồi hiện tại'}
 							</div>
 						</div>
@@ -243,6 +248,11 @@ export default function SurveyResponseAnalytics() {
 					</div>
 					{contentReport ? (
 						<div className="sra-report-body">
+							<div className="sra-report-quality">
+								<span>Tổng phản hồi: <strong>{contentReport.totalResponses}</strong></span>
+								<span>Đủ điều kiện phân tích: <strong>{reportEligibleResponses}</strong></span>
+								<span>Không đủ điều kiện: <strong>{reportExcludedResponses}</strong></span>
+							</div>
 							<p>{contentReport.executiveSummary}</p>
 							{contentReport.respondentSummary && <p>{contentReport.respondentSummary}</p>}
 							{contentReport.answerSummary && <p>{contentReport.answerSummary}</p>}

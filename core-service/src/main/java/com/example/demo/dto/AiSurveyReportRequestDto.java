@@ -12,6 +12,8 @@ import java.util.List;
 public class AiSurveyReportRequestDto {
     private SurveyInfoDto survey;
     private int totalResponses;
+    private int eligibleResponses;
+    private int excludedResponses;
     private List<SurveyContentReportDto.QuestionReportDto> questionReports;
 
     @Data

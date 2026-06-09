@@ -163,6 +163,8 @@ class ReportSurveyInfo(BaseModel):
 class SurveyReportRequest(BaseModel):
     survey: ReportSurveyInfo
     totalResponses: int = 0
+    eligibleResponses: int = 0
+    excludedResponses: int = 0
     questionReports: List[ReportQuestion] = []
 
 
@@ -224,24 +226,32 @@ def build_survey_report_prompt(request: SurveyReportRequest) -> str:
 Bạn là chuyên gia phân tích dữ liệu khảo sát và viết báo cáo tiếng Việt.
 
 Dữ liệu dưới đây đã được Spring Boot tính sẵn thống kê như count, percentage, averageValue và sampleAnswers.
+Các thống kê theo từng câu hỏi chỉ dùng nhóm phản hồi đủ điều kiện phân tích; phản hồi hời hợt/không đủ điều kiện đã bị loại khỏi insight chính nhưng vẫn có số lượng trong totalResponses, eligibleResponses, excludedResponses.
 Nhiệm vụ của bạn là viết báo cáo phân tích dựa trên dữ liệu này.
 
 Nguyên tắc bắt buộc:
 - Không bịa số liệu, không tự tạo phản hồi, không suy đoán ngoài dữ liệu.
 - Không tính lại count, percentage hoặc average nếu dữ liệu đã có.
 - Nếu dữ liệu ít hoặc chưa đủ rõ, hãy nêu hạn chế trong báo cáo.
+- Nêu rõ quy mô dữ liệu gồm tổng phản hồi, phản hồi đủ điều kiện phân tích và phản hồi không đủ điều kiện; không dùng phản hồi không đủ điều kiện để rút insight chính.
+- Không được đưa tên trường kỹ thuật như totalResponses, eligibleResponses, excludedResponses, questionReports, sampleAnswers, notableAnswers vào nội dung báo cáo; hãy diễn đạt bằng tiếng Việt tự nhiên như "tổng phản hồi", "phản hồi đủ điều kiện phân tích", "phản hồi không đủ điều kiện".
 - Khuyến nghị phải bám vào lĩnh vực, tiêu đề khảo sát, câu hỏi, tỷ lệ, điểm trung bình và câu trả lời mẫu.
+- Phân tích chi tiết từng câu hỏi có dữ liệu: nêu xu hướng chính, phương án/câu trả lời nổi bật, tỷ lệ hoặc điểm trung bình nếu có, và ý nghĩa của kết quả.
+- Với câu hỏi trắc nghiệm/thang điểm, ưu tiên so sánh lựa chọn cao nhất, thấp nhất và chênh lệch đáng chú ý.
+- Với câu hỏi văn bản, tóm tắt chủ đề lặp lại, trích ý ngắn từ sampleAnswers/notableAnswers nhưng không bịa thêm câu trả lời.
+- Nếu một câu hỏi ít hoặc không có câu trả lời hợp lệ, ghi rõ hạn chế thay vì phân tích quá mức.
+- Viết báo cáo đủ chi tiết cho người tạo khảo sát có thể ra quyết định, tránh trả lời chung chung.
 - Giọng văn chuyên nghiệp, dễ hiểu, phù hợp báo cáo đồ án.
 - Chỉ trả về JSON hợp lệ, không thêm markdown, không thêm giải thích ngoài JSON.
 
 Cấu trúc JSON bắt buộc:
 {{
-  "executiveSummary": "Tóm tắt điều hành 2-4 câu.",
-  "respondentSummary": "Nhận xét ngắn về quy mô phản hồi và độ tin cậy dữ liệu.",
-  "answerSummary": "Tổng hợp xu hướng nội dung trả lời.",
-  "recommendation": "Khuyến nghị cụ thể theo dữ liệu khảo sát.",
-  "highlights": ["3-5 điểm nổi bật, mỗi điểm là một câu ngắn"],
-  "plainText": "Báo cáo đầy đủ có tiêu đề và các mục: Tóm tắt chung, Tổng quan câu trả lời, Xu hướng nổi bật, Phân tích theo từng câu hỏi, Khuyến nghị."
+  "executiveSummary": "Tóm tắt điều hành 3-5 câu, nêu kết luận chính và mức độ tin cậy dữ liệu.",
+  "respondentSummary": "Nhận xét về tổng phản hồi, phản hồi đủ điều kiện, phản hồi bị loại và ảnh hưởng tới độ tin cậy.",
+  "answerSummary": "Tổng hợp xu hướng nội dung trả lời, nêu các mẫu hình nổi bật theo nhóm câu hỏi.",
+  "recommendation": "3-5 khuyến nghị cụ thể, có thể hành động, bám vào số liệu khảo sát.",
+  "highlights": "4-6 điểm nổi bật, mỗi điểm là một câu ngắn có số liệu hoặc căn cứ rõ ràng",
+  "plainText": "Báo cáo đầy đủ bằng tiếng Việt có các mục: Tiêu đề, Tóm tắt chung, Chất lượng dữ liệu, Tổng quan câu trả lời, Xu hướng nổi bật, Phân tích chi tiết theo từng câu hỏi, Hạn chế dữ liệu, Khuyến nghị hành động. Phần phân tích từng câu hỏi phải có tiêu đề câu hỏi và nhận xét riêng."
 }}
 
 Dữ liệu khảo sát:

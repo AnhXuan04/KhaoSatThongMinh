@@ -524,8 +524,20 @@ public class SurveyResponseService {
 
         List<SurveyResponse> responses = surveyResponseRepository.findBySurveyId(surveyId);
         int totalResponses = responses.size();
+        java.util.Set<Long> eligibleResponseIds = aiAnalysisResultRepository.findRecentBySurveyId(surveyId)
+                .stream()
+                .filter(result -> !Boolean.TRUE.equals(result.getSuperficial()))
+                .map(result -> result.getResponse() != null ? result.getResponse().getId() : null)
+                .filter(id -> id != null)
+                .collect(java.util.stream.Collectors.toSet());
+        List<SurveyResponse> reportResponses = responses.stream()
+                .filter(response -> eligibleResponseIds.contains(response.getId()))
+                .collect(java.util.stream.Collectors.toList());
+        int eligibleResponses = reportResponses.size();
+        int excludedResponses = Math.max(0, totalResponses - eligibleResponses);
+
         Map<Long, List<SurveyAnswer>> answersByQuestion = new HashMap<>();
-        for (SurveyResponse response : responses) {
+        for (SurveyResponse response : reportResponses) {
             if (response.getAnswers() == null) {
                 continue;
             }
@@ -544,12 +556,12 @@ public class SurveyResponseService {
 
         for (Question question : questions) {
             List<SurveyAnswer> questionAnswers = answersByQuestion.getOrDefault(question.getId(), List.of());
-            SurveyContentReportDto.QuestionReportDto report = buildQuestionContentReport(question, questionAnswers, totalResponses);
+            SurveyContentReportDto.QuestionReportDto report = buildQuestionContentReport(question, questionAnswers, eligibleResponses);
             questionReports.add(report);
         }
 
         AiSurveyReportResponseDto aiReport = aiAnalysisClient.generateSurveyReport(
-                buildAiSurveyReportRequest(survey, totalResponses, questionReports)
+                buildAiSurveyReportRequest(survey, totalResponses, eligibleResponses, excludedResponses, questionReports)
         ).orElseThrow(() -> new RuntimeException("AI service chưa tạo được báo cáo khảo sát."));
 
         List<String> highlights = aiReport.getHighlights() != null ? aiReport.getHighlights() : List.of();
@@ -560,6 +572,8 @@ public class SurveyResponseService {
                 survey.getId(),
                 survey.getTitle(),
                 totalResponses,
+                eligibleResponses,
+                excludedResponses,
                 java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
                 aiReport.getExecutiveSummary(),
                 aiReport.getRespondentSummary(),
@@ -580,6 +594,8 @@ public class SurveyResponseService {
         report.setSurvey(survey);
         report.setGeneratedByUser(generatedBy);
         report.setTotalResponses(dto.getTotalResponses());
+        report.setEligibleResponses(dto.getEligibleResponses());
+        report.setExcludedResponses(dto.getExcludedResponses());
         report.setExecutiveSummary(dto.getExecutiveSummary());
         report.setRespondentSummary(dto.getRespondentSummary());
         report.setAnswerSummary(dto.getAnswerSummary());
@@ -603,6 +619,8 @@ public class SurveyResponseService {
                 survey.getId(),
                 survey.getTitle(),
                 report.getTotalResponses() != null ? report.getTotalResponses() : 0,
+                report.getEligibleResponses() != null ? report.getEligibleResponses() : report.getTotalResponses() != null ? report.getTotalResponses() : 0,
+                report.getExcludedResponses() != null ? report.getExcludedResponses() : 0,
                 generatedAt,
                 report.getExecutiveSummary(),
                 report.getRespondentSummary(),
@@ -649,6 +667,8 @@ public class SurveyResponseService {
     private AiSurveyReportRequestDto buildAiSurveyReportRequest(
             Survey survey,
             int totalResponses,
+            int eligibleResponses,
+            int excludedResponses,
             List<SurveyContentReportDto.QuestionReportDto> questionReports) {
         String fieldName = survey.getSurveyField() != null ? survey.getSurveyField().getName() : "";
         return new AiSurveyReportRequestDto(
@@ -659,6 +679,8 @@ public class SurveyResponseService {
                         fieldName
                 ),
                 totalResponses,
+                eligibleResponses,
+                excludedResponses,
                 questionReports
         );
     }
