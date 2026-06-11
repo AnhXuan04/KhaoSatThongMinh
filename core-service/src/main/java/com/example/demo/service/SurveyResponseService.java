@@ -142,7 +142,9 @@ public class SurveyResponseService {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát."));
 
-        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+        if (Boolean.TRUE.equals(survey.getIsDeleted())
+                || Boolean.TRUE.equals(survey.getIsHidden())
+                || Boolean.TRUE.equals(survey.getIsLocked())) {
             throw new RuntimeException("Khảo sát không còn tồn tại.");
         }
 

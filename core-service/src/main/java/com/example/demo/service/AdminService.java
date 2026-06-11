@@ -2,9 +2,15 @@ package com.example.demo.service;
 
 import com.example.demo.dto.AdminDashboardStatsDto;
 import com.example.demo.dto.AdminQualityReviewDto;
+import com.example.demo.dto.AdminSurveyListItemDto;
+import com.example.demo.dto.OptionRequest;
+import com.example.demo.dto.QuestionRequest;
+import com.example.demo.dto.SurveyRequest;
 import com.example.demo.entity.AiAnalysisResult;
 import com.example.demo.entity.CoinTransaction;
 import com.example.demo.entity.CoinTransactionStatus;
+import com.example.demo.entity.Option;
+import com.example.demo.entity.Question;
 import com.example.demo.dto.UserListItemDto;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.SurveyField;
@@ -14,6 +20,7 @@ import com.example.demo.repository.AiAnalysisResultRepository;
 import com.example.demo.repository.CoinTransactionRepository;
 import com.example.demo.repository.SurveyFieldRepository;
 import com.example.demo.repository.SurveyRepository;
+import com.example.demo.repository.SurveyResponseRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +51,8 @@ public class AdminService {
     private CoinTransactionRepository coinTransactionRepository;
     @Autowired
     private UserProfileRepository userProfileRepository;
+    @Autowired
+    private SurveyResponseRepository surveyResponseRepository;
 
     public List<UserListItemDto> getUsersForAdmin(String role) {
         Stream<User> userStream = userRepository.findAll(Sort.by(Sort.Direction.ASC, "id")).stream();
@@ -99,6 +109,153 @@ public class AdminService {
         statsDto.setNonSuperficialSurveys(aiAnalysisResultRepository.countBySuperficialFalse());
         statsDto.setRewardEligibleResponses(aiAnalysisResultRepository.countByRewardEligibleTrue());
         return statsDto;
+    }
+
+    public List<AdminSurveyListItemDto> getSurveysForAdmin() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        return surveyRepository.findByIsDeletedFalseOrderByCreatedAtDesc()
+                .stream()
+                .map(survey -> {
+                    User creator = survey.getUser();
+                    UserProfile profile = creator != null ? creator.getProfile() : null;
+                    String creatorName = profile != null && profile.getFullName() != null && !profile.getFullName().isBlank()
+                            ? profile.getFullName()
+                            : creator != null ? creator.getEmail() : "Không rõ";
+                    String createdAt = survey.getCreatedAt() != null ? survey.getCreatedAt().format(formatter) : "";
+
+                    return new AdminSurveyListItemDto(
+                            survey.getId(),
+                            survey.getTitle(),
+                            creatorName,
+                            creator != null ? creator.getEmail() : "",
+                            surveyResponseRepository.countBySurveyId(survey.getId()),
+                            createdAt,
+                            getSurveyStatus(survey),
+                            Boolean.TRUE.equals(survey.getIsHidden()),
+                            Boolean.TRUE.equals(survey.getIsLocked())
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    public SurveyRequest getSurveyForAdminView(Long surveyId) {
+        com.example.demo.entity.Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát"));
+
+        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+            throw new RuntimeException("Khảo sát đã bị xóa");
+        }
+
+        SurveyRequest dto = new SurveyRequest();
+        dto.setTitle(survey.getTitle());
+        dto.setDescription(survey.getDescription());
+        dto.setSurveyFieldId(survey.getSurveyField() != null ? survey.getSurveyField().getId() : null);
+
+        List<QuestionRequest> questions = survey.getQuestions() != null
+                ? survey.getQuestions().stream()
+                        .sorted(java.util.Comparator.comparing(Question::getQuestionOrder, java.util.Comparator.nullsLast(Integer::compareTo)))
+                        .map(question -> {
+                            QuestionRequest questionDto = new QuestionRequest();
+                            questionDto.setId(question.getId());
+                            questionDto.setTitle(question.getTitle());
+                            questionDto.setType(question.getType());
+                            questionDto.setKind(question.getKind());
+                            questionDto.setRequired(question.getRequired());
+                            questionDto.setMaxFileSizeMb(question.getMaxFileSizeMb());
+                            questionDto.setMaxFileCount(question.getMaxFileCount());
+                            questionDto.setMediaUrl(question.getMediaUrl());
+
+                            List<OptionRequest> options = question.getOptions() != null
+                                    ? question.getOptions().stream()
+                                            .sorted(java.util.Comparator.comparing(Option::getOptionOrder, java.util.Comparator.nullsLast(Integer::compareTo)))
+                                            .map(option -> {
+                                                OptionRequest optionDto = new OptionRequest();
+                                                optionDto.setText(option.getText());
+                                                return optionDto;
+                                            })
+                                            .collect(Collectors.toList())
+                                    : Collections.emptyList();
+                            questionDto.setOptions(options);
+                            return questionDto;
+                        })
+                        .collect(Collectors.toList())
+                : Collections.emptyList();
+
+        dto.setQuestions(questions);
+        return dto;
+    }
+
+    private String getSurveyStatus(com.example.demo.entity.Survey survey) {
+        if (Boolean.TRUE.equals(survey.getIsLocked())) {
+            return "BI_KHOA";
+        }
+        if (Boolean.TRUE.equals(survey.getIsHidden())) {
+            return "DA_AN";
+        }
+        return "HOAT_DONG";
+    }
+
+    @Transactional
+    public AdminSurveyListItemDto lockSurvey(Long surveyId) {
+        com.example.demo.entity.Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát"));
+        survey.setIsLocked(true);
+        return toAdminSurveyListItem(surveyRepository.save(survey));
+    }
+
+    @Transactional
+    public AdminSurveyListItemDto unlockSurvey(Long surveyId) {
+        com.example.demo.entity.Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát"));
+        survey.setIsLocked(false);
+        return toAdminSurveyListItem(surveyRepository.save(survey));
+    }
+
+    @Transactional
+    public AdminSurveyListItemDto hideSurvey(Long surveyId) {
+        com.example.demo.entity.Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát"));
+        survey.setIsHidden(true);
+        return toAdminSurveyListItem(surveyRepository.save(survey));
+    }
+
+    @Transactional
+    public AdminSurveyListItemDto unhideSurvey(Long surveyId) {
+        com.example.demo.entity.Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát"));
+        survey.setIsHidden(false);
+        return toAdminSurveyListItem(surveyRepository.save(survey));
+    }
+
+    @Transactional
+    public void deleteSurvey(Long surveyId) {
+        com.example.demo.entity.Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khảo sát"));
+        survey.setIsDeleted(true);
+        surveyRepository.save(survey);
+    }
+
+    private AdminSurveyListItemDto toAdminSurveyListItem(com.example.demo.entity.Survey survey) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        User creator = survey.getUser();
+        UserProfile profile = creator != null ? creator.getProfile() : null;
+        String creatorName = profile != null && profile.getFullName() != null && !profile.getFullName().isBlank()
+                ? profile.getFullName()
+                : creator != null ? creator.getEmail() : "Không rõ";
+        String createdAt = survey.getCreatedAt() != null ? survey.getCreatedAt().format(formatter) : "";
+
+        return new AdminSurveyListItemDto(
+                survey.getId(),
+                survey.getTitle(),
+                creatorName,
+                creator != null ? creator.getEmail() : "",
+                surveyResponseRepository.countBySurveyId(survey.getId()),
+                createdAt,
+                getSurveyStatus(survey),
+                Boolean.TRUE.equals(survey.getIsHidden()),
+                Boolean.TRUE.equals(survey.getIsLocked())
+        );
     }
 
     @Transactional

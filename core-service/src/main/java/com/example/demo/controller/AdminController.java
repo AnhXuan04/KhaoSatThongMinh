@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.AdminDashboardStatsDto;
 import com.example.demo.dto.AdminQualityReviewDto;
+import com.example.demo.dto.AdminSurveyListItemDto;
+import com.example.demo.dto.SurveyRequest;
 import com.example.demo.dto.UserListItemDto;
 import com.example.demo.entity.SurveyField;
 import com.example.demo.service.AdminService;
@@ -48,6 +50,49 @@ public class AdminController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<AdminDashboardStatsDto> getDashboardStats() {
         return ResponseEntity.ok(adminService.getDashboardStats());
+    }
+
+    @GetMapping("/surveys")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<List<AdminSurveyListItemDto>> getSurveysForAdmin() {
+        return ResponseEntity.ok(adminService.getSurveysForAdmin());
+    }
+
+    @GetMapping("/surveys/{id}/view")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<SurveyRequest> getSurveyForAdminView(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getSurveyForAdminView(id));
+    }
+
+    @PutMapping("/surveys/{id}/lock")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminSurveyListItemDto> lockSurvey(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.lockSurvey(id));
+    }
+
+    @PutMapping("/surveys/{id}/unlock")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminSurveyListItemDto> unlockSurvey(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.unlockSurvey(id));
+    }
+
+    @PutMapping("/surveys/{id}/hide")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminSurveyListItemDto> hideSurvey(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.hideSurvey(id));
+    }
+
+    @PutMapping("/surveys/{id}/unhide")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminSurveyListItemDto> unhideSurvey(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.unhideSurvey(id));
+    }
+
+    @DeleteMapping("/surveys/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> deleteSurvey(@PathVariable Long id) {
+        adminService.deleteSurvey(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/coin-reviews")

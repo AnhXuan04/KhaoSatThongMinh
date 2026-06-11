@@ -34,9 +34,17 @@ public class Survey {
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
+    @Column(name = "is_hidden")
+    private Boolean isHidden = false;
+
+    @Column(name = "is_locked")
+    private Boolean isLocked = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         if (isDeleted == null) isDeleted = false;
+        if (isHidden == null) isHidden = false;
+        if (isLocked == null) isLocked = false;
     }
 }

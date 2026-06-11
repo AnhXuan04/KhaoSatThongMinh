@@ -111,7 +111,7 @@ public class SurveyService {
     }
 
     public List<SurveyListDto> getAllSurveys() {
-        List<Survey> surveys = surveyRepository.findByIsDeletedFalseOrderByCreatedAtDesc();
+        List<Survey> surveys = surveyRepository.findVisibleForIntervieweeOrderByCreatedAtDesc();
         return surveys.stream()
                 .map(SurveyListDto::fromSurvey)
                 .collect(Collectors.toList());
@@ -126,6 +126,8 @@ public class SurveyService {
                 .distinct()
                 .map(id -> surveyRepository.findById(id).orElse(null))
                 .filter(s -> s != null && !Boolean.TRUE.equals(s.getIsDeleted()))
+                .filter(s -> !Boolean.TRUE.equals(s.getIsHidden()))
+                .filter(s -> !Boolean.TRUE.equals(s.getIsLocked()))
                 .map(SurveyListDto::fromSurvey)
                 .collect(Collectors.toList());
     }
@@ -232,7 +234,7 @@ public class SurveyService {
         Survey survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new RuntimeException("Survey not found"));
 
-        if (Boolean.TRUE.equals(survey.getIsDeleted())) {
+        if (Boolean.TRUE.equals(survey.getIsDeleted()) || Boolean.TRUE.equals(survey.getIsHidden()) || Boolean.TRUE.equals(survey.getIsLocked())) {
             throw new RuntimeException("Khảo sát không tồn tại.");
         }
 
