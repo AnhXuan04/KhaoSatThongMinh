@@ -627,7 +627,7 @@
   border: none;
   border-bottom: 1px solid #e3e3e3;
   border-radius: 0;
-  font-family: inherit;
+  font-family: var(--app-font-family);
   font-size: 14px;
   color: #202124;
   transition: all 0.3s ease;
@@ -644,7 +644,7 @@
 
 .form-textarea {
   resize: vertical;
-  font-family: inherit;
+  font-family: var(--app-font-family);
 }
 
 .form-input::placeholder,
@@ -885,7 +885,7 @@
   font-size: 15px;
   font-weight: 500;
   color: #1f2937;
-  font-family: inherit;
+  font-family: var(--app-font-family);
   transition: all 0.3s ease;
 }
 
@@ -972,7 +972,7 @@
   background: transparent;
   font-size: 14px;
   color: #202124;
-  font-family: inherit;
+  font-family: var(--app-font-family);
 }
 
 .option-input-plain {
@@ -1041,7 +1041,7 @@
   background: white;
   font-size: 14px;
   color: #9aa0a6;
-  font-family: inherit;
+  font-family: var(--app-font-family);
 }
 
 .upload-preview-box {
@@ -1217,7 +1217,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: inherit;
+  font-family: var(--app-font-family);
   white-space: nowrap;
 }
 

@@ -1,26 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-	FiBarChart2,
-	FiFolder,
-	FiGrid,
 	FiLock,
 	FiMoreHorizontal,
 	FiSearch,
 	FiShield,
 	FiTrash2,
 	FiUser,
-	FiUnlock,
-	FiUsers
+	FiUnlock
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { adminSideMenus } from './adminSideMenus';
 import './MngUser.css';
-
-const sideMenus = [
-	{ key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: false, path: '/dashboard-admin' },
-	{ key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: true, path: '/dashboard-admin/users' },
-	{ key: 'categories', label: 'Quản lý Lĩnh vực', icon: FiFolder, active: false, path: '/dashboard-admin/categories' },
-	{ key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin/quality' }
-];
 
 const userTabs = [
 	{ key: 'all', label: 'Tất cả', active: true },
@@ -230,14 +220,14 @@ export default function MngUser() {
 				</div>
 
 				<nav className="mngUserMenu">
-					{sideMenus.map((menu) => {
+					{adminSideMenus.map((menu) => {
 						const Icon = menu.icon;
 
 						return (
 							<button
 								key={menu.key}
 								type="button"
-								className={`mngUserMenuItem ${menu.active ? 'active' : ''}`}
+								className={`mngUserMenuItem ${menu.key === 'users' ? 'active' : ''}`}
 								onClick={() => navigate(menu.path)}
 							>
 								<Icon />

@@ -5,16 +5,14 @@ import {
   FiCheckCircle,
   FiClock,
   FiFilter,
-  FiFolder,
-  FiGrid,
   FiSearch,
   FiShield,
   FiUser,
   FiUserCheck,
-  FiUsers,
   FiXCircle
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { adminSideMenus } from './adminSideMenus';
 import './DashboardAdmin.css';
 import './MngQualitySurvey.css';
 
@@ -38,13 +36,6 @@ type DashboardStats = {
   nonSuperficialSurveys: number;
   rewardEligibleResponses: number;
 };
-
-const sideMenus = [
-  { key: 'dashboard', label: 'Tổng quan', icon: FiGrid, path: '/dashboard-admin' },
-  { key: 'users', label: 'Người dùng', icon: FiUsers, path: '/dashboard-admin/users' },
-  { key: 'categories', label: 'Danh mục', icon: FiFolder, path: '/dashboard-admin/categories' },
-  { key: 'quality', label: 'Phân tích chất lượng', icon: FiBarChart2, path: '/dashboard-admin/quality' }
-];
 
 const numberFormatter = new Intl.NumberFormat('vi-VN');
 
@@ -227,7 +218,7 @@ export default function MngQualitySurvey() {
         </div>
 
         <nav className="adminMenu">
-          {sideMenus.map((menu) => {
+          {adminSideMenus.map((menu) => {
             const Icon = menu.icon;
             return (
               <button

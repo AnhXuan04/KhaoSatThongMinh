@@ -8,6 +8,7 @@ import ForgotPasswordPage from './page/ForgotPassPage';
 import DashboardPage from './page/interviewer/DashboardPage';
 import DashboardAdmin from './page/admin/DashboardAdminPage';
 import MngUser from './page/admin/MngUserPage';
+import MngSystemSurveyPage from './page/admin/MngSystemSurveyPage';
 import MngSurveyField from './page/admin/MngSurveyFieldPage';
 import MngQualitySurvey from './page/admin/MngQualitySurveyPage';
 import HomePage from './page/HomePage';
@@ -94,6 +95,8 @@ function App() {
           <Route path="/dashboard" element={<RequireRole role="INTERVIEWER"><DashboardPage /></RequireRole>} />
           <Route path="/dashboard-admin" element={<RequireRole role="ADMIN"><DashboardAdmin /></RequireRole>} />
           <Route path="/dashboard-admin/users" element={<RequireRole role="ADMIN"><MngUser /></RequireRole>} />
+          <Route path="/dashboard-admin/surveys" element={<RequireRole role="ADMIN"><MngSystemSurveyPage /></RequireRole>} />
+          <Route path="/dashboard-admin/surveys/:id" element={<RequireRole role="ADMIN"><ViewSurvey adminPreview /></RequireRole>} />
           <Route path="/dashboard-admin/categories" element={<RequireRole role="ADMIN"><MngSurveyField /></RequireRole>} />
           <Route path="/dashboard-admin/quality" element={<RequireRole role="ADMIN"><MngQualitySurvey /></RequireRole>} />
           <Route path="/manage-surveys" element={<RequireRole role="INTERVIEWER"><MngSurvey /></RequireRole>} />

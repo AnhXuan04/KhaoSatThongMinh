@@ -1,0 +1,343 @@
+.systemSurveyMain {
+  min-height: 100vh;
+  background: #fffafb;
+  border-left: 3px solid #3155ff;
+  padding: 34px 26px 46px;
+  font-family: var(--app-font-family);
+}
+
+.systemSurveyStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.systemSurveyStatCard {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 28px 32px 24px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.04);
+  min-height: 132px;
+}
+
+.systemSurveyStatCard span {
+  display: block;
+  color: #6b7280;
+  font-family: var(--app-font-family);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.systemSurveyStatCard strong {
+  display: inline-block;
+  margin-top: 10px;
+  color: #1f2937;
+  font-family: var(--app-font-family);
+  font-size: 33px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.systemSurveyStatCard small {
+  margin-left: 8px;
+  color: #1459ff;
+  font-family: var(--app-font-family);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.systemSurveyStatCard.red strong,
+.systemSurveyStatCard.red small {
+  color: #b2463e;
+}
+
+.systemSurveyProgress {
+  height: 3px;
+  margin-top: 24px;
+  background: #dfe6ff;
+  overflow: hidden;
+}
+
+.systemSurveyProgress i {
+  display: block;
+  height: 100%;
+  background: #1766ff;
+}
+
+.systemSurveyStatCard.red .systemSurveyProgress {
+  background: #f9d7d7;
+}
+
+.systemSurveyStatCard.red .systemSurveyProgress i {
+  background: #b2463e;
+}
+
+.systemSurveyListHead {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 58px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #f0edf0;
+}
+
+.systemSurveyListHead h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.systemSurveyListHead p {
+  margin: 11px 0 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.systemSurveyTools {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.systemSurveySearch {
+  height: 38px;
+  width: 250px;
+  border-bottom: 1px solid #d9dce3;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.systemSurveySearch input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #374151;
+  font-size: 14px;
+}
+
+.systemSurveySearch input::placeholder {
+  color: #9ca3af;
+}
+
+.systemSurveyTools button {
+  height: 38px;
+  border: none;
+  border-radius: 4px;
+  background: #e9e9ec;
+  color: #374151;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.systemSurveyTools button.active {
+  background: #dbe7ff;
+  color: #0b5ed7;
+}
+
+.systemSurveyList {
+  margin-top: 34px;
+  display: grid;
+  gap: 17px;
+}
+
+.systemSurveyItem {
+  min-height: 72px;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 23px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.03);
+}
+
+.systemSurveyItemContent {
+  min-width: 0;
+  flex: 1;
+  cursor: pointer;
+}
+
+.systemSurveyItemContent:focus-visible {
+  outline: 2px solid #1766ff;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.systemSurveyTitleLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.systemSurveyTitleLine h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.systemSurveyBadge {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.systemSurveyBadge.active {
+  background: #dbe7ff;
+  color: #1459ff;
+}
+
+.systemSurveyBadge.pending {
+  background: #eadbff;
+  color: #6d42b8;
+}
+
+.systemSurveyBadge.locked {
+  background: #ffd8d3;
+  color: #bc3f35;
+}
+
+.systemSurveyBadge.hidden {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.systemSurveyMeta {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.systemSurveyMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.systemSurveyMenuWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.systemSurveyMore {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #111827;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.systemSurveyMore:hover {
+  background: #f3f4f6;
+}
+
+.systemSurveyActionMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 190px;
+  border: 1px solid #eceff5;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+  padding: 7px;
+}
+
+.systemSurveyActionMenu button {
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #374151;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.systemSurveyActionMenu button:hover {
+  background: #f3f6fb;
+}
+
+.systemSurveyActionMenu button.danger {
+  color: #b42318;
+}
+
+.systemSurveyActionMenu button.danger:hover {
+  background: #fff1f0;
+}
+
+.systemSurveyEmpty {
+  min-height: 120px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .systemSurveyStats {
+    grid-template-columns: 1fr;
+  }
+
+  .systemSurveyListHead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .systemSurveyTools,
+  .systemSurveySearch {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .systemSurveyMain {
+    padding: 22px 16px 34px;
+  }
+
+  .systemSurveyStatCard {
+    padding: 22px;
+  }
+
+  .systemSurveyTools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .systemSurveyTools button {
+    justify-content: center;
+  }
+}

@@ -18,11 +18,15 @@ interface Question {
 interface Survey { id?: number | string; title: string; description?: string; questions: Question[] }
 interface BehaviorLog { questionId?: number; eventType: string; eventValue?: string; durationMs?: number }
 
-export default function ViewSurvey() {
+type ViewSurveyProps = {
+  adminPreview?: boolean;
+};
+
+export default function ViewSurvey({ adminPreview = false }: ViewSurveyProps) {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const responseId = searchParams.get('responseId');
-  const isReadonly = !!responseId;
+  const isReadonly = !!responseId || adminPreview;
 
   const navigate = useNavigate();
   const [survey, setSurvey] = useState<Survey | null>(null);
@@ -47,7 +51,14 @@ export default function ViewSurvey() {
 
     const fetchSurvey = async () => {
       try {
-        const res = await fetch((`/api/surveys/view/${encodeURIComponent(id)}`));
+        const url = adminPreview
+          ? `/api/admin/surveys/${encodeURIComponent(id)}/view`
+          : `/api/surveys/view/${encodeURIComponent(id)}`;
+        const res = await fetch(url, {
+          headers: {
+            ...(adminPreview && token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
         if (!res.ok) { setError('Không thể tải khảo sát'); setLoading(false); return; }
         const data = await res.json();
         setSurvey(data);
@@ -59,7 +70,7 @@ export default function ViewSurvey() {
     };
 
     fetchSurvey();
-  }, [id]);
+  }, [adminPreview, id, token]);
 
   // Nếu có responseId thì fetch câu trả lời cũ
   useEffect(() => {
@@ -105,6 +116,7 @@ export default function ViewSurvey() {
   }, [responseId, token]);
 
   const handleFileUpload = async (qId: any, file: File) => {
+    if (isReadonly) return;
     if (!file) return;
 
     const question = survey?.questions.find((q) => String(q.id) === String(qId));
@@ -269,7 +281,9 @@ export default function ViewSurvey() {
         <h1>{survey.title}</h1>
         {survey.description && <p className="survey-desc">{survey.description}</p>}
         {isReadonly && (
-          <div className="readonly-badge">Chế độ xem lại — không thể chỉnh sửa</div>
+          <div className="readonly-badge">
+            {adminPreview ? 'Admin đang xem nội dung khảo sát — không thể thực hiện khảo sát' : 'Chế độ xem lại — không thể chỉnh sửa'}
+          </div>
         )}
       </div>
 

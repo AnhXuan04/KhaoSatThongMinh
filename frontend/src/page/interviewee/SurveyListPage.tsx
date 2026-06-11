@@ -24,7 +24,7 @@ export default function SurveyListPage() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const allRes = await fetch(('/api/surveys/all'));
+        const allRes = await fetch('/api/surveys/all', { cache: 'no-store' });
         if (!allRes.ok) throw new Error();
         const allData: Survey[] = await allRes.json();
 

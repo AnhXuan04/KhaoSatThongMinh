@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
-  FiBarChart2,
   FiClipboard,
-  FiFolder,
-  FiGrid,
   FiShield,
   FiUser,
   FiUsers
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { adminSideMenus } from './adminSideMenus';
 import './DashboardAdmin.css';
-
-const sideMenus = [
-  { key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: true, path: '/dashboard-admin' },
-  { key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: false, path: '/dashboard-admin/users' },
-  { key: 'categories', label: 'Quản lý Lĩnh vực', icon: FiFolder, active: false, path: '/dashboard-admin/categories' },
-  { key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin/quality' }
-];
 
 type DashboardStats = {
   totalUsers: number;
@@ -202,13 +193,13 @@ export default function DashboardAdmin() {
         </div>
 
         <nav className="adminMenu">
-          {sideMenus.map((menu) => {
+          {adminSideMenus.map((menu) => {
             const Icon = menu.icon;
             return (
               <button
                 key={menu.key}
                 type="button"
-                className={`adminMenuItem ${menu.active ? 'active' : ''}`}
+                className={`adminMenuItem ${menu.key === 'dashboard' ? 'active' : ''}`}
                 onClick={() => navigate(menu.path)}
               >
                 <Icon />

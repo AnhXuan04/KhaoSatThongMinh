@@ -1,25 +1,15 @@
 import { useEffect, useState } from 'react';
 import {
-	FiBarChart2,
 	FiClipboard,
 	FiEdit3,
-	FiFolder,
-	FiGrid,
 	FiPlus,
 	FiShield,
 	FiTrash2,
-	FiUser,
-	FiUsers
+	FiUser
 } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { adminSideMenus } from './adminSideMenus';
 import './MngSurveyField.css';
-
-const sideMenus = [
-	{ key: 'dashboard', label: 'Tổng quan', icon: FiGrid, active: false, path: '/dashboard-admin' },
-	{ key: 'users', label: 'Quản lý Người dùng', icon: FiUsers, active: false, path: '/dashboard-admin/users' },
-	{ key: 'categories', label: 'Quản lý Lĩnh vực', icon: FiFolder, active: true, path: '/dashboard-admin/categories' },
-	{ key: 'quality', label: 'Phân tích Chất lượng', icon: FiBarChart2, active: false, path: '/dashboard-admin/quality' }
-];
 
 type SurveyFieldData = {
 	id: number;
@@ -394,13 +384,13 @@ export default function MngSurveyField() {
 				</div>
 
 				<nav className="mngFieldMenu">
-					{sideMenus.map((menu) => {
+					{adminSideMenus.map((menu) => {
 						const Icon = menu.icon;
 						return (
 							<button
 								key={menu.key}
 								type="button"
-								className={`mngFieldMenuItem ${menu.active ? 'active' : ''}`}
+								className={`mngFieldMenuItem ${menu.key === 'categories' ? 'active' : ''}`}
 								onClick={() => navigate(menu.path)}
 							>
 								<Icon />

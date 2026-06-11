@@ -1,7 +1,7 @@
 .container {
 	max-width: 900px;
 	margin: 0 auto;
-	font-family: inherit;
+	font-family: var(--app-font-family);
 	padding: 0 16px;
 	overflow-x: hidden;
 }
