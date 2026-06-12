@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AdminDashboardStatsDto;
+import com.example.demo.dto.AdminBillingDashboardDto;
 import com.example.demo.dto.AdminQualityReviewDto;
+import com.example.demo.dto.AdminPlanRequestDto;
 import com.example.demo.dto.AdminSurveyListItemDto;
 import com.example.demo.dto.SurveyRequest;
 import com.example.demo.dto.UserListItemDto;
@@ -50,6 +52,27 @@ public class AdminController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<AdminDashboardStatsDto> getDashboardStats() {
         return ResponseEntity.ok(adminService.getDashboardStats());
+    }
+
+    @GetMapping("/billing")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminBillingDashboardDto> getBillingDashboard() {
+        return ResponseEntity.ok(adminService.getBillingDashboard());
+    }
+
+    @PostMapping("/plans")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminBillingDashboardDto.PlanItemDto> createPlan(@RequestBody AdminPlanRequestDto request) {
+        return ResponseEntity.ok(adminService.createPlan(request));
+    }
+
+    @PutMapping("/plans/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<AdminBillingDashboardDto.PlanItemDto> updatePlan(
+            @PathVariable Long id,
+            @RequestBody AdminPlanRequestDto request
+    ) {
+        return ResponseEntity.ok(adminService.updatePlan(id, request));
     }
 
     @GetMapping("/surveys")

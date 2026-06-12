@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.AdminDashboardStatsDto;
+import com.example.demo.dto.AdminBillingDashboardDto;
 import com.example.demo.dto.AdminQualityReviewDto;
+import com.example.demo.dto.AdminPlanRequestDto;
 import com.example.demo.dto.AdminSurveyListItemDto;
 import com.example.demo.dto.OptionRequest;
 import com.example.demo.dto.QuestionRequest;
@@ -10,6 +12,9 @@ import com.example.demo.entity.AiAnalysisResult;
 import com.example.demo.entity.CoinTransaction;
 import com.example.demo.entity.CoinTransactionStatus;
 import com.example.demo.entity.Option;
+import com.example.demo.entity.PaymentStatus;
+import com.example.demo.entity.PaymentTransaction;
+import com.example.demo.entity.Plan;
 import com.example.demo.entity.Question;
 import com.example.demo.dto.UserListItemDto;
 import com.example.demo.entity.Role;
@@ -18,6 +23,8 @@ import com.example.demo.entity.User;
 import com.example.demo.entity.UserProfile;
 import com.example.demo.repository.AiAnalysisResultRepository;
 import com.example.demo.repository.CoinTransactionRepository;
+import com.example.demo.repository.PaymentTransactionRepository;
+import com.example.demo.repository.PlanRepository;
 import com.example.demo.repository.SurveyFieldRepository;
 import com.example.demo.repository.SurveyRepository;
 import com.example.demo.repository.SurveyResponseRepository;
@@ -53,6 +60,10 @@ public class AdminService {
     private UserProfileRepository userProfileRepository;
     @Autowired
     private SurveyResponseRepository surveyResponseRepository;
+    @Autowired
+    private PlanRepository planRepository;
+    @Autowired
+    private PaymentTransactionRepository paymentTransactionRepository;
 
     public List<UserListItemDto> getUsersForAdmin(String role) {
         Stream<User> userStream = userRepository.findAll(Sort.by(Sort.Direction.ASC, "id")).stream();
@@ -109,6 +120,111 @@ public class AdminService {
         statsDto.setNonSuperficialSurveys(aiAnalysisResultRepository.countBySuperficialFalse());
         statsDto.setRewardEligibleResponses(aiAnalysisResultRepository.countByRewardEligibleTrue());
         return statsDto;
+    }
+
+    public AdminBillingDashboardDto getBillingDashboard() {
+        List<AdminBillingDashboardDto.PlanItemDto> plans = planRepository.findAll(Sort.by(Sort.Direction.ASC, "priceMonthly"))
+                .stream()
+                .map(this::toPlanItemDto)
+                .collect(Collectors.toList());
+
+        List<AdminBillingDashboardDto.TransactionItemDto> transactions = paymentTransactionRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toTransactionItemDto)
+                .collect(Collectors.toList());
+
+        return new AdminBillingDashboardDto(
+                paymentTransactionRepository.sumSuccessfulRevenue(),
+                paymentTransactionRepository.count(),
+                paymentTransactionRepository.countByStatus(PaymentStatus.SUCCESS),
+                paymentTransactionRepository.countByStatus(PaymentStatus.FAILED),
+                paymentTransactionRepository.countByStatus(PaymentStatus.PENDING),
+                plans,
+                transactions
+        );
+    }
+
+    @Transactional
+    public AdminBillingDashboardDto.PlanItemDto createPlan(AdminPlanRequestDto request) {
+        if (request.getCode() == null || request.getCode().isBlank()) {
+            throw new RuntimeException("Vui lòng nhập mã gói dịch vụ");
+        }
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new RuntimeException("Vui lòng nhập tên gói dịch vụ");
+        }
+        if (planRepository.findByCode(request.getCode().trim()).isPresent()) {
+            throw new RuntimeException("Mã gói dịch vụ đã tồn tại");
+        }
+
+        Plan plan = new Plan();
+        plan.setCode(request.getCode().trim().toUpperCase());
+        plan.setName(request.getName().trim());
+        plan.setPriceMonthly(request.getPriceMonthly() != null ? request.getPriceMonthly() : java.math.BigDecimal.ZERO);
+        plan.setPriceYearly(request.getPriceYearly() != null ? request.getPriceYearly() : java.math.BigDecimal.ZERO);
+        plan.setFeaturesJson(request.getFeaturesJson() != null && !request.getFeaturesJson().isBlank()
+                ? request.getFeaturesJson().trim()
+                : "[]");
+        plan.setActive(request.isActive());
+
+        return toPlanItemDto(planRepository.save(plan));
+    }
+
+    @Transactional
+    public AdminBillingDashboardDto.PlanItemDto updatePlan(Long planId, AdminPlanRequestDto request) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy gói dịch vụ"));
+
+        if (request.getCode() == null || request.getCode().isBlank()) {
+            throw new RuntimeException("Vui lòng nhập mã gói dịch vụ");
+        }
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new RuntimeException("Vui lòng nhập tên gói dịch vụ");
+        }
+
+        String nextCode = request.getCode().trim().toUpperCase();
+        planRepository.findByCode(nextCode)
+                .filter(existing -> !existing.getId().equals(planId))
+                .ifPresent(existing -> {
+                    throw new RuntimeException("Mã gói dịch vụ đã tồn tại");
+                });
+
+        plan.setCode(nextCode);
+        plan.setName(request.getName().trim());
+        plan.setPriceMonthly(request.getPriceMonthly() != null ? request.getPriceMonthly() : java.math.BigDecimal.ZERO);
+        plan.setPriceYearly(request.getPriceYearly() != null ? request.getPriceYearly() : java.math.BigDecimal.ZERO);
+        plan.setFeaturesJson(request.getFeaturesJson() != null && !request.getFeaturesJson().isBlank()
+                ? request.getFeaturesJson().trim()
+                : "[]");
+        plan.setActive(request.isActive());
+
+        return toPlanItemDto(planRepository.save(plan));
+    }
+
+    private AdminBillingDashboardDto.PlanItemDto toPlanItemDto(Plan plan) {
+        return new AdminBillingDashboardDto.PlanItemDto(
+                plan.getId(),
+                plan.getCode(),
+                plan.getName(),
+                plan.getPriceMonthly(),
+                plan.getPriceYearly(),
+                plan.isActive()
+        );
+    }
+
+    private AdminBillingDashboardDto.TransactionItemDto toTransactionItemDto(PaymentTransaction transaction) {
+        String createdAt = transaction.getCreatedAt() != null
+                ? transaction.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                : "";
+
+        return new AdminBillingDashboardDto.TransactionItemDto(
+                transaction.getId(),
+                transaction.getPayerEmail(),
+                transaction.getPlan() != null ? transaction.getPlan().getName() : "Không xác định",
+                transaction.getBillingCycle(),
+                transaction.getAmount(),
+                transaction.getStatus() != null ? transaction.getStatus().name() : "PENDING",
+                createdAt
+        );
     }
 
     public List<AdminSurveyListItemDto> getSurveysForAdmin() {

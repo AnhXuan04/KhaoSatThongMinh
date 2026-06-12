@@ -15,10 +15,8 @@ public class PlanDataInitializer {
     @Bean
     CommandLineRunner initPlans(PlanRepository planRepository) {
         return args -> {
-            Plan currentPlan = upsertSinglePlan(planRepository, "SURVEY_PREMIUM", "Gói Khảo Sát Premium", new BigDecimal("89000"), new BigDecimal("854000"),
+            upsertSinglePlan(planRepository, "SURVEY_PREMIUM", "Gói Khảo Sát Premium", new BigDecimal("89000"), new BigDecimal("854000"),
                     "[\"Khảo sát không giới hạn\",\"1000 lượt phản hồi\",\"Phân tích logic\"]");
-
-            deactivateOtherPlans(planRepository, currentPlan.getCode());
         };
     }
 
@@ -38,13 +36,4 @@ public class PlanDataInitializer {
         return planRepository.save(plan);
     }
 
-    private void deactivateOtherPlans(PlanRepository planRepository, String activeCode) {
-        List<Plan> allPlans = planRepository.findAll();
-        for (Plan plan : allPlans) {
-            if (!activeCode.equals(plan.getCode()) && plan.isActive()) {
-                plan.setActive(false);
-                planRepository.save(plan);
-            }
-        }
-    }
 }

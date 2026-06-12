@@ -36,6 +36,7 @@ export default function ViewSurvey({ adminPreview = false }: ViewSurveyProps) {
   const [submitting, setSubmitting] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [previewFile, setPreviewFile] = useState<{ name: string; url: string } | null>(null);
+  const [invalidQuestionId, setInvalidQuestionId] = useState<string | null>(null);
   const token = sessionStorage.getItem('token') || localStorage.getItem('token');
   const surveyStartedAtRef = useRef(Date.now());
   const questionTouchedAtRef = useRef<Record<string, number>>({});
@@ -159,6 +160,7 @@ export default function ViewSurvey({ adminPreview = false }: ViewSurveyProps) {
           format: fileData.format,
         },
       }));
+      setInvalidQuestionId((current) => (current === String(qId) ? null : current));
     } catch (e) {
       console.error(e);
       alert('Lỗi khi tải tệp lên');
@@ -194,6 +196,36 @@ export default function ViewSurvey({ adminPreview = false }: ViewSurveyProps) {
       }
       return copy;
     });
+    setInvalidQuestionId((current) => (current === key ? null : current));
+  };
+
+  const isEmptyAnswer = (answer: any) => {
+    if (answer === undefined || answer === null || answer === '') {
+      return true;
+    }
+    if (Array.isArray(answer)) {
+      return answer.length === 0;
+    }
+    if (typeof answer === 'object') {
+      return !answer.secureUrl && !answer.cloudinaryPublicId && !answer.originalFileName;
+    }
+    return false;
+  };
+
+  const scrollToQuestion = (questionId: any) => {
+    const key = String(questionId);
+    setInvalidQuestionId(key);
+
+    window.requestAnimationFrame(() => {
+      const element = document.querySelector(`[data-question-id="${CSS.escape(key)}"]`);
+      if (element instanceof HTMLElement) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const focusTarget = element.querySelector('input, select, textarea, button:not(:disabled)');
+        if (focusTarget instanceof HTMLElement) {
+          window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 350);
+        }
+      }
+    });
   };
 
   const handleSubmit = async () => {
@@ -204,7 +236,8 @@ export default function ViewSurvey({ adminPreview = false }: ViewSurveyProps) {
 
     for (const q of answerableQuestions) {
       const ans = answers[q.id as any];
-      if (q.required && (ans === undefined || ans === '' || (Array.isArray(ans) && ans.length === 0))) {
+      if (q.required && isEmptyAnswer(ans)) {
+        scrollToQuestion(q.id);
         alert('Vui lòng trả lời tất cả các câu hỏi bắt buộc');
         return;
       }
@@ -289,7 +322,11 @@ export default function ViewSurvey({ adminPreview = false }: ViewSurveyProps) {
 
       <div className="survey-questions">
         {survey.questions.map((q, idx) => (
-          <div key={q.id || idx} className={`question-block ${isReadonly ? 'readonly' : ''}`}>
+          <div
+            key={q.id || idx}
+            data-question-id={String(q.id)}
+            className={`question-block ${isReadonly ? 'readonly' : ''} ${invalidQuestionId === String(q.id) ? 'missing-required' : ''}`}
+          >
             <div className="question-title">
               <span className="question-number">{String(idx + 1).padStart(2, '0')}.</span>
               <span className="question-text">{q.title || (q.kind === 'image' ? 'Hình ảnh' : q.kind === 'video' ? 'Video' : '')}</span>
