@@ -14,6 +14,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+# KIỂM TRA THƯ VIỆN 
 try:
     import joblib
     import pandas as pd
@@ -66,8 +67,10 @@ except Exception:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("survey-ai-service")
 
+# KHỞI TẠO FASTAPI
 app = FastAPI(title="Survey Quality AI Service")
 
+# CẤU HÌNH ĐƯỜNG DẪN MODEL & NGƯỠNG ĐÁNH GIÁ
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
 MODEL_PATH = MODEL_DIR / "superficial_classifier.joblib"
@@ -86,6 +89,7 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
 
 
+# MODEL DỮ LIỆU TRAIN AI
 class TrainingRecord(BaseModel):
     answerText: str = ""
     totalDurationMs: int = 0
@@ -118,6 +122,7 @@ class BehaviorLogPayload(BaseModel):
     durationMs: Optional[int] = 0
 
 
+# Dữ liệu đầu vào khi hệ thống phân tích người dùng
 class AnalyzeRequest(BaseModel):
     responseId: int
     surveyId: int
@@ -178,6 +183,7 @@ class SurveyReportResponse(BaseModel):
     modelName: str = "ai-service-report-writer-v1"
 
 
+# TIỀN XỬ LÝ TEXT (NLP)
 def preprocess_text(text: str) -> str:
     normalized = re.sub(r"\s+", " ", text.lower()).strip()
     normalized = re.sub(r"[^0-9a-zA-ZÀ-ỹ\s]", " ", normalized)
@@ -215,6 +221,7 @@ def secret_fingerprint(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:10]
 
 
+# TẠO PROMPT CHO AI VIẾT BÁO CÁO
 def build_survey_report_prompt(request: SurveyReportRequest) -> str:
     survey_data = pydantic_to_dict(request)
     for question in survey_data.get("questionReports", []):
@@ -283,6 +290,7 @@ def extract_json_object(text: str) -> dict:
             return json.loads(json_slice, strict=False)
 
 
+# GỌI API GEMINI ĐỂ SINH BÁO CÁO
 def call_gemini_report_writer(prompt: str) -> tuple[dict, str]:
     if not GEMINI_API_KEY.strip():
         raise ValueError("GEMINI_API_KEY is not configured.")
@@ -324,7 +332,7 @@ def call_gemini_report_writer(prompt: str) -> tuple[dict, str]:
         raise ValueError("Gemini returned an empty report.")
     return extract_json_object(raw_report), GEMINI_MODEL
 
-
+# Chuẩn hóa dữ liệu report trả về từ LLM (Gemini)
 def normalize_llm_report(data: dict, model_name: str) -> SurveyReportResponse:
     required_fields = ["executiveSummary", "answerSummary", "recommendation", "plainText"]
     missing = [field for field in required_fields if not str(data.get(field, "")).strip()]
@@ -345,7 +353,7 @@ def normalize_llm_report(data: dict, model_name: str) -> SurveyReportResponse:
         modelName=model_name,
     )
 
-
+# Hàm để tạo báo cáo survey bằng AI
 def build_ai_survey_report(request: SurveyReportRequest) -> SurveyReportResponse:
     if LLM_PROVIDER != "gemini":
         raise HTTPException(status_code=503, detail=f"Unsupported LLM_PROVIDER: {LLM_PROVIDER}")
@@ -378,7 +386,8 @@ def build_ai_survey_report(request: SurveyReportRequest) -> SurveyReportResponse
         logger.warning("Gemini returned invalid survey report. surveyId=%s error=%s", request.survey.id, exc)
         raise HTTPException(status_code=502, detail=f"LLM returned an invalid report: {exc}") from exc
 
-#--------------------------------------------------------------------
+
+# PHÂN TÍCH HÀNH VI TRẢ LỜI THANG ĐIỂM
 def calculate_scale_answer_stats(request: AnalyzeRequest) -> dict:
     scale_values = [
         answer.answerText.strip()
@@ -445,13 +454,14 @@ def calculate_scale_answer_stats(request: AnalyzeRequest) -> dict:
         "sameAnswerTriggered": same_answer_triggered,
     }
 
-
+# Kiểm tra câu hỏi có phải dạng text hay không
 def is_text_answer_question(answer: AnswerPayload) -> bool:
     question_type = (answer.questionType or "").lower()
     question_kind = (answer.questionKind or "").lower()
     return question_type in TEXT_ANSWER_TYPES or question_kind in TEXT_ANSWER_TYPES
 
 
+# Tạo thêm các đặc trưng (feature engineering) từ dữ liệu gốc
 def enrich_behavior_features(df):
     question_count = df["questionCount"].replace(0, 1)
     avg_duration = df["avgDurationPerQuestionMs"].fillna(0)
@@ -474,7 +484,7 @@ def enrich_behavior_features(df):
     df["missingBehaviorInteraction"] = answers_per_minute * (1 - has_behavior_signal)
     return df
 
-
+# TRÍCH XUẤT ĐẶC TRƯNG
 def build_features(request: AnalyzeRequest) -> dict:
     answer_texts = [answer.answerText.strip() for answer in request.answers if answer.answerText.strip()]
     semantic_answer_texts = [
@@ -518,7 +528,7 @@ def build_features(request: AnalyzeRequest) -> dict:
         "scale_stats": scale_stats,
     }
 
-
+# KIỂM TRA TRẢ LỜI QUÁ NHANH
 def is_fast_response(total_duration_ms: int, question_count: int) -> bool:
     if question_count <= 0:
         return False
@@ -526,6 +536,7 @@ def is_fast_response(total_duration_ms: int, question_count: int) -> bool:
     return (total_duration_ms / question_count) < FAST_ANSWER_MS_PER_QUESTION
 
 
+# Dùng model transformer để phân tích text
 def optional_transformer_summary(text: str) -> Optional[str]:
     model_name = os.getenv("TRANSFORMERS_TEXT_MODEL")
     if not TRANSFORMERS_READY or not model_name or not text.strip():
@@ -538,7 +549,7 @@ def optional_transformer_summary(text: str) -> Optional[str]:
     except Exception:
         return None
 
-
+# Vẽ và lưu confusion matrix sau khi train model
 def save_confusion_matrix(y_true, y_pred) -> Optional[str]:
     if not VISUALIZATION_READY:
         return None
@@ -567,6 +578,7 @@ def read_root():
     return {"message": "Survey Quality AI Service is running"}
 
 
+# API KIỂM TRA TRẠNG THÁI HỆ THỐNG
 @app.get("/api/health")
 def health():
     return {
@@ -585,17 +597,18 @@ def health():
     }
 
 
+# API train model AI để phân loại câu trả lời hời hợt vs chất lượng
 @app.post("/api/train-superficial-model")
 def train_superficial_model(request: TrainRequest):
     if not SKLEARN_READY:
-        raise HTTPException(status_code=503, detail="Install pandas, scikit-learn, and joblib before training.")
+        raise HTTPException(status_code=503, detail="Cài đặt padas, scikit-learn, và joblib trước khi huấn luyện.")
 
     if len(request.records) < 4:
-        raise HTTPException(status_code=400, detail="Need at least 4 labeled records to train.")
+        raise HTTPException(status_code=400, detail="Cần ít nhất 4 bản ghi được gắn nhãn để huấn luyện.")
 
     df = pd.DataFrame([record.dict() for record in request.records])
     if df["label"].nunique() < 2:
-        raise HTTPException(status_code=400, detail="Dataset must contain both superficial and quality labels.")
+        raise HTTPException(status_code=400, detail="Dataset phải chứa cả hai nhãn: hời hợt và chất lượng.")
 
     df["answer_text"] = df["answerText"].fillna("").map(preprocess_text)
     df["avgDurationPerQuestionMs"] = df.apply(
@@ -604,27 +617,28 @@ def train_superficial_model(request: TrainRequest):
         ),
         axis=1,
     )
+    #  Tạo các đặc trưng hành vi
     df = enrich_behavior_features(df)
     feature_columns = [
-        "answer_text",
-        "totalDurationMs",
-        "answerChangeCount",
-        "avgAnswerLength",
-        "questionCount",
-        "longestSameAnswerRate",
-        "sameAnswerRate",
-        "avgDurationPerQuestionMs",
-        "scaleQuestionCount",
-        "answerChangeRate",
-        "scaleQuestionRate",
-        "answersPerMinute",
-        "repetitionRate",
-        "hasTextSignal",
-        "hasBehaviorSignal",
-        "speedRepetitionInteraction",
-        "speedLowEngagementInteraction",
-        "speedNoTextInteraction",
-        "missingBehaviorInteraction",
+        "answer_text",                    #đặc trưng văn bản đã được tiền xử lý
+        "totalDurationMs",                #tổng thời gian trả lời khảo sát
+        "answerChangeCount",              #số lần thay đổi đáp án
+        "avgAnswerLength",                #độ dài trung bình của câu trả lời dạng text
+        "questionCount",                  #số câu hỏi đã trả lời
+        "longestSameAnswerRate",          #tỷ lệ chuỗi dài nhất cùng một đáp án trên tổng số câu hỏi thang đo
+        "sameAnswerRate",                 #tỷ lệ cùng một đáp án trên tổng số câu hỏi thang đo
+        "avgDurationPerQuestionMs",       #thời gian trung bình trả lời mỗi câu hỏi
+        "scaleQuestionCount",             #số câu hỏi thang đo
+        "answerChangeRate",               #tỷ lệ thay đổi đáp án trên tổng số câu hỏi
+        "scaleQuestionRate",              #tỷ lệ câu hỏi thang đo trên tổng số câu hỏi
+        "answersPerMinute",               #số câu trả lời trên mỗi phút
+        "repetitionRate",                 #tỷ lệ lặp lại đáp án (tối đa của longestSameAnswerRate và sameAnswerRate)
+        "hasTextSignal",                  #tín hiệu có câu trả lời dạng text (1 nếu có, 0 nếu không)
+        "hasBehaviorSignal",              #tín hiệu có hành vi (1 nếu có thời gian trả lời hoặc thay đổi đáp án, 0 nếu không)
+        "speedRepetitionInteraction",     #tương tác giữa tốc độ trả lời và tỷ lệ lặp lại đáp án
+        "speedLowEngagementInteraction",  #tương tác giữa tốc độ trả lời và tỷ lệ không thay đổi đáp án
+        "speedNoTextInteraction",         #tương tác giữa tốc độ trả lời và không có câu trả lời dạng text
+        "missingBehaviorInteraction",     #tương tác giữa tốc độ trả lời và không có tín hiệu hành vi
     ]
     x = df[feature_columns]
     y = df["label"]
@@ -715,6 +729,7 @@ def train_superficial_model(request: TrainRequest):
     return {"status": "success", **metadata}
 
 
+# API phân tích 1 phản hồi của user
 @app.post("/api/analyze-response", response_model=AnalyzeResponse)
 def analyze_response(request: AnalyzeRequest):
     if not SKLEARN_READY or not MODEL_PATH.exists():
@@ -785,6 +800,7 @@ def analyze_response(request: AnalyzeRequest):
     if transformer_summary:
         summary = f"{summary} {transformer_summary}"
 
+    # Gán tên mô hình đang sử dụng
     model_name = "sklearn-tfidf-logistic-v1"
     if METADATA_PATH.exists():
         try:
@@ -801,7 +817,7 @@ def analyze_response(request: AnalyzeRequest):
         modelName=model_name,
     )
 
-
+# API tạo report nội dung survey bằng AI (Gemini)
 @app.post("/api/generate-survey-content-report", response_model=SurveyReportResponse)
 def generate_survey_content_report(request: SurveyReportRequest):
     return build_ai_survey_report(request)
